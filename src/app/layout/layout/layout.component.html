@@ -1,0 +1,11 @@
+<mat-card class="dashboard-container">
+  <app-header></app-header>
+
+  <div class="sidenav-container">
+    <app-sidebar (sidebarToggled)="toggleContentMargin($event)"></app-sidebar>
+
+    <div class="content" [class.expanded]="isCollapsed">
+      <app-dashboard></app-dashboard>
+    </div>
+  </div>
+</mat-card>

@@ -1,0 +1,78 @@
+.custom-sidenav {
+    width: 250px;
+    background: #5D4037;
+    color: #EDE0D4;
+    padding-top: 15px;
+    transition: width 0.3s ease-in-out;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .custom-sidenav.closed {
+    width: 70px;
+  }
+  
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: #5D4037;
+    z-index: 100;
+  }
+  
+  /* Sidebar Toggle Button */
+.menu-icon {
+    font-size: 28px;
+    cursor: pointer;
+    color: #FFFFFF; /* White color */
+    transition: transform 0.3s ease;
+}
+
+.menu-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Sidebar Navigation Links */
+mat-nav-list {
+    padding: 10px 0;
+}
+
+mat-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.3s ease, padding-left 0.3s ease;
+    border-radius: 5px;
+    color: #FFFFFF; /* Ensuring white text */
+}
+
+mat-list-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    padding-left: 25px;
+}
+
+/* Sidebar Icons */
+mat-icon {
+    font-size: 24px;
+    color: #FFFFFF; /* White icons */
+    margin-right: 10px;
+}
+
+  
+  .custom-sidenav.closed .logo-text,
+  .custom-sidenav.closed span {
+    display: none;
+  }
+  
+  .custom-sidenav span {
+    color: #FFFFFF; /* White text */
+    font-size: 16px; /* Adjust font size as needed */
+    margin-left: 10px; /* Proper spacing from the icon */
+    display: inline-flex;
+    align-items: center;
+}
+

@@ -1,0 +1,49 @@
+/* Chocolate color theme */
+:root {
+    --chocolate: #5D4037;
+    --light-text: #EDE0D4;
+    --hover-bg: #8D6E63;
+    --active-border: #D7CCC8;
+  }
+  
+  .sidenav-container {
+    height: 100vh;
+    display: flex;
+  }
+  
+  /* Sidebar styles */
+  
+  
+  /* Collapsed sidebar */
+  .custom-sidenav.closed {
+    width: 70px;
+  }
+  
+  /* Hide text when collapsed */
+  .custom-sidenav.closed .logo-text,
+  .custom-sidenav.closed span {
+    display: none;
+  }
+  
+  /* Sidebar header */
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Logo text */
+  .logo-text {
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  
+  
+  .content {
+    flex: 1;
+    padding: 16px;
+    transition: margin-left 0.3s ease-in-out;
+  }
+  

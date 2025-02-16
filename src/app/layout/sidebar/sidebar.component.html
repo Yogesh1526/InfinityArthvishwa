@@ -1,0 +1,22 @@
+<mat-sidenav class="custom-sidenav" [class.closed]="isCollapsed" mode="side" opened>
+    <div class="sidebar-header">
+      <mat-icon class="menu-icon" (click)="toggleSidebar()">menu</mat-icon>
+      <span class="logo-text" *ngIf="!isCollapsed">Dashboard</span>
+    </div>
+  
+    <mat-nav-list>
+      <a mat-list-item routerLink="/home" routerLinkActive="active">
+        <mat-icon>home</mat-icon>
+        <span *ngIf="!isCollapsed">Home</span>
+      </a>
+      <a mat-list-item routerLink="/settings" routerLinkActive="active">
+        <mat-icon>settings</mat-icon>
+        <span *ngIf="!isCollapsed">Settings</span>
+      </a>
+      <a mat-list-item routerLink="/profile" routerLinkActive="active">
+        <mat-icon>person</mat-icon>
+        <span *ngIf="!isCollapsed">Profile</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+  
