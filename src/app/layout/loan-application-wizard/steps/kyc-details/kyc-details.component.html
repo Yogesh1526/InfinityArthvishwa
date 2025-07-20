@@ -1,0 +1,60 @@
+<mat-card class="kyc-form-card">
+    <h2>
+        <mat-icon color="primary">verified_user</mat-icon>
+        KYC Details
+    </h2>
+
+    <form [formGroup]="form" novalidate>
+        <!-- Aadhaar Document -->
+        <div class="form-row align-center">
+            <div class="upload-section">
+                <label class="upload-label" for="aadhaar-upload">Upload Aadhaar *</label>
+                <input type="file" id="aadhaar-upload" accept="image/*,application/pdf"
+                    (change)="onFileChange($event, 'aadhaar')" [disabled]="form.get('aadhaarVerified')?.value" hidden />
+                <button mat-raised-button color="primary" type="button" (click)="triggerFileInput('aadhaar-upload')"
+                    [disabled]="form.get('aadhaarVerified')?.value">
+                    Choose File
+                </button>
+
+                <span class="filename">
+                    {{ aadhaarPreview ? 'File Selected' : 'No file chosen' }}
+                </span>
+            </div>
+
+            <div class="document-preview" *ngIf="aadhaarPreview">
+                <img *ngIf="aadhaarPreview.toString().startsWith('data:image')" [src]="aadhaarPreview"
+                    alt="Aadhaar Preview" />
+                <p *ngIf="!aadhaarPreview.toString().startsWith('data:image')">PDF Uploaded</p>
+            </div>
+
+            <mat-checkbox formControlName="aadhaarVerified" color="primary">
+                Aadhaar Verified
+            </mat-checkbox>
+        </div>
+
+        <!-- PAN Document -->
+        <div class="form-row align-center">
+            <div class="upload-section">
+                <label class="upload-label" for="pan-upload">Upload PAN *</label>
+                <input type="file" id="pan-upload" accept="image/*,application/pdf"
+                    (change)="onFileChange($event, 'pan')" [disabled]="form.get('panVerified')?.value" hidden />
+                <button mat-raised-button color="primary" type="button" (click)="triggerFileInput('pan-upload')"
+                    [disabled]="form.get('panVerified')?.value">
+                    Choose File
+                </button>
+                <span class="filename">
+                    {{ panPreview ? 'File Selected' : 'No file chosen' }}
+                </span>
+            </div>
+
+            <div class="document-preview" *ngIf="panPreview">
+                <img *ngIf="panPreview.toString().startsWith('data:image')" [src]="panPreview" alt="PAN Preview" />
+                <p *ngIf="!panPreview.toString().startsWith('data:image')">PDF Uploaded</p>
+            </div>
+
+            <mat-checkbox formControlName="panVerified" color="primary">
+                PAN Verified
+            </mat-checkbox>
+        </div>
+    </form>
+</mat-card>

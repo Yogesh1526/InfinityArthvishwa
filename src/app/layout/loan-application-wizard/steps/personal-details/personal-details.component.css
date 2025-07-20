@@ -1,0 +1,124 @@
+/* Card Styling */
+.customer-form-card {
+  margin: 30px auto;
+  padding: 36px 48px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Header */
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 26px;
+  color: #1a237e;
+  margin-bottom: 28px;
+}
+
+/* Form Layout */
+.form-row {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  flex: 1 1 280px;
+  min-width: 280px;
+}
+
+/* Full width field if needed */
+.full-width {
+  flex: 1 1 100%;
+}
+
+/* Profile Picture Upload */
+.form-field label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+input[type="file"] {
+  border: 1px dashed #90caf9;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  background-color: #f5faff;
+  transition: background 0.2s;
+}
+
+input[type="file"]:hover {
+  background-color: #e3f2fd;
+}
+
+img {
+  display: block;
+  margin-top: 12px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+/* Material Form Field Styling Overrides */
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-color: #90caf9;
+}
+
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  border-color: #1e40af;
+}
+
+.mat-form-field .mat-form-field-label {
+  color: #444;
+  font-weight: 500;
+}
+
+.mat-error {
+  font-weight: 600;
+  font-size: 13px;
+  color: #d32f2f;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-start;
+  margin-top: 24px;
+}
+
+button[mat-raised-button] {
+  padding: 0 32px;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
+}
+
+button[mat-stroked-button] {
+  color: #1976d2;
+  border-color: #1976d2;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .customer-form-card {
+    padding: 24px 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-field {
+    min-width: 100%;
+  }
+}

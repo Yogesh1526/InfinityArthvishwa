@@ -11,6 +11,13 @@ import { ChartDialogComponent } from '../chart-dialog/chart-dialog.component';
 export class DashboardComponent {
   constructor(public dialog: MatDialog) {}
 
+  summaryCards = [
+    { title: 'This Week\'s Leads', value: 32, icon: 'person_add' },
+    { title: 'Applications Processed', value: 21, icon: 'assignment' },
+    { title: 'Total Collection', value: '₹1.5L', icon: 'account_balance_wallet' },
+    { title: 'Active Customers', value: 78, icon: 'groups' }
+  ];
+  
   openChartDialog(chartType: string): void {
     this.dialog.open(ChartDialogComponent, {
       width: '800px',

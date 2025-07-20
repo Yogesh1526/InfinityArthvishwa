@@ -1,0 +1,42 @@
+<mat-card class="family-form-card">
+    <h2><mat-icon color="primary">groups</mat-icon> Family Details</h2>
+  
+    <form [formGroup]="form" novalidate>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Spouse First Name</mat-label>
+          <input matInput formControlName="spouseFirstName" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Spouse Last Name</mat-label>
+          <input matInput formControlName="spouseLastName" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Father's First Name</mat-label>
+          <input matInput formControlName="fatherFirstName" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Father's Last Name</mat-label>
+          <input matInput formControlName="fatherLastName" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mother's First Name</mat-label>
+          <input matInput formControlName="motherFirstName" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mother's Last Name</mat-label>
+          <input matInput formControlName="motherLastName" />
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-card>
+  

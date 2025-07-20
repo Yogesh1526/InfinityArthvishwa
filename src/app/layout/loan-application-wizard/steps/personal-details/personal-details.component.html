@@ -1,0 +1,173 @@
+<mat-card class="customer-form-card">
+    <h2>
+      <mat-icon color="primary">person</mat-icon>
+      Personal Details
+    </h2>
+  
+    <form [formGroup]="form" novalidate>
+  
+      <!-- Profile Picture Upload / Display -->
+      <div class="form-row">
+        <div class="form-field profile-upload">
+          <label>Profile Picture</label><br />
+  
+          <!-- Show file input only if NOT in view mode -->
+          <ng-container *ngIf="!isViewMode">
+            <input type="file" accept="image/*" (change)="onFileChange($event)" />
+          </ng-container>
+  
+          <img
+            *ngIf="profilePreview || form.value.profilePicture"
+            [src]="profilePreview || form.value.profilePicture"
+            alt="Profile Picture"
+            class="profile-image"
+          />
+        </div>
+      </div>
+  
+      <!-- Name and Gender Row -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Salutation</mat-label>
+          <input matInput formControlName="salutation" [readonly]="isViewMode" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>First Name *</mat-label>
+          <input matInput formControlName="firstName" [readonly]="isViewMode" />
+          <mat-error *ngIf="form.get('firstName')?.hasError('required')">Required</mat-error>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Middle Name</mat-label>
+          <input matInput formControlName="middleName" [readonly]="isViewMode" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="lastName" [readonly]="isViewMode" />
+        </mat-form-field>
+      </div>
+  
+      <!-- DOB, Gender, Age -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Date of Birth *</mat-label>
+          <input
+            matInput
+            [matDatepicker]="dobPicker"
+            formControlName="dob"
+            [readonly]="isViewMode"
+            [disabled]="isViewMode"
+          />
+          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+          <mat-datepicker #dobPicker></mat-datepicker>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Gender *</mat-label>
+          <mat-select formControlName="gender" [disabled]="isViewMode">
+            <mat-option value="Male">Male</mat-option>
+            <mat-option value="Female">Female</mat-option>
+            <mat-option value="Other">Other</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Age</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="age"
+            [readonly]="isViewMode"
+          />
+        </mat-form-field>
+      </div>
+  
+      <!-- Contact Info -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mobile Number *</mat-label>
+          <input
+            matInput
+            formControlName="mobileNumber"
+            maxlength="10"
+            [readonly]="isViewMode"
+          />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Alternate Mobile</mat-label>
+          <input
+            matInput
+            formControlName="altMobileNumber"
+            maxlength="10"
+            [readonly]="isViewMode"
+          />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" [readonly]="isViewMode" />
+        </mat-form-field>
+      </div>
+  
+      <!-- Additional Details -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Marital Status *</mat-label>
+          <mat-select formControlName="maritalStatus" [disabled]="isViewMode">
+            <mat-option value="Single">Single</mat-option>
+            <mat-option value="Married">Married</mat-option>
+            <mat-option value="Divorced">Divorced</mat-option>
+            <mat-option value="Widowed">Widowed</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Education</mat-label>
+          <input matInput formControlName="education" [readonly]="isViewMode" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Preferred Language</mat-label>
+          <input matInput formControlName="preferredLanguage" [readonly]="isViewMode" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Client Type</mat-label>
+          <mat-select formControlName="clientType" [disabled]="isViewMode">
+            <mat-option value="Regular">Regular</mat-option>
+            <mat-option value="Premium">Premium</mat-option>
+            <mat-option value="VIP">VIP</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Religion</mat-label>
+          <input matInput formControlName="religion" [readonly]="isViewMode" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Risk Category</mat-label>
+          <input matInput formControlName="riskCategory" [readonly]="isViewMode" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Nationality</mat-label>
+          <input matInput formControlName="nationality" [readonly]="isViewMode" />
+        </mat-form-field>
+      </div>
+  
+      <!-- Show submit button only if not view mode -->
+      <div class="form-row form-actions" *ngIf="!isViewMode">
+        <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">
+          Submit
+        </button>
+        <button mat-stroked-button type="button" (click)="onReset()">Reset</button>
+      </div>
+    </form>
+  </mat-card>
+  

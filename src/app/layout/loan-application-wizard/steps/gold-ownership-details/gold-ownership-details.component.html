@@ -1,0 +1,43 @@
+<mat-card class="gold-ownership-form-card">
+    <h2>
+      <mat-icon color="primary">diamond</mat-icon>
+      Gold Ownership Details
+    </h2>
+  
+    <form [formGroup]="form" novalidate>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Source of Jewellery</mat-label>
+          <mat-select formControlName="sourceOfJewellery">
+            <mat-option value="Self Purchase">Self Purchase</mat-option>
+            <mat-option value="Gift">Gift</mat-option>
+            <mat-option value="Inheritance">Inheritance</mat-option>
+            <mat-option value="Others">Others</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Year of Purchase</mat-label>
+          <input matInput type="number" formControlName="yearOfPurchase" placeholder="e.g., 2022" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Store Name & Location</mat-label>
+          <input matInput formControlName="storeDetails" placeholder="e.g., Tanishq, Mumbai" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Purpose of Purchasing</mat-label>
+          <mat-select formControlName="purchasePurpose">
+            <mat-option value="Investment">Investment</mat-option>
+            <mat-option value="Wedding">Wedding</mat-option>
+            <mat-option value="Gift">Gift</mat-option>
+            <mat-option value="Other">Other</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-card>
+  

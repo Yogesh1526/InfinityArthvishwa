@@ -1,0 +1,86 @@
+<mat-card class="worklist-container">
+    <h2 class="section-title"><mat-icon>list_alt</mat-icon> Worklist</h2>
+  
+    <mat-tab-group (selectedTabChange)="
+      selectedIndex = $event.index;
+      onFilterChange(getCurrentData());
+    ">
+      <mat-tab label="Tasks">
+        <ng-container *ngTemplateOutlet="tableTemplate; context:{ data: tasks }"></ng-container>
+      </mat-tab>
+      <mat-tab label="Checker">
+        <ng-container *ngTemplateOutlet="tableTemplate; context:{ data: checkers }"></ng-container>
+      </mat-tab>
+      <mat-tab label="Deviations">
+        <ng-container *ngTemplateOutlet="tableTemplate; context:{ data: deviations }"></ng-container>
+      </mat-tab>
+      <mat-tab label="Pendencies">
+        <ng-container *ngTemplateOutlet="tableTemplate; context:{ data: pendencies }"></ng-container>
+      </mat-tab>
+    </mat-tab-group>
+  
+    <ng-template #tableTemplate let-data="data">
+      <div class="table-tools">
+        <mat-form-field appearance="fill" class="filter-field">
+          <mat-label>Filter Activity Type</mat-label>
+          <mat-select [(ngModel)]="activityFilter" (selectionChange)="onFilterChange(data)">
+            <mat-option value="">All</mat-option>
+            <mat-option value="Approval">Approval</mat-option>
+            <mat-option value="Review">Review</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="fill" class="search-field">
+          <mat-label>Search</mat-label>
+          <input
+            matInput
+            [(ngModel)]="searchTerm"
+            (input)="onFilterChange(data)"
+            placeholder="Search description..."
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+  
+      <div class="table-scroll-container">
+      <table mat-table [dataSource]="dataSource" class="styled-table mat-elevation-z4">
+        <!-- Columns -->
+        <ng-container matColumnDef="activityType">
+          <th mat-header-cell *matHeaderCellDef>Activity</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="activity-pill" [ngClass]="row.activityType.toLowerCase()">{{ row.activityType }}</span>
+          </td>
+        </ng-container>
+  
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+        </ng-container>
+  
+        <ng-container matColumnDef="assignedAt">
+          <th mat-header-cell *matHeaderCellDef>Assigned At</th>
+          <td mat-cell *matCellDef="let row">{{ row.assignedAt }}</td>
+        </ng-container>
+  
+        <ng-container matColumnDef="dueTime">
+          <th mat-header-cell *matHeaderCellDef>Due</th>
+          <td mat-cell *matCellDef="let row">{{ row.dueTime }}</td>
+        </ng-container>
+  
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-stroked-button color="primary">
+              <mat-icon>open_in_new</mat-icon> Open
+            </button>
+          </td>
+        </ng-container>
+  
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-body-row"></tr>
+      </table>
+      </div>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+    </ng-template>
+  </mat-card>
+  

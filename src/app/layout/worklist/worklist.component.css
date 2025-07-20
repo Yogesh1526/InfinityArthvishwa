@@ -1,0 +1,138 @@
+/* Base layout */
+.worklist-container {
+  padding: 30px;
+  background-color: #f5f8fa;
+  border-radius: 12px;
+}
+
+/* Mobile padding */
+@media (max-width: 600px) {
+  .worklist-container {
+    padding: 16px;
+  }
+}
+
+/* Section Title */
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #2c3e50;
+}
+
+.section-title mat-icon {
+  margin-right: 8px;
+  color: #1976d2;
+}
+
+/* Table Tools (Filter & Search) */
+.table-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filter-field,
+.search-field {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* Stack filter and search fields vertically on mobile */
+@media (max-width: 600px) {
+  .filter-field,
+  .search-field {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .table-tools {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* Table Styles */
+.styled-table {
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.table-header-row {
+  background-color: #f0f4f7;
+  font-weight: bold;
+  color: #333;
+}
+
+.table-body-row:hover {
+  background-color: #f9f9f9;
+}
+
+/* Responsive Table Scroll */
+@media (max-width: 768px) {
+  .styled-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .styled-table table {
+    min-width: 600px;
+  }
+}
+
+/* Activity Pills */
+.activity-pill {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+.activity-pill.approval {
+  background-color: #00bcd4;
+}
+
+.activity-pill.review {
+  background-color: #ff9800;
+}
+
+/* Button icon spacing */
+button mat-icon {
+  margin-right: 4px;
+}
+
+.table-scroll-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.worklist-container mat-tab-group,
+mat-tab-group {
+  margin-bottom: 54px;
+}
+
+/* Make button and icon readable on small screens */
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 20px;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 6px 12px;
+    width: 100%;
+  }
+
+  button mat-icon {
+    margin-right: 6px;
+  }
+}

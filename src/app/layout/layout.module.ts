@@ -8,6 +8,23 @@ import { MaterialModule } from '../material.module';
 import { RouterModule } from '@angular/router';
 import { ChartDialogComponent } from './chart-dialog/chart-dialog.component';
 import { NgxEchartsModule } from 'ngx-echarts';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { WorklistComponent } from './worklist/worklist.component';
+import { BasicDetailsComponent } from './basic-details/basic-details.component';
+import { LoanInfoComponent } from './loan-info/loan-info.component';
+import { LoanApplicationWizardComponent } from './loan-application-wizard/loan-application-wizard.component';
+import { PersonalDetailsComponent } from './loan-application-wizard/steps/personal-details/personal-details.component';
+import { FamilyDetailsComponent } from './loan-application-wizard/steps/family-details/family-details.component';
+import { AddressActivityComponent } from './loan-application-wizard/steps/address-activity/address-activity.component';
+import { HttpClientModule } from '@angular/common/http';
+import { WorkDetailsComponent } from './loan-application-wizard/steps/work-details/work-details.component';
+import { KycDetailsComponent } from './loan-application-wizard/steps/kyc-details/kyc-details.component';
+import { AdditionalDocumentsComponent } from './loan-application-wizard/steps/additional-documents/additional-documents.component';
+import { ClientDocumentsComponent } from './loan-application-wizard/steps/client-documents/client-documents.component';
+import { NomineeComponent } from './loan-application-wizard/steps/nominee/nominee.component';
+import { ReferenceDetailsComponent } from './loan-application-wizard/steps/reference-details/reference-details.component';
+import { GoldOwnershipDetailsComponent } from './loan-application-wizard/steps/gold-ownership-details/gold-ownership-details.component';
+import { FirstValuationComponent } from './loan-application-wizard/steps/first-valuation/first-valuation.component';
 
 
 
@@ -17,10 +34,25 @@ import { NgxEchartsModule } from 'ngx-echarts';
     HeaderComponent,
     DashboardComponent,
     LayoutComponent,
-    ChartDialogComponent
+    ChartDialogComponent,
+    WorklistComponent,
+    BasicDetailsComponent,
+    LoanInfoComponent,
+    LoanApplicationWizardComponent,
+    PersonalDetailsComponent,
+    FamilyDetailsComponent,
+    AddressActivityComponent,
+    WorkDetailsComponent,
+    KycDetailsComponent,
+    AdditionalDocumentsComponent,
+    ClientDocumentsComponent,
+    NomineeComponent,
+    ReferenceDetailsComponent,
+    GoldOwnershipDetailsComponent,
+    FirstValuationComponent
   ],
   imports: [
-    CommonModule,RouterModule,MaterialModule,
+    CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts') // Lazy load ECharts
     })

@@ -1,3 +1,26 @@
 <header class="header">
-    <span class="header-title">InfinityArthvishwa</span>
-</header>
+    <div class="header-left">
+      <mat-icon class="menu-icon">menu</mat-icon>
+      <span class="header-title">Dhanprerana</span>
+    </div>
+  
+    <nav class="header-nav">
+        <a (click)="navigateTo('dashboard')">Dashboard</a>
+        <a (click)="navigateTo('worklist')">Task</a>
+        <a (click)="navigateTo('loan-info-details')">Loan Application</a>
+        <a (click)="navigateTo('loan-info')">Collection</a>
+        <a (click)="navigateTo('loan-wizard')">Customer</a>
+        <a (click)="navigateTo('reports')">Reports</a>
+    </nav>
+      
+  
+    <div class="header-right">
+      <mat-icon class="header-icon">search</mat-icon>
+      <mat-icon class="header-icon">notifications</mat-icon>
+      <div class="profile">
+        <mat-icon class="profile-icon">account_circle</mat-icon>
+        <span>John</span>
+      </div>
+    </div>
+  </header>
+  

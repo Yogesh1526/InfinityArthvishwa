@@ -39,6 +39,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 //import { MomentDateModule } from '@angular/material-moment-adapter';
 // import {MomentDateAdapter} from '@angular/material-moment-adapter';
 
@@ -87,7 +88,7 @@ import { MatDialogModule } from '@angular/material/dialog';
         MatTooltipModule,
         MatTreeModule,
         OverlayModule,
-        PortalModule
+        PortalModule,MatFormFieldModule
     ]
 })
 export class MaterialModule { }

@@ -1,79 +1,54 @@
 <mat-card class="main-card">
-    <h2>Dashboard</h2>
-    <p>Welcome to the dashboard!</p>
-  
-    <div class="grid-container">
-      <!-- Donut Chart -->
-      <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Revenue Distribution</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('donut')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="donutChart" class="chart"></echarts>
-      </mat-card>
-  
-      <!-- Bar Chart -->
-      <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Business Performance</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('bar')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="barChart" class="chart"></echarts>
-      </mat-card>
-  
-      <!-- Line Chart -->
-      <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Sales Trends</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('line')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="lineChart" class="chart"></echarts>
-      </mat-card>
-  
-      <!-- Pie Chart -->
-      <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Customer Segmentation</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('pie')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="pieChart" class="chart"></echarts>
-      </mat-card>
+  <h2>Dashboard</h2>
+  <p>Welcome to the dashboard!</p>
 
-       <!-- Line Chart -->
-       <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Sales Trends</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('line')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="lineChart" class="chart"></echarts>
-      </mat-card>
-  
-      <!-- Pie Chart -->
-      <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Customer Segmentation</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('pie')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="pieChart" class="chart"></echarts>
-      </mat-card>
+  <!-- Summary Cards Row -->
+  <div class="summary-cards">
+    <mat-card class="summary-card" *ngFor="let card of summaryCards">
+      <!-- <mat-icon>{{ card.icon }}</mat-icon> -->
+      <div class="card-info">
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.value }}</p>
+      </div>
+    </mat-card>
+  </div>
 
-       <!-- Line Chart -->
-       <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Sales Trends</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('line')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="lineChart" class="chart"></echarts>
-      </mat-card>
-  
-      <!-- Pie Chart -->
-      <mat-card class="chart-card">
-        <div class="chart-header">
-          <span>Customer Segmentation</span>
-          <mat-icon class="expand-icon" (click)="openChartDialog('pie')">open_in_full</mat-icon>
-        </div>
-        <echarts [options]="pieChart" class="chart"></echarts>
-      </mat-card>
-    </div>
-  </mat-card>
-  
+  <!-- Charts Grid -->
+  <div class="grid-container">
+    <!-- Donut Chart -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <span>Revenue Distribution</span>
+        <mat-icon class="expand-icon" (click)="openChartDialog('donut')">open_in_full</mat-icon>
+      </div>
+      <echarts [options]="donutChart" class="chart"></echarts>
+    </mat-card>
+
+    <!-- Bar Chart -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <span>Business Performance</span>
+        <mat-icon class="expand-icon" (click)="openChartDialog('bar')">open_in_full</mat-icon>
+      </div>
+      <echarts [options]="barChart" class="chart"></echarts>
+    </mat-card>
+
+    <!-- Line Chart -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <span>Sales Trends</span>
+        <mat-icon class="expand-icon" (click)="openChartDialog('line')">open_in_full</mat-icon>
+      </div>
+      <echarts [options]="lineChart" class="chart"></echarts>
+    </mat-card>
+
+    <!-- Pie Chart -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <span>Customer Segmentation</span>
+        <mat-icon class="expand-icon" (click)="openChartDialog('pie')">open_in_full</mat-icon>
+      </div>
+      <echarts [options]="pieChart" class="chart"></echarts>
+    </mat-card>
+  </div>
+</mat-card>

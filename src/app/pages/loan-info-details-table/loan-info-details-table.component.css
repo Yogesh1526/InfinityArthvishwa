@@ -1,0 +1,142 @@
+.loan-dashboard {
+    padding: 1.5rem;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .status-cards {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  
+  .status-card {
+    flex: 1 1 180px;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .status-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .status-card.loan {
+    background-color: #6c757d;
+  }
+  .status-card.approved {
+    background-color: #28a745;
+  }
+  .status-card.rejected {
+    background-color: #dc3545;
+  }
+  .status-card.disbursed {
+    background-color: #007bff;
+  }
+  .status-card.abandoned {
+    background-color: #ffc107;
+    color: #000;
+  }
+  
+  .status-title {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .status-count {
+    font-size: 1.4rem;
+    font-weight: bold;
+  }
+  
+  .filter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .new-lead-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .new-lead-btn:hover {
+    background-color: #218838;
+  }
+  
+  .filter-row input {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    flex: 1 1 300px;
+    max-width: 100%;
+  }
+  
+  .loan-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  .loan-table th,
+  .loan-table td {
+    padding: 0.75rem;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+  }
+  
+  .loan-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+  }
+  
+  .loan-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .loan-table button {
+    margin-right: 0.5rem;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background-color: #17a2b8;
+    color: white;
+    cursor: pointer;
+  }
+  .loan-table button:last-child {
+    background-color: #dc3545;
+  }
+  .loan-table button:hover {
+    opacity: 0.9;
+  }
+  
+  .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .pagination-controls button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .pagination-controls button[disabled] {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  

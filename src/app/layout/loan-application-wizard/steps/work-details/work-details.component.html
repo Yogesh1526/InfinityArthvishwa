@@ -1,0 +1,33 @@
+<mat-card class="work-form-card">
+    <h2>
+      <mat-icon color="primary">work</mat-icon>
+      Work Details
+    </h2>
+  
+    <form [formGroup]="form" novalidate>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Customer Segment</mat-label>
+          <input matInput formControlName="customerSegment" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Occupation</mat-label>
+          <input matInput formControlName="occupation" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Experience in Current Job (Years)</mat-label>
+          <input matInput type="number" formControlName="experienceInCurrentJob" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Annual Income</mat-label>
+          <input matInput type="number" formControlName="annualIncome" />
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-card>
+  

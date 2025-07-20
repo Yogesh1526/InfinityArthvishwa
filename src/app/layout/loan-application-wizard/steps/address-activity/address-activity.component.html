@@ -1,0 +1,69 @@
+<mat-card class="address-form-card">
+    <h2>
+      <mat-icon color="primary">home</mat-icon>
+      Residential Address
+    </h2>
+  
+    <form [formGroup]="form" novalidate>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Ownership</mat-label>
+          <input matInput formControlName="residentialAddressOwnership" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Address Line 1</mat-label>
+          <input matInput formControlName="addressLine1" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Address Line 2</mat-label>
+          <input matInput formControlName="addressLine2" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Landmark</mat-label>
+          <input matInput formControlName="landmark" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Village / Town / City</mat-label>
+          <input matInput formControlName="villageTownCity" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>District</mat-label>
+          <input matInput formControlName="district" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>State</mat-label>
+          <input matInput formControlName="state" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Pincode</mat-label>
+          <input matInput maxlength="6" formControlName="pincode" />
+        </mat-form-field>
+      </div>
+  
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Country</mat-label>
+          <input matInput formControlName="country" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Number of Years at Residence</mat-label>
+          <input matInput type="number" formControlName="yearsAtResidence" />
+        </mat-form-field>
+      </div>
+    </form>
+  </mat-card>
+  

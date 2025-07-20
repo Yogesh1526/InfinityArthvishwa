@@ -2,10 +2,10 @@
   <app-header></app-header>
 
   <div class="sidenav-container">
-    <app-sidebar (sidebarToggled)="toggleContentMargin($event)"></app-sidebar>
-
+    <!-- Sidebar can go here -->
     <div class="content" [class.expanded]="isCollapsed">
-      <app-dashboard></app-dashboard>
+      <!-- Render child routes like dashboard, worklist, etc. -->
+      <router-outlet></router-outlet>
     </div>
   </div>
 </mat-card>

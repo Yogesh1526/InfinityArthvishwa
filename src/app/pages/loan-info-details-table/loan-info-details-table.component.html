@@ -1,0 +1,64 @@
+<div class="loan-dashboard">
+    <!-- Status Cards -->
+    <div class="status-cards">
+      <div class="status-card loan" (click)="changeStatusFilter('All')">
+        <div class="status-title">All Applications</div>
+        <div class="status-count">{{ loanCount }}</div>
+      </div>
+      <div class="status-card approved" (click)="changeStatusFilter('Approved')">
+        <div class="status-title">Approved</div>
+        <div class="status-count">{{ approvedCount }}</div>
+      </div>
+      <div class="status-card rejected" (click)="changeStatusFilter('Rejected')">
+        <div class="status-title">Rejected</div>
+        <div class="status-count">{{ rejectedCount }}</div>
+      </div>
+      <div class="status-card disbursed" (click)="changeStatusFilter('Disbursed')">
+        <div class="status-title">Disbursed</div>
+        <div class="status-count">{{ disbursedCount }}</div>
+      </div>
+      <div class="status-card abandoned" (click)="changeStatusFilter('Abandoned')">
+        <div class="status-title">Abandoned</div>
+        <div class="status-count">{{ abandonedCount }}</div>
+      </div>
+    </div>
+  
+    <!-- Filter Row -->
+    <div class="filter-row">
+      <button class="new-lead-btn" (click)="addNewLoan()">+ New Lead</button>
+      <input type="text" [(ngModel)]="filterText" placeholder="Search by name or ID..." />
+    </div>
+  
+    <!-- Table -->
+    <table class="loan-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Applicant Name</th>
+          <th>Status</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let loan of pagedLoans">
+          <td>{{ loan.id }}</td>
+          <td>{{ loan.name }}</td>
+          <td>{{ loan.status }}</td>
+          <td>{{ loan.loanAmount | currency }}</td>
+          <td>
+            <button (click)="editLoan(loan)">Edit</button>
+            <button (click)="deleteLoan(loan.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  
+    <!-- Pagination -->
+    <div class="pagination-controls" *ngIf="totalPages > 1">
+      <button (click)="prevPage()" [disabled]="currentPage === 1">« Prev</button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next »</button>
+    </div>
+  </div>
+  
