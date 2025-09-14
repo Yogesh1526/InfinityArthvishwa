@@ -1,60 +1,126 @@
 <mat-card class="kyc-form-card">
     <h2>
-        <mat-icon color="primary">verified_user</mat-icon>
-        KYC Details
+      <mat-icon color="primary">verified_user</mat-icon>
+      KYC Details
     </h2>
-
+  
     <form [formGroup]="form" novalidate>
-        <!-- Aadhaar Document -->
-        <div class="form-row align-center">
-            <div class="upload-section">
-                <label class="upload-label" for="aadhaar-upload">Upload Aadhaar *</label>
-                <input type="file" id="aadhaar-upload" accept="image/*,application/pdf"
-                    (change)="onFileChange($event, 'aadhaar')" [disabled]="form.get('aadhaarVerified')?.value" hidden />
-                <button mat-raised-button color="primary" type="button" (click)="triggerFileInput('aadhaar-upload')"
-                    [disabled]="form.get('aadhaarVerified')?.value">
-                    Choose File
-                </button>
-
-                <span class="filename">
-                    {{ aadhaarPreview ? 'File Selected' : 'No file chosen' }}
-                </span>
-            </div>
-
-            <div class="document-preview" *ngIf="aadhaarPreview">
-                <img *ngIf="aadhaarPreview.toString().startsWith('data:image')" [src]="aadhaarPreview"
-                    alt="Aadhaar Preview" />
-                <p *ngIf="!aadhaarPreview.toString().startsWith('data:image')">PDF Uploaded</p>
-            </div>
-
-            <mat-checkbox formControlName="aadhaarVerified" color="primary">
-                Aadhaar Verified
-            </mat-checkbox>
+  
+      <!-- Aadhaar Front -->
+      <section class="doc-section">
+        <label class="upload-label" for="aadhaar-front-upload">Upload Aadhaar Front *</label>
+        <input type="file" id="aadhaar-front-upload" accept="image/*,application/pdf"
+               (change)="onFileChange($event, 'aadhaarFront')"
+               [disabled]="form.get('aadhaarVerified')?.value" hidden />
+        <button mat-raised-button color="primary" type="button"
+                (click)="triggerFileInput('aadhaar-front-upload')"
+                [disabled]="form.get('aadhaarVerified')?.value">
+          Choose File
+        </button>
+        <span class="filename">{{ aadhaarFrontPreview ? 'File Selected' : 'No file chosen' }}</span>
+  
+        <div class="document-preview" *ngIf="aadhaarFrontPreview">
+          <img *ngIf="aadhaarFrontPreview.toString().startsWith('data:image')" [src]="aadhaarFrontPreview"
+               alt="Aadhaar Front Preview" />
+          <p *ngIf="!aadhaarFrontPreview.toString().startsWith('data:image')">PDF Uploaded</p>
         </div>
-
-        <!-- PAN Document -->
-        <div class="form-row align-center">
-            <div class="upload-section">
-                <label class="upload-label" for="pan-upload">Upload PAN *</label>
-                <input type="file" id="pan-upload" accept="image/*,application/pdf"
-                    (change)="onFileChange($event, 'pan')" [disabled]="form.get('panVerified')?.value" hidden />
-                <button mat-raised-button color="primary" type="button" (click)="triggerFileInput('pan-upload')"
-                    [disabled]="form.get('panVerified')?.value">
-                    Choose File
-                </button>
-                <span class="filename">
-                    {{ panPreview ? 'File Selected' : 'No file chosen' }}
-                </span>
-            </div>
-
-            <div class="document-preview" *ngIf="panPreview">
-                <img *ngIf="panPreview.toString().startsWith('data:image')" [src]="panPreview" alt="PAN Preview" />
-                <p *ngIf="!panPreview.toString().startsWith('data:image')">PDF Uploaded</p>
-            </div>
-
-            <mat-checkbox formControlName="panVerified" color="primary">
-                PAN Verified
-            </mat-checkbox>
+  
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Aadhaar Number</mat-label>
+          <input matInput formControlName="aadhaarIdentifierNumber" placeholder="Enter Aadhaar Number" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Document Type</mat-label>
+          <mat-select formControlName="aadhaarDocumentType">
+            <mat-option value="identityProof">Identity Proof</mat-option>
+            <mat-option value="addressProof">Address Proof</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <button mat-raised-button color="accent" class="upload-btn"
+                (click)="uploadDocument('aadhaarFront')"
+                [disabled]="!aadhaarFrontFile || !form.get('aadhaarIdentifierNumber')?.value || !form.get('aadhaarDocumentType')?.value">
+          Upload Aadhaar Front
+        </button>
+      </section>
+  
+      <mat-divider></mat-divider>
+  
+      <!-- Aadhaar Back -->
+      <section class="doc-section">
+        <label class="upload-label" for="aadhaar-back-upload">Upload Aadhaar Back *</label>
+        <input type="file" id="aadhaar-back-upload" accept="image/*,application/pdf"
+               (change)="onFileChange($event, 'aadhaarBack')"
+               [disabled]="form.get('aadhaarVerified')?.value" hidden />
+        <button mat-raised-button color="primary" type="button"
+                (click)="triggerFileInput('aadhaar-back-upload')"
+                [disabled]="form.get('aadhaarVerified')?.value">
+          Choose File
+        </button>
+        <span class="filename">{{ aadhaarBackPreview ? 'File Selected' : 'No file chosen' }}</span>
+  
+        <div class="document-preview" *ngIf="aadhaarBackPreview">
+          <img *ngIf="aadhaarBackPreview.toString().startsWith('data:image')" [src]="aadhaarBackPreview"
+               alt="Aadhaar Back Preview" />
+          <p *ngIf="!aadhaarBackPreview.toString().startsWith('data:image')">PDF Uploaded</p>
         </div>
+  
+        <mat-checkbox formControlName="aadhaarVerified" color="primary">
+          Aadhaar Verified
+        </mat-checkbox>
+  
+        <button mat-raised-button color="accent" class="upload-btn"
+                (click)="uploadDocument('aadhaarBack')"
+                [disabled]="!aadhaarBackFile || !form.get('aadhaarIdentifierNumber')?.value || !form.get('aadhaarDocumentType')?.value">
+          Upload Aadhaar Back
+        </button>
+      </section>
+  
+      <mat-divider></mat-divider>
+  
+      <!-- PAN Document -->
+      <section class="doc-section">
+        <label class="upload-label" for="pan-upload">Upload PAN *</label>
+        <input type="file" id="pan-upload" accept="image/*,application/pdf"
+               (change)="onFileChange($event, 'pan')"
+               [disabled]="form.get('panVerified')?.value" hidden />
+        <button mat-raised-button color="primary" type="button"
+                (click)="triggerFileInput('pan-upload')"
+                [disabled]="form.get('panVerified')?.value">
+          Choose File
+        </button>
+        <span class="filename">{{ panPreview ? 'File Selected' : 'No file chosen' }}</span>
+  
+        <div class="document-preview" *ngIf="panPreview">
+          <img *ngIf="panPreview.toString().startsWith('data:image')" [src]="panPreview" alt="PAN Preview" />
+          <p *ngIf="!panPreview.toString().startsWith('data:image')">PDF Uploaded</p>
+        </div>
+  
+        <mat-checkbox formControlName="panVerified" color="primary">
+          PAN Verified
+        </mat-checkbox>
+  
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>PAN Number</mat-label>
+          <input matInput formControlName="panIdentifierNumber" placeholder="Enter PAN Number" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Document Type</mat-label>
+          <mat-select formControlName="panDocumentType">
+            <mat-option value="identityProof">Identity Proof</mat-option>
+            <mat-option value="addressProof">Address Proof</mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <button mat-raised-button color="accent" class="upload-btn"
+                (click)="uploadDocument('pan')"
+                [disabled]="!panFile || !form.get('panIdentifierNumber')?.value || !form.get('panDocumentType')?.value">
+          Upload PAN
+        </button>
+      </section>
+  
     </form>
-</mat-card>
+  </mat-card>
+  

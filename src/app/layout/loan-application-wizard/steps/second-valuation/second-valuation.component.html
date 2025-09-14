@@ -1,0 +1,85 @@
+<form [formGroup]="form">
+    <table mat-table [dataSource]="jewelleryItems" class="mat-elevation-z8 full-width-table">
+  
+      <!-- Jewellery Name -->
+      <ng-container matColumnDef="jewelleryName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let item">{{ item.jewelleryName }}</td>
+        <td mat-footer-cell *matFooterCellDef>Total</td>
+      </ng-container>
+  
+      <!-- Quantity -->
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef>Qty</th>
+        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+        <td mat-footer-cell *matFooterCellDef>{{ totalQuantity }}</td>
+      </ng-container>
+  
+      <!-- Gross Weight -->
+      <ng-container matColumnDef="grossWeight">
+        <th mat-header-cell *matHeaderCellDef>Gross Wt</th>
+        <td mat-cell *matCellDef="let item">{{ item.grossWeight | number:'1.2-2' }}</td>
+        <td mat-footer-cell *matFooterCellDef>{{ totalGrossWeight | number:'1.2-2' }}</td>
+      </ng-container>
+  
+      <!-- Stone Weight -->
+      <ng-container matColumnDef="stoneWeight">
+        <th mat-header-cell *matHeaderCellDef>Stone Wt</th>
+        <td mat-cell *matCellDef="let item; let i = index">
+          <input matInput type="number" [formControl]="getFormControl(i, 'stoneWeight')" />
+        </td>
+        <td mat-footer-cell *matFooterCellDef>{{ totalStoneWeight | number:'1.2-2' }}</td>
+      </ng-container>
+  
+      <!-- Net Weight -->
+      <ng-container matColumnDef="netWeight">
+        <th mat-header-cell *matHeaderCellDef>Net Wt</th>
+        <td mat-cell *matCellDef="let item">{{ item.netWeight | number:'1.2-2' }}</td>
+        <td mat-footer-cell *matFooterCellDef>{{ totalNetWeight | number:'1.2-2' }}</td>
+      </ng-container>
+  
+      <!-- Karat -->
+      <ng-container matColumnDef="karat">
+        <th mat-header-cell *matHeaderCellDef>Karat</th>
+        <td mat-cell *matCellDef="let item">{{ item.karat }}</td>
+        <td mat-footer-cell *matFooterCellDef></td>
+      </ng-container>
+  
+      <!-- Purity -->
+      <ng-container matColumnDef="purity">
+        <th mat-header-cell *matHeaderCellDef>Purity %</th>
+        <td mat-cell *matCellDef="let item; let i = index">
+          <input matInput type="number" [formControl]="getFormControl(i, 'purity')" />
+        </td>
+        <td mat-footer-cell *matFooterCellDef></td>
+      </ng-container>
+  
+      <!-- Net Purity Weight -->
+      <ng-container matColumnDef="netPurityWeight">
+        <th mat-header-cell *matHeaderCellDef>Net Purity Wt</th>
+        <td mat-cell *matCellDef="let item">{{ item.netPurityWeight | number:'1.2-2' }}</td>
+        <td mat-footer-cell *matFooterCellDef>{{ totalNetPurityWeight | number:'1.2-2' }}</td>
+      </ng-container>
+  
+      <!-- Header Row -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  
+      <!-- Data Rows -->
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  
+      <!-- Footer Row -->
+      <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
+  
+    </table>
+  
+    <div class="button-row">
+      <button mat-raised-button color="primary" (click)="submitAll()">Update Valuation</button>
+    </div>
+  </form>
+  <div *ngIf="uploadedImageUrl" class="valuation-image-container" style="margin-bottom: 20px;">
+    <img 
+      [src]="uploadedImageUrl" 
+      alt="First Valuation Image" 
+      style="max-width: 300px; max-height: 300px; border: 1px solid #ccc; padding: 5px; border-radius: 4px;"
+    />
+  </div>

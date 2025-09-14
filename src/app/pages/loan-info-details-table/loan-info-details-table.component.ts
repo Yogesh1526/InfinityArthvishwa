@@ -1,10 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
 
 interface LoanApplication {
   id: number;
   name: string;
   status: 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending';
-  loanAmount: number;
+  loanAppNo: string;
+  loanProduct: string;
+  leadProduct: string;
+  workflowStage: string;
+  sourcingChannel: string;
+  anchor: string;
+  office: string;
+  amountRequested: number;
   date: string;
 }
 
@@ -27,22 +36,49 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
 
+  constructor(
+    private router: Router,
+    private loanService: PersonalDetailsService
+  ) {}
+
   ngOnInit(): void {
-    this.loanList = [
-      { id: 101, name: 'Amit Kumar', status: 'Approved', loanAmount: 50000, date: '2025-07-01' },
-      { id: 102, name: 'Priya Sharma', status: 'Rejected', loanAmount: 30000, date: '2025-07-03' },
-      { id: 103, name: 'Ravi Mehta', status: 'Disbursed', loanAmount: 75000, date: '2025-07-05' },
-      { id: 104, name: 'Sunita Verma', status: 'Abandoned', loanAmount: 40000, date: '2025-07-07' },
-      { id: 105, name: 'Rajesh Singh', status: 'Approved', loanAmount: 65000, date: '2025-07-08' },
-      { id: 106, name: 'Neha Roy', status: 'Pending', loanAmount: 25000, date: '2025-07-09' },
-      { id: 101, name: 'Amit Kumar', status: 'Approved', loanAmount: 50000, date: '2025-07-01' },
-      { id: 102, name: 'Priya Sharma', status: 'Rejected', loanAmount: 30000, date: '2025-07-03' },
-      { id: 103, name: 'Ravi Mehta', status: 'Disbursed', loanAmount: 75000, date: '2025-07-05' },
-      { id: 104, name: 'Sunita Verma', status: 'Abandoned', loanAmount: 40000, date: '2025-07-07' },
-      { id: 105, name: 'Rajesh Singh', status: 'Approved', loanAmount: 65000, date: '2025-07-08' },
-      { id: 106, name: 'Neha Roy', status: 'Pending', loanAmount: 25000, date: '2025-07-09' }
-    ];
-    this.updateCounts();
+    this.loanService.getAllCustomerDetails().subscribe({
+      next: (response) => {
+        const customers = response?.data || [];
+
+        this.loanList = customers.map((c: any) => ({
+          id: c.id,
+          name: `${c.firstName} ${c.middleName ?? ''} ${c.lastName}`.trim(),
+          status: this.mapStatus(c.applicationStatus),
+          loanAppNo: c.loanAccountNo ?? 'N/A',
+          loanProduct: c.loanProduct ?? 'Gold Loan',
+          leadProduct: c.leadProduct ?? 'N/A',
+          workflowStage: c.workflowStage ?? 'Initial',
+          sourcingChannel: c.sourcingChannel ?? 'Walk-in',
+          anchor: c.anchor ?? 'N/A',
+          office: c.office ?? 'N/A',
+          amountRequested: Number(c.loanAccountNo?.match(/\d+/)?.[0] ?? '0'),
+          date: c.submittedDate ?? 'N/A'
+        }));
+        
+
+        this.updateCounts();
+      },
+      error: (err) => {
+        console.error('Error loading customer data', err);
+      }
+    });
+  }
+
+  mapStatus(apiStatus: string): 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending' {
+    switch (apiStatus) {
+      case 'SUBMITTED': return 'Pending';
+      case 'APPROVED': return 'Approved';
+      case 'REJECTED': return 'Rejected';
+      case 'DISBURSED': return 'Disbursed';
+      case 'ABANDONED': return 'Abandoned';
+      default: return 'Pending';
+    }
   }
 
   get filteredLoans(): LoanApplication[] {
@@ -77,8 +113,9 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   editLoan(loan: LoanApplication): void {
-    alert(`Editing loan ID: ${loan.id}`);
+    this.router.navigate(['/loan-wizard', loan.loanAppNo]);
   }
+  
 
   deleteLoan(loanId: number): void {
     this.loanList = this.loanList.filter(loan => loan.id !== loanId);
@@ -89,7 +126,7 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   addNewLoan(): void {
-    alert('Redirecting to Add New Loan form...');
+    this.router.navigate(['/basic-details']);
   }
 
   updateCounts(): void {

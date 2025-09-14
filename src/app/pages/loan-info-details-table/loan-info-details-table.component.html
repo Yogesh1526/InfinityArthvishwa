@@ -33,25 +33,40 @@
     <table class="loan-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Applicant Name</th>
+          <th>Loan App No</th>
+          <th>Customer ID</th>
+          <th>Name</th>
+          <th>Lead Product</th>
+          <th>Amount Requested</th>
+          <th>Workflow Stage</th>
+          <th>Sourcing Channel</th>
+          <th>Anchor</th>
+          <th>Office</th>
+          <th>Loan Product</th>
           <th>Status</th>
-          <th>Amount</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let loan of pagedLoans">
+          <td>{{ loan.loanAppNo }}</td>
           <td>{{ loan.id }}</td>
           <td>{{ loan.name }}</td>
+          <td>{{ loan.leadProduct }}</td>
+          <td>{{ loan.amountRequested | currency }}</td>
+          <td>{{ loan.workflowStage }}</td>
+          <td>{{ loan.sourcingChannel }}</td>
+          <td>{{ loan.anchor }}</td>
+          <td>{{ loan.office }}</td>
+          <td>{{ loan.loanProduct }}</td>
           <td>{{ loan.status }}</td>
-          <td>{{ loan.loanAmount | currency }}</td>
           <td>
             <button (click)="editLoan(loan)">Edit</button>
             <button (click)="deleteLoan(loan.id)">Delete</button>
           </td>
         </tr>
       </tbody>
+      
     </table>
   
     <!-- Pagination -->

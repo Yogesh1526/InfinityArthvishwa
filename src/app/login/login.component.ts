@@ -29,11 +29,11 @@ export class LoginComponent {
       }
     });
 
-    // const success = this.authService.login(this.username, this.password);
-    // if (success) {
-    //   this.router.navigate(['/dashboard']);
-    // } else {
-    //   this.loginFailed = true;
-    // }
+    const success = this.authService.login(this.username, this.password);
+    if (success) {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.loginFailed = true;
+    }
   }
 }

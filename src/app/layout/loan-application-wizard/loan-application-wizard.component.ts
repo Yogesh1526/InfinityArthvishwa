@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-loan-application-wizard',
@@ -10,6 +11,7 @@ import { HttpClient } from '@angular/common/http';
 export class LoanApplicationWizardComponent implements OnInit {
   activeStep = 0;
   mainForm!: FormGroup;
+  loanApplicationId!: string;
 
   steps = [
     { label: 'Personal Details' },
@@ -28,22 +30,16 @@ export class LoanApplicationWizardComponent implements OnInit {
     // Continue adding more steps
   ];
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private route: ActivatedRoute,private fb: FormBuilder, private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.mainForm = this.fb.group({
-      personalDetails: this.fb.group({}),
-      familyDetails: this.fb.group({
-        spouseFirstName: [''],
-        spouseLastName: [''],
-        fatherFirstName: [''],
-        fatherLastName: [''],
-        motherFirstName: [''],
-        motherLastName: ['']
-      }),
-      addressActivity: this.fb.group({}),
-      // Add more form groups as you expand steps
+  
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) this.loanApplicationId = id; // don't convert to number
     });
+    
+
   }
 
   goToStep(index: number): void {

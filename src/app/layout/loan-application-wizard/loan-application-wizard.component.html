@@ -1,41 +1,62 @@
-<div class="wizard-container">
-    <aside class="wizard-sidebar">
-      <mat-nav-list>
-        <mat-list-item
-          *ngFor="let step of steps; let i = index"
-          (click)="goToStep(i)"
-          [class.active]="i === activeStep"
-          [class.completed]="i < activeStep"
-        >
-          <mat-icon matListIcon>
-            {{ i < activeStep ? 'check_circle' : (i === activeStep ? 'radio_button_checked' : 'radio_button_unchecked') }}
-          </mat-icon>
-          <span matLine>{{ step.label }}</span>
-        </mat-list-item>
-      </mat-nav-list>
-    </aside>
-  
-    <section class="wizard-content">
+<div class="wizard-layout">
+  <!-- Sidebar -->
+  <aside class="wizard-sidebar">
+    <div class="logo">🧭 <span>Wizard</span></div>
+    <mat-nav-list>
+      <mat-list-item
+        *ngFor="let step of steps; let i = index"
+        (click)="goToStep(i)"
+        [class.active]="i === activeStep"
+        [class.completed]="i < activeStep"
+      >
+        <mat-icon matListIcon>
+          {{ i < activeStep ? 'check_circle' : (i === activeStep ? 'radio_button_checked' : 'radio_button_unchecked') }}
+        </mat-icon>
+        <span class="step-label">{{ step.label }}</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </aside>
+
+  <!-- Main Content -->
+  <section class="wizard-main">
+    <!-- User Banner -->
+    <div class="user-banner">
+      <div>
+        <h2>John Doe</h2>
+        <p>User ID: 123456789 &nbsp;|&nbsp; Email: john@example.com</p>
+      </div>
+    </div>
+
+    <!-- Step Header -->
+    <div class="wizard-step-header">
+      <h3>{{ steps[activeStep].label }}</h3>
+    </div>
+
+    <!-- Step Content -->
+    <div class="wizard-step-content">
       <ng-container [ngSwitch]="activeStep">
-        <app-personal-details *ngSwitchCase="0"></app-personal-details>
-        <app-family-details *ngSwitchCase="1"></app-family-details>
-        <app-address-activity *ngSwitchCase="2"></app-address-activity>
-        <app-work-details *ngSwitchCase="3"></app-work-details>
-        <app-kyc-details *ngSwitchCase="4"></app-kyc-details>
+        <app-personal-details *ngSwitchCase="0"  [loanApplicationId]="loanApplicationId"></app-personal-details>
+        <app-family-details *ngSwitchCase="1"  [loanApplicationId]="loanApplicationId"></app-family-details>
+        <app-address-activity *ngSwitchCase="2" [loanApplicationId]="loanApplicationId"></app-address-activity>
+        <app-work-details *ngSwitchCase="3" [loanApplicationId]="loanApplicationId"></app-work-details>
+        <app-kyc-details *ngSwitchCase="4" [loanApplicationId]="loanApplicationId"></app-kyc-details>
         <app-additional-documents *ngSwitchCase="5"></app-additional-documents>
         <app-client-documents *ngSwitchCase="6"></app-client-documents>
-        <app-nominee  *ngSwitchCase="7"></app-nominee>
-        <app-reference-details *ngSwitchCase="8"></app-reference-details>
-        <app-gold-ownership-details *ngSwitchCase="9"></app-gold-ownership-details>
+        <app-nominee *ngSwitchCase="7" [loanApplicationId]="loanApplicationId"></app-nominee>
+        <app-reference-details *ngSwitchCase="8" [loanApplicationId]="loanApplicationId"></app-reference-details>
+        <app-gold-ownership-details *ngSwitchCase="9" [loanApplicationId]="loanApplicationId"></app-gold-ownership-details>
+        <app-first-valuation *ngSwitchCase="10" [loanApplicationId]="loanApplicationId"></app-first-valuation>
+        <app-second-valuation *ngSwitchCase="11" [loanApplicationId]="loanApplicationId"></app-second-valuation>
+        <app-final-valuation *ngSwitchCase="12" [loanApplicationId]="loanApplicationId"></app-final-valuation>
 
-        <!-- Continue adding other components as needed -->
       </ng-container>
-  
-      <div class="wizard-navigation">
-        <button mat-stroked-button (click)="prev()" [disabled]="activeStep === 0">Previous</button>
-        <button mat-stroked-button (click)="next()" *ngIf="!isLastStep()">Next</button>
-        <button mat-raised-button color="primary" (click)="submitAll()" *ngIf="isLastStep()">Submit</button>
-      </div>
-    </section>
-  </div>
-  
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="wizard-footer">
+      <button mat-stroked-button (click)="prev()" [disabled]="activeStep === 0">Previous</button>
+      <button mat-flat-button color="primary" (click)="next()" *ngIf="!isLastStep()">Next</button>
+      <button mat-raised-button color="accent" (click)="submitAll()" *ngIf="isLastStep()">Submit</button>
+    </div>
+  </section>
+</div>

@@ -1,173 +1,49 @@
-<mat-card class="customer-form-card">
-    <h2>
-      <mat-icon color="primary">person</mat-icon>
-      Personal Details
-    </h2>
-  
-    <form [formGroup]="form" novalidate>
-  
-      <!-- Profile Picture Upload / Display -->
-      <div class="form-row">
-        <div class="form-field profile-upload">
-          <label>Profile Picture</label><br />
-  
-          <!-- Show file input only if NOT in view mode -->
-          <ng-container *ngIf="!isViewMode">
-            <input type="file" accept="image/*" (change)="onFileChange($event)" />
-          </ng-container>
-  
-          <img
-            *ngIf="profilePreview || form.value.profilePicture"
-            [src]="profilePreview || form.value.profilePicture"
-            alt="Profile Picture"
-            class="profile-image"
-          />
-        </div>
+<div class="customer-form-container" *ngIf="customer">
+  <!-- Header -->
+  <div class="card-header">
+    <!-- Profile Section -->
+    <div class="title-profile-wrap">
+      <!-- Profile Image -->
+      <div class="profile-image-container">
+        <img
+          [src]="profilePreview || 'assets/default-profile.png'"
+          alt="Profile Picture"
+          class="profile-image small"
+        />
+        <mat-icon class="profile-edit-icon" matTooltip="Change Photo">photo_camera</mat-icon>
       </div>
-  
-      <!-- Name and Gender Row -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Salutation</mat-label>
-          <input matInput formControlName="salutation" [readonly]="isViewMode" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>First Name *</mat-label>
-          <input matInput formControlName="firstName" [readonly]="isViewMode" />
-          <mat-error *ngIf="form.get('firstName')?.hasError('required')">Required</mat-error>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Middle Name</mat-label>
-          <input matInput formControlName="middleName" [readonly]="isViewMode" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Last Name</mat-label>
-          <input matInput formControlName="lastName" [readonly]="isViewMode" />
-        </mat-form-field>
+
+      <!-- Text Centered Vertically -->
+      <div class="title-text">
+        <h3>{{ customer?.firstName }} {{ customer?.middleName }} {{ customer?.lastName }}</h3>
+        <p class="user-id">Loan Account No: {{ customer?.loanAccountNo }}</p>
       </div>
-  
-      <!-- DOB, Gender, Age -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Date of Birth *</mat-label>
-          <input
-            matInput
-            [matDatepicker]="dobPicker"
-            formControlName="dob"
-            [readonly]="isViewMode"
-            [disabled]="isViewMode"
-          />
-          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
-          <mat-datepicker #dobPicker></mat-datepicker>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Gender *</mat-label>
-          <mat-select formControlName="gender" [disabled]="isViewMode">
-            <mat-option value="Male">Male</mat-option>
-            <mat-option value="Female">Female</mat-option>
-            <mat-option value="Other">Other</mat-option>
-          </mat-select>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Age</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="age"
-            [readonly]="isViewMode"
-          />
-        </mat-form-field>
-      </div>
-  
-      <!-- Contact Info -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Mobile Number *</mat-label>
-          <input
-            matInput
-            formControlName="mobileNumber"
-            maxlength="10"
-            [readonly]="isViewMode"
-          />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Alternate Mobile</mat-label>
-          <input
-            matInput
-            formControlName="altMobileNumber"
-            maxlength="10"
-            [readonly]="isViewMode"
-          />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" [readonly]="isViewMode" />
-        </mat-form-field>
-      </div>
-  
-      <!-- Additional Details -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Marital Status *</mat-label>
-          <mat-select formControlName="maritalStatus" [disabled]="isViewMode">
-            <mat-option value="Single">Single</mat-option>
-            <mat-option value="Married">Married</mat-option>
-            <mat-option value="Divorced">Divorced</mat-option>
-            <mat-option value="Widowed">Widowed</mat-option>
-          </mat-select>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Education</mat-label>
-          <input matInput formControlName="education" [readonly]="isViewMode" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Preferred Language</mat-label>
-          <input matInput formControlName="preferredLanguage" [readonly]="isViewMode" />
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Client Type</mat-label>
-          <mat-select formControlName="clientType" [disabled]="isViewMode">
-            <mat-option value="Regular">Regular</mat-option>
-            <mat-option value="Premium">Premium</mat-option>
-            <mat-option value="VIP">VIP</mat-option>
-          </mat-select>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Religion</mat-label>
-          <input matInput formControlName="religion" [readonly]="isViewMode" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Risk Category</mat-label>
-          <input matInput formControlName="riskCategory" [readonly]="isViewMode" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Nationality</mat-label>
-          <input matInput formControlName="nationality" [readonly]="isViewMode" />
-        </mat-form-field>
-      </div>
-  
-      <!-- Show submit button only if not view mode -->
-      <div class="form-row form-actions" *ngIf="!isViewMode">
-        <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid">
-          Submit
-        </button>
-        <button mat-stroked-button type="button" (click)="onReset()">Reset</button>
-      </div>
-    </form>
-  </mat-card>
-  
+    </div>
+
+    <!-- Edit Button -->
+    <div class="profile-right">
+      <button mat-stroked-button color="primary" (click)="onEditClick()">
+        <mat-icon>edit</mat-icon>&nbsp; Edit
+      </button>
+    </div>
+  </div>
+
+  <!-- Details Grid -->
+  <div class="details-grid">
+    <div class="detail-row"><strong>Date of Birth:</strong> {{ customer?.dateOfBirth | date }}</div>
+    <div class="detail-row"><strong>Gender:</strong> {{ customer?.gender }}</div>
+    <div class="detail-row"><strong>Marital Status:</strong> {{ customer?.maritalStatus }}</div>
+    <div class="detail-row"><strong>Mobile:</strong> {{ customer?.mobileNumber }}</div>
+    <div class="detail-row"><strong>Alt Mobile:</strong> {{ customer?.alternateMobileNumber }}</div>
+    <div class="detail-row"><strong>Email:</strong> {{ customer?.email }}</div>
+    <div class="detail-row"><strong>Office:</strong> {{ customer?.office }}</div>
+    <div class="detail-row"><strong>Client Type:</strong> {{ customer?.clientType }}</div>
+    <div class="detail-row"><strong>Education:</strong> {{ customer?.education }}</div>
+    <div class="detail-row"><strong>Preferred Language:</strong> {{ customer?.preferredLanguage }}</div>
+    <div class="detail-row"><strong>Religion:</strong> {{ customer?.religion }}</div>
+    <div class="detail-row"><strong>Risk Category:</strong> {{ customer?.riskCategory }}</div>
+    <div class="detail-row"><strong>Nationality:</strong> {{ customer?.nationality }}</div>
+    <div class="detail-row"><strong>External ID:</strong> {{ customer?.externalId }}</div>
+    <div class="detail-row"><strong>Application Status:</strong> {{ customer?.applicationStatus }}</div>
+  </div>
+</div>

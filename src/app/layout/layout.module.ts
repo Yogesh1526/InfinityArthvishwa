@@ -25,6 +25,9 @@ import { NomineeComponent } from './loan-application-wizard/steps/nominee/nomine
 import { ReferenceDetailsComponent } from './loan-application-wizard/steps/reference-details/reference-details.component';
 import { GoldOwnershipDetailsComponent } from './loan-application-wizard/steps/gold-ownership-details/gold-ownership-details.component';
 import { FirstValuationComponent } from './loan-application-wizard/steps/first-valuation/first-valuation.component';
+import { AddJewelleryDialogComponent } from './loan-application-wizard/steps/add-jewellery-dialog/add-jewellery-dialog.component';
+import { SecondValuationComponent } from './loan-application-wizard/steps/second-valuation/second-valuation.component';
+import { FinalValuationComponent } from './loan-application-wizard/steps/final-valuation/final-valuation.component';
 
 
 
@@ -49,7 +52,10 @@ import { FirstValuationComponent } from './loan-application-wizard/steps/first-v
     NomineeComponent,
     ReferenceDetailsComponent,
     GoldOwnershipDetailsComponent,
-    FirstValuationComponent
+    FirstValuationComponent,
+    AddJewelleryDialogComponent,
+    SecondValuationComponent,
+    FinalValuationComponent
   ],
   imports: [
     CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,

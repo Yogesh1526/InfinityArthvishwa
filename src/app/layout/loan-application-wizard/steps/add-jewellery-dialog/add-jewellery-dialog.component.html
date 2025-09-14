@@ -1,0 +1,66 @@
+<div class="dialog-wrapper">
+    <div class="dialog-header">
+      <h2>Add New Jewellery</h2>
+      <button mat-icon-button (click)="dialogRef.close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  
+    <form [formGroup]="form" class="dialog-form">
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Jewellery Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Quantity</mat-label>
+          <input matInput type="number" formControlName="quantity" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Gross Weight (g)</mat-label>
+          <input matInput type="number" formControlName="grossWeight" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Stone Weight (mg)</mat-label>
+          <input matInput type="number" formControlName="stoneWeight" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Net Weight (g)</mat-label>
+          <input matInput type="number" formControlName="netWeight" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Karat</mat-label>
+          <input matInput formControlName="karat" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Purity (%)</mat-label>
+          <input matInput type="number" formControlName="purity" />
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline">
+          <mat-label>Net Purity Weight (g)</mat-label>
+          <input matInput type="number" formControlName="netPurityWeight" />
+        </mat-form-field>
+      </div>
+  
+      <div class="image-upload-section">
+        <label class="section-title">Consolidated Images:</label>
+        <input type="file" (change)="onImageUpload($event)" multiple />
+        <div class="preview">
+          <img *ngFor="let img of previewImages" [src]="img" />
+        </div>
+      </div>
+  
+      <div class="form-actions">
+        <button mat-flat-button color="primary" (click)="onAdd()">Add</button>
+        <button mat-stroked-button mat-dialog-close>Cancel</button>
+      </div>
+    </form>
+  </div>
+  

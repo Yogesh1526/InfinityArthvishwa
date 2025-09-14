@@ -1,31 +1,65 @@
-.reference-form-card {
-    margin: 30px auto;
-    padding: 36px 48px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    background: #fff;
-    font-family: 'Roboto', sans-serif;
-  }
-  
-  h2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 28px;
-    color: #1a237e;
-    margin-bottom: 32px;
-  }
-  
-  .form-row {
-    display: flex;
-    gap: 28px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-  }
-  
-  .form-field {
-    flex: 1 1 280px;
-    min-width: 280px;
-  }
-  
+
+.reference-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.reference-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #3f51b5;
+  margin: 0;
+}
+
+.reference-list {
+  margin-bottom: 30px;
+}
+
+.reference-item {
+  background: #f4f6fc;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+}
+
+.reference-info span {
+  display: block;
+  margin-bottom: 4px;
+  color: #444;
+}
+
+.reference-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.add-btn-wrap {
+  text-align: right;
+  margin-bottom: 30px;
+}
+
+.reference-form {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 30px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 30px;
+}

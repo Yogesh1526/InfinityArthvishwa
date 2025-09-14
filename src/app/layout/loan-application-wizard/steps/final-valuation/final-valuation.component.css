@@ -1,0 +1,80 @@
+.final-valuation-wrapper {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  
+  .valuation-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  
+  .valuation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+  
+  .final-card {
+    background-color: #f1f8e9;
+    border-left: 6px solid #4caf50;
+  }
+  
+  .mat-card-title {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .valuation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px 24px;
+    margin-top: 16px;
+  }
+  
+  .valuation-grid.small {
+    font-size: 14px;
+  }
+  
+  .valuation-grid label {
+    font-weight: 600;
+    color: #555;
+    margin-right: 6px;
+    display: inline-block;
+  }
+  
+  .valuation-grid span {
+    font-weight: 500;
+    color: #222;
+  }
+  
+  .comparison-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: space-between;
+  }
+  
+  .comparison-row .valuation-card {
+    flex: 1 1 48%;
+    min-width: 300px;
+  }
+  
+  .image-wrapper {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  
+  .image-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  }
+  

@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Location } from '@angular/common';
+import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
+
 
 @Component({
   selector: 'app-basic-details',
@@ -24,19 +27,21 @@ export class BasicDetailsComponent implements OnInit {
     office: ['', Validators.required],
     email: ['', Validators.email],
     submittedDate: [new Date(), Validators.required],  // <-- initialize with Date directly
-
-    // Advanced fields
     externalId: [''],
     clientType: [''],
   });
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,private location: Location, private apiService : PersonalDetailsService) {}
 
   ngOnInit(): void {
     // Set default submitted date to today
     this.customerForm.patchValue({
       submittedDate: new Date(),
     });
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
   toggleAdvanceDetails() {
@@ -51,16 +56,39 @@ export class BasicDetailsComponent implements OnInit {
     }
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.customerForm.valid) {
-      console.log('Form Data:', this.customerForm.value);
-      alert('Customer added successfully!');
-      this.customerForm.reset();
-      this.showAdvanceDetails = false;
-      // Reset submitted date to today after reset
-      this.customerForm.patchValue({ submittedDate: new Date() });
+      const form = this.customerForm.value;
+  
+      const body = {
+        firstName: form.firstName,
+        middleName: form.middleName,
+        lastName: form.lastName,
+        mobileNumber: form.mobileNumber,
+        alternateMobileNumber: form.altMobileNumber,
+        gender: form.gender,
+        email: form.email,
+        dateOfBirth: form.dob,
+        education: 'Postgraduate',
+        preferredLanguage: 'Marathi',
+        religion: 'Hindu',
+        riskCategory: 'Medium',
+        nationality: 'Indian'
+      };
+  
+      this.apiService.create(body).subscribe({
+        next: (res) => {
+          alert('Customer saved successfully!');
+          this.customerForm.reset();
+        },
+        error: (err) => {
+          alert('Something went wrong!');
+          console.error(err);
+        }
+      });
     }
   }
+  
 
   onReset() {
     this.customerForm.reset();

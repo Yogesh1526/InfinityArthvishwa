@@ -1,115 +1,62 @@
-<mat-card class="nominee-form-card">
-    <h2>
-      <mat-icon color="primary">person_add</mat-icon>
-      Nominee Details
-    </h2>
-  
-    <form [formGroup]="form" novalidate>
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Select a Nominee</mat-label>
-          <input matInput formControlName="selectNominee" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Relationship</mat-label>
-          <mat-select formControlName="relationship">
-            <mat-option *ngFor="let relation of relationshipOptions" [value]="relation">{{ relation }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>First Name</mat-label>
-          <input matInput formControlName="firstName" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Last Name</mat-label>
-          <input matInput formControlName="lastName" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Gender</mat-label>
-          <mat-select formControlName="gender">
-            <mat-option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Mobile Number</mat-label>
-          <input matInput formControlName="mobileNumber" maxlength="10" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Date of Birth</mat-label>
-          <input matInput [matDatepicker]="dobPicker" formControlName="dob" />
-          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
-          <mat-datepicker #dobPicker></mat-datepicker>
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-checkbox formControlName="sameAddressAsApplicant" (change)="onSameAddressToggle()">
-          Same address as applicant?
-        </mat-checkbox>
-      </div>
-  
-      <ng-container *ngIf="!form.value.sameAddressAsApplicant">
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Address Type</mat-label>
-            <input matInput formControlName="addressType" />
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>House No / Name</mat-label>
-            <input matInput formControlName="houseNumber" />
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Street / Area</mat-label>
-            <input matInput formControlName="streetArea" />
-          </mat-form-field>
-        </div>
-  
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Landmark</mat-label>
-            <input matInput formControlName="landmark" />
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Village / Town / City</mat-label>
-            <input matInput formControlName="city" />
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>District</mat-label>
-            <input matInput formControlName="district" />
-          </mat-form-field>
-        </div>
-  
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>State</mat-label>
-            <input matInput formControlName="state" />
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Pincode</mat-label>
-            <input matInput formControlName="pincode" maxlength="6" />
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Years at Current Residence</mat-label>
-            <input matInput type="number" formControlName="yearsAtResidence" />
-          </mat-form-field>
-        </div>
-      </ng-container>
-    </form>
-  </mat-card>
-  
+<div class="nominee-form-card" *ngIf="formLoaded">
+  <h2>
+    <mat-icon color="primary">person_add</mat-icon>
+    Nominee Details
+  </h2>
+
+  <form [formGroup]="form" novalidate (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>First Name</mat-label>
+        <input matInput formControlName="firstName" [disabled]="!isEditable" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Last Name</mat-label>
+        <input matInput formControlName="lastName" [disabled]="!isEditable" />
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Relationship</mat-label>
+        <mat-select formControlName="relationship" [disabled]="!isEditable">
+          <mat-option *ngFor="let relation of relationshipOptions" [value]="relation">{{ relation }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Gender</mat-label>
+        <mat-select formControlName="gender" [disabled]="!isEditable">
+          <mat-option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Mobile Number</mat-label>
+        <input matInput formControlName="mobileNumber" maxlength="10" [disabled]="!isEditable" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Date of Birth</mat-label>
+        <input matInput [matDatepicker]="dobPicker" formControlName="dob" [disabled]="!isEditable" />
+        <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+        <mat-datepicker #dobPicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Age</mat-label>
+        <input matInput formControlName="age" maxlength="3" [disabled]="true" />
+      </mat-form-field>
+    </div>
+
+    <div class="button-row">
+      <button mat-flat-button color="primary" *ngIf="!isEditable && isDataAvailable" (click)="onEdit()">Edit</button>
+      <button mat-flat-button color="accent" *ngIf="isEditable" type="submit">Submit</button>
+    </div>
+  </form>
+</div>

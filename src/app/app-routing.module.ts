@@ -26,7 +26,7 @@ const routes: Routes = [
       { path: 'worklist', component: WorklistComponent},
       { path: 'basic-details', component: BasicDetailsComponent},
       { path: 'loan-info', component: LoanInfoComponent },
-      { path: 'loan-wizard', component: LoanApplicationWizardComponent},
+      { path: 'loan-wizard/:id', component: LoanApplicationWizardComponent },
       { path: 'loan-info-details', component: LoanInfoDetailsTableComponent}
     ]
   },
