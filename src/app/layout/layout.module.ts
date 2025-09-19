@@ -28,6 +28,7 @@ import { FirstValuationComponent } from './loan-application-wizard/steps/first-v
 import { AddJewelleryDialogComponent } from './loan-application-wizard/steps/add-jewellery-dialog/add-jewellery-dialog.component';
 import { SecondValuationComponent } from './loan-application-wizard/steps/second-valuation/second-valuation.component';
 import { FinalValuationComponent } from './loan-application-wizard/steps/final-valuation/final-valuation.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 
 
 
@@ -55,7 +56,8 @@ import { FinalValuationComponent } from './loan-application-wizard/steps/final-v
     FirstValuationComponent,
     AddJewelleryDialogComponent,
     SecondValuationComponent,
-    FinalValuationComponent
+    FinalValuationComponent,
+    UserProfileComponent
   ],
   imports: [
     CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,
