@@ -10,9 +10,13 @@
           alt="Profile Picture"
           class="profile-image small"
         />
-        <mat-icon class="profile-edit-icon" matTooltip="Change Photo">photo_camera</mat-icon>
+        <mat-icon
+          class="profile-edit-icon"
+          matTooltip="Change Photo"
+          (click)="openWebcam()"
+        >photo_camera</mat-icon>
       </div>
-
+      
       <!-- Text Centered Vertically -->
       <div class="title-text">
         <h3>{{ customer?.firstName }} {{ customer?.middleName }} {{ customer?.lastName }}</h3>

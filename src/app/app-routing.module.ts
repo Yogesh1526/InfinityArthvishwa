@@ -24,7 +24,7 @@ const routes: Routes = [
     children: [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'worklist', component: WorklistComponent},
-      { path: 'basic-details', component: BasicDetailsComponent},
+      { path: 'basic-details/:id', component: BasicDetailsComponent},
       { path: 'loan-info', component: LoanInfoComponent },
       { path: 'loan-wizard/:id', component: LoanApplicationWizardComponent },
       { path: 'loan-info-details', component: LoanInfoDetailsTableComponent}

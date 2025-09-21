@@ -11,6 +11,20 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { LoanInfoDetailsTableComponent } from './pages/loan-info-details-table/loan-info-details-table.component';
 import { LayoutModule } from './layout/layout.module';
+import { MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { WebcamModule } from 'ngx-webcam';
+
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'dd/MM/yyyy',
+    monthYearLabel: 'MMM yyyy',
+    dateA11yLabel: 'dd/MM/yyyy',
+    monthYearA11yLabel: 'MMMM yyyy',
+  },
+};
 
 @NgModule({
   declarations: [
@@ -23,7 +37,9 @@ import { LayoutModule } from './layout/layout.module';
     LayoutModule,MaterialModule,FormsModule
   ],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }, 
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
   ],
     bootstrap: [AppComponent]
 })

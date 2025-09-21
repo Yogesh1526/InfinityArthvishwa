@@ -1,0 +1,41 @@
+<mat-card class="webcam-card">
+    <mat-card-title>Take Photo</mat-card-title>
+    <mat-card-content>
+  
+      <!-- Webcam live preview -->
+      <div *ngIf="!isPreview && showWebcam">
+        <webcam
+          [trigger]="triggerObservable"
+          [switchCamera]="nextWebcamObservable"
+          (imageCapture)="handleImage($event)"
+          (initError)="handleInitError($event)">
+        </webcam>
+      </div>
+  
+      <!-- Photo preview -->
+      <div *ngIf="isPreview" class="preview">
+        <img 
+          [src]="capturedImage ? capturedImage.imageAsDataUrl : uploadedImageDataUrl" 
+          alt="Photo preview" />
+      </div>
+  
+    </mat-card-content>
+  
+    <mat-card-actions>
+      <!-- Actions when live webcam showing -->
+      <ng-container *ngIf="!isPreview">
+        <button mat-raised-button color="primary" (click)="triggerSnapshot()">Capture</button>
+        <button mat-stroked-button (click)="switchCamera()" *ngIf="multipleWebcamsAvailable">Switch</button>
+        <button mat-button (click)="fileInput.click()">Upload from Device</button>
+        <button mat-button color="warn" (click)="cancel()">Cancel</button>
+        <input type="file" accept="image/*" #fileInput hidden (change)="handleFileInput($event)" />
+      </ng-container>
+  
+      <!-- Actions when preview showing -->
+      <ng-container *ngIf="isPreview">
+        <button mat-button color="primary" (click)="confirmPhoto()">Use Photo</button>
+        <button mat-button color="warn" (click)="retakePhoto()">Retake</button>
+      </ng-container>
+    </mat-card-actions>      
+  </mat-card>
+  

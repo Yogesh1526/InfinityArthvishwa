@@ -20,12 +20,12 @@
   <!-- Main Content -->
   <section class="wizard-main">
     <!-- User Banner -->
-    <div class="user-banner">
+    <!-- <div class="user-banner">
       <div>
         <h2>John Doe</h2>
         <p>User ID: 123456789 &nbsp;|&nbsp; Email: john@example.com</p>
       </div>
-    </div>
+    </div> -->
 
     <!-- Step Header -->
     <div class="wizard-step-header">
@@ -41,13 +41,13 @@
         <app-work-details *ngSwitchCase="3" [loanApplicationId]="loanApplicationId"></app-work-details>
         <app-kyc-details *ngSwitchCase="4" [loanApplicationId]="loanApplicationId"></app-kyc-details>
         <app-additional-documents *ngSwitchCase="5"></app-additional-documents>
-        <app-client-documents *ngSwitchCase="6"></app-client-documents>
-        <app-nominee *ngSwitchCase="7" [loanApplicationId]="loanApplicationId"></app-nominee>
-        <app-reference-details *ngSwitchCase="8" [loanApplicationId]="loanApplicationId"></app-reference-details>
-        <app-gold-ownership-details *ngSwitchCase="9" [loanApplicationId]="loanApplicationId"></app-gold-ownership-details>
-        <app-first-valuation *ngSwitchCase="10" [loanApplicationId]="loanApplicationId"></app-first-valuation>
-        <app-second-valuation *ngSwitchCase="11" [loanApplicationId]="loanApplicationId"></app-second-valuation>
-        <app-final-valuation *ngSwitchCase="12" [loanApplicationId]="loanApplicationId"></app-final-valuation>
+        <!-- <app-client-documents *ngSwitchCase="6"></app-client-documents> -->
+        <app-nominee *ngSwitchCase="6" [loanApplicationId]="loanApplicationId"></app-nominee>
+        <app-reference-details *ngSwitchCase="7" [loanApplicationId]="loanApplicationId"></app-reference-details>
+        <app-gold-ownership-details *ngSwitchCase="8" [loanApplicationId]="loanApplicationId"></app-gold-ownership-details>
+        <app-first-valuation *ngSwitchCase="9" [loanApplicationId]="loanApplicationId"></app-first-valuation>
+        <app-second-valuation *ngSwitchCase="10" [loanApplicationId]="loanApplicationId"></app-second-valuation>
+        <app-final-valuation *ngSwitchCase="11" [loanApplicationId]="loanApplicationId"></app-final-valuation>
 
       </ng-container>
     </div>

@@ -28,6 +28,8 @@ import { FirstValuationComponent } from './loan-application-wizard/steps/first-v
 import { AddJewelleryDialogComponent } from './loan-application-wizard/steps/add-jewellery-dialog/add-jewellery-dialog.component';
 import { SecondValuationComponent } from './loan-application-wizard/steps/second-valuation/second-valuation.component';
 import { FinalValuationComponent } from './loan-application-wizard/steps/final-valuation/final-valuation.component';
+import { WebcamComponent } from './loan-application-wizard/steps/webcam/webcam.component';
+import { WebcamModule } from 'ngx-webcam';
 
 
 
@@ -55,10 +57,11 @@ import { FinalValuationComponent } from './loan-application-wizard/steps/final-v
     FirstValuationComponent,
     AddJewelleryDialogComponent,
     SecondValuationComponent,
-    FinalValuationComponent
+    FinalValuationComponent,
+    WebcamComponent
   ],
   imports: [
-    CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,
+    CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,WebcamModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts') // Lazy load ECharts
     })

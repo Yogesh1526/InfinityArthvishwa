@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://thriller-turbo-cut-prefix.trycloudflare.com'
+    apiUrl: 'https://array-startup-wheels-establish.trycloudflare.com'
   };
   

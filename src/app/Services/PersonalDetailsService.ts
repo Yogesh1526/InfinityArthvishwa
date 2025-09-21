@@ -20,9 +20,14 @@ export class PersonalDetailsService {
     return this.http.post(`${this.baseUrl}/applicantDetails/create`, data);
   }
 
-  update(customerId: string, data: any): Observable<any> {
-    return this.http.put(`${this.baseUrl}/updateApplication/${customerId}`, data);
+  update(data: any) {
+    // Call your specific update API
+    return this.http.put(`${this.baseUrl}/applicantDetails/updateCustomer`, data);
   }
+
+  // update(customerId: string, data: any): Observable<any> {
+  //   return this.http.put(`${this.baseUrl}/updateApplication/${customerId}`, data);
+  // }
 
   getAllCustomerDetails(): Observable<any> {
     return this.http.get(`${this.baseUrl}/applicantDetails/getAllCustomerDetails`);
@@ -132,6 +137,19 @@ export class PersonalDetailsService {
     return this.http.post(`${this.baseUrl}/final-valuation/save/${loanAccountNo}`, {});
   }
 
+  uploadPhoto(loanAccountNo: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('loanAccountNo', loanAccountNo);
+    formData.append('file', file, file.name);
+
+    return this.http.post(`${this.baseUrl}/applicantDetails/upload-photo`, formData);
+  }
+
+  getPhoto(loanAccountNo: string): Observable<Blob> {
+    // Assuming the API returns raw image bytes (or you might need to adjust if returns base64)
+    return this.http.get(`${this.baseUrl}/${loanAccountNo}/applicantDetails/photo`, { responseType: 'blob' });
+  }
+  
   // ... your existing methods ...
 
   /**

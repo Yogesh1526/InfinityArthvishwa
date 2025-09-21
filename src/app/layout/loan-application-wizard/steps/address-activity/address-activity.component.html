@@ -1,4 +1,4 @@
-<div *ngIf="formLoaded" class="address-container">
+<div *ngIf="formLoaded">
   <!-- Saved Addresses -->
   <div *ngIf="addressList.length > 0 && !isEditable">
     <h2><mat-icon>home</mat-icon> Saved Addresses</h2>
@@ -29,7 +29,7 @@
   </div>
 
   <!-- Address Form -->
-  <div *ngIf="isEditable" class="address-form-card">
+  <div *ngIf="isEditable" >
     <h2><mat-icon color="primary">edit_location_alt</mat-icon> Address Form</h2>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">

@@ -126,7 +126,7 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   addNewLoan(): void {
-    this.router.navigate(['/basic-details']);
+    this.router.navigate(['/basic-details/0']);
   }
 
   updateCounts(): void {

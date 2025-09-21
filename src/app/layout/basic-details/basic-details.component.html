@@ -1,146 +1,203 @@
-<mat-card class="customer-form-card">
-    <h2><mat-icon color="primary">person_add</mat-icon> Add New Individual Customer</h2>
-  
-    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" novalidate>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>First Name *</mat-label>
-          <input matInput formControlName="firstName" />
-          <mat-error *ngIf="customerForm.get('firstName')?.hasError('required')">
-            First Name is required
-          </mat-error>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Middle Name</mat-label>
-          <input matInput formControlName="middleName" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Last Name</mat-label>
-          <input matInput formControlName="lastName" />
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Date of Birth *</mat-label>
-          <input matInput [matDatepicker]="dobPicker" formControlName="dob" />
-          <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
-          <mat-datepicker #dobPicker></mat-datepicker>
-          <mat-error *ngIf="customerForm.get('dob')?.hasError('required')">
-            Date of Birth is required
-          </mat-error>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Gender *</mat-label>
-          <mat-select formControlName="gender">
-            <mat-option value="">Select</mat-option>
-            <mat-option value="Male">Male</mat-option>
-            <mat-option value="Female">Female</mat-option>
-            <mat-option value="Other">Other</mat-option>
-          </mat-select>
-          <mat-error *ngIf="customerForm.get('gender')?.hasError('required')">
-            Gender is required
-          </mat-error>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Marital Status *</mat-label>
-          <mat-select formControlName="maritalStatus">
-            <mat-option value="">Select</mat-option>
-            <mat-option value="Single">Single</mat-option>
-            <mat-option value="Married">Married</mat-option>
-            <mat-option value="Divorced">Divorced</mat-option>
-            <mat-option value="Widowed">Widowed</mat-option>
-          </mat-select>
-          <mat-error *ngIf="customerForm.get('maritalStatus')?.hasError('required')">
-            Marital Status is required
-          </mat-error>
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Mobile Number *</mat-label>
-          <input matInput formControlName="mobileNumber" type="tel" maxlength="10" />
-          <mat-error *ngIf="customerForm.get('mobileNumber')?.hasError('required')">
-            Mobile Number is required
-          </mat-error>
-          <mat-error *ngIf="customerForm.get('mobileNumber')?.hasError('pattern')">
-            Invalid mobile number
-          </mat-error>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Alternative Mobile Number</mat-label>
-          <input matInput formControlName="altMobileNumber" type="tel" maxlength="10" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Office *</mat-label>
-          <input matInput formControlName="office" />
-          <mat-error *ngIf="customerForm.get('office')?.hasError('required')">
-            Office is required
-          </mat-error>
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" />
-          <mat-error *ngIf="customerForm.get('email')?.hasError('email')">
-            Please enter a valid email
-          </mat-error>
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Submitted Date *</mat-label>
-          <input matInput [matDatepicker]="submitDatePicker" formControlName="submittedDate" />
-          <mat-datepicker-toggle matSuffix [for]="submitDatePicker"></mat-datepicker-toggle>
-          <mat-datepicker #submitDatePicker></mat-datepicker>
-          <mat-error *ngIf="customerForm.get('submittedDate')?.hasError('required')">
-            Submitted Date is required
-          </mat-error>
-        </mat-form-field>
-      </div>
-  
-      <!-- Toggle for advanced details -->
-      <div class="form-row toggle-row">
-        <span class="toggle-label">Would you like to add advanced details?</span>
-        <mat-slide-toggle
-          color="primary"
-          [checked]="showAdvanceDetails"
-          (change)="toggleAdvanceDetails()"
-        ></mat-slide-toggle>
-      </div>
-  
-      <!-- Advanced fields -->
-      <div *ngIf="showAdvanceDetails" class="form-row advanced-fields">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>External ID</mat-label>
-          <input matInput formControlName="externalId" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Client Type</mat-label>
-          <mat-select formControlName="clientType">
-            <mat-option value="">Select</mat-option>
-            <mat-option value="Regular">Regular</mat-option>
-            <mat-option value="Premium">Premium</mat-option>
-            <mat-option value="VIP">VIP</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-  
-      <div class="form-row form-actions">
-        <button mat-raised-button color="primary" [disabled]="customerForm.invalid">Submit</button>
-        <button mat-stroked-button type="button" (click)="onReset()">Reset</button>
-      </div>
-  
-    </form>
-  </mat-card>
-  
+<mat-card class="customer-form-card">  
+  <h2><mat-icon color="primary">person_add</mat-icon> Add New Individual Customer</h2>
+  <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>First Name</mat-label>
+        <input matInput formControlName="firstName" />
+        <mat-error *ngIf="customerForm.get('firstName')?.hasError('required')">
+          First Name is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Middle Name</mat-label>
+        <input matInput formControlName="middleName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Last Name</mat-label>
+        <input matInput formControlName="lastName" />
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Date of Birth</mat-label>
+        <input matInput [matDatepicker]="dobPicker" formControlName="dob" />
+        <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+        <mat-datepicker #dobPicker></mat-datepicker>
+        <mat-error *ngIf="customerForm.get('dob')?.hasError('required')">
+          Date of Birth is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Gender</mat-label>
+        <mat-select formControlName="gender">
+          <mat-option value="">Select</mat-option>
+          <mat-option value="Male">Male</mat-option>
+          <mat-option value="Female">Female</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+        <mat-error *ngIf="customerForm.get('gender')?.hasError('required')">
+          Gender is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Marital Status </mat-label>
+        <mat-select formControlName="maritalStatus">
+          <mat-option [value]="null">Select</mat-option>
+          <mat-option value="Single">Single</mat-option>
+          <mat-option value="Married">Married</mat-option>
+          <mat-option value="Divorced">Divorced</mat-option>
+          <mat-option value="Widowed">Widowed</mat-option>
+        </mat-select>
+        <mat-error *ngIf="customerForm.get('maritalStatus')?.hasError('required')">
+          Marital Status is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Mobile Number</mat-label>
+        <input matInput formControlName="mobileNumber" type="tel" maxlength="10" />
+        <mat-error *ngIf="customerForm.get('mobileNumber')?.hasError('required')">
+          Mobile Number is required
+        </mat-error>
+        <mat-error *ngIf="customerForm.get('mobileNumber')?.hasError('pattern')">
+          Invalid mobile number
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Alternative Mobile Number</mat-label>
+        <input matInput formControlName="altMobileNumber" type="tel" maxlength="10" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Select Office</mat-label>
+        <mat-select formControlName="office">
+          <mat-option *ngFor="let office of offices" [value]="office.value">
+            {{ office.viewValue }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="customerForm.get('office')?.hasError('required')">
+          Office selection is required
+        </mat-error>
+      </mat-form-field>
+      
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+        <mat-error *ngIf="customerForm.get('email')?.hasError('email')">
+          Please enter a valid email
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Submitted Date</mat-label>
+        <input matInput [matDatepicker]="submitDatePicker" formControlName="submittedDate" />
+        <mat-datepicker-toggle matSuffix [for]="submitDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #submitDatePicker></mat-datepicker>
+        <mat-error *ngIf="customerForm.get('submittedDate')?.hasError('required')">
+          Submitted Date is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Additional Personal Details -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Education</mat-label>
+        <mat-select formControlName="education">
+          <mat-option value="Primary">Primary</mat-option>
+          <mat-option value="Secondary">Secondary</mat-option>
+          <mat-option value="Graduate">Graduate</mat-option>
+          <mat-option value="Postgraduate">Postgraduate</mat-option>
+          <mat-option value="Doctorate">Doctorate</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Preferred Language</mat-label>
+        <mat-select formControlName="preferredLanguage">
+          <mat-option value="English">English</mat-option>
+          <mat-option value="Hindi">Hindi</mat-option>
+          <mat-option value="Marathi">Marathi</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Religion</mat-label>
+        <mat-select formControlName="religion">
+          <mat-option value="Hindu">Hindu</mat-option>
+          <mat-option value="Muslim">Muslim</mat-option>
+          <mat-option value="Christian">Christian</mat-option>
+          <mat-option value="Sikh">Sikh</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Risk Category</mat-label>
+        <mat-select formControlName="riskCategory">
+          <mat-option value="Low">Low</mat-option>
+          <mat-option value="Medium">Medium</mat-option>
+          <mat-option value="High">High</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Nationality</mat-label>
+        <mat-select formControlName="nationality">
+          <mat-option value="Indian">Indian</mat-option>
+          <mat-option value="NRI">NRI</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+
+    <!-- Toggle for advanced details -->
+    <div class="form-row toggle-row">
+      <span class="toggle-label">Would you like to add advanced details?</span>
+      <mat-slide-toggle color="primary" [checked]="showAdvanceDetails"
+        (change)="toggleAdvanceDetails()"></mat-slide-toggle>
+    </div>
+
+    <!-- Advanced fields -->
+    <div *ngIf="showAdvanceDetails" class="form-row advanced-fields">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>External ID</mat-label>
+        <input matInput formControlName="externalId" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Client Type</mat-label>
+        <mat-select formControlName="clientType">
+          <mat-option value="">Select</mat-option>
+          <mat-option value="Regular">Regular</mat-option>
+          <mat-option value="Premium">Premium</mat-option>
+          <mat-option value="VIP">VIP</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row form-actions">
+      <button mat-raised-button color="primary" [disabled]="customerForm.invalid">Submit</button>
+      <button mat-stroked-button type="button" (click)="onReset()">Reset</button>
+    </div>
+
+  </form>
+</mat-card>

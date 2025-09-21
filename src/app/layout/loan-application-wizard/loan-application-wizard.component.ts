@@ -20,7 +20,7 @@ export class LoanApplicationWizardComponent implements OnInit {
     { label: 'Work Details' },
     { label: 'KYC' },
     { label: 'Additional Documents' },
-    { label: 'Client Documents' },
+    // { label: 'Client Documents' },
     { label: 'Nominee' },
     { label: 'Reference Details' },
     { label: 'Gold Ownership Form' },
