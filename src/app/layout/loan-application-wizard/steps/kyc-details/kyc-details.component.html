@@ -1,124 +1,422 @@
-    <h2>
-      <mat-icon color="primary">verified_user</mat-icon>
-      KYC Details
-    </h2>
-  
-    <form [formGroup]="form" novalidate>
-  
-      <!-- Aadhaar Front -->
-      <section class="doc-section">
-        <label class="upload-label" for="aadhaar-front-upload">Upload Aadhaar Front *</label>
-        <input type="file" id="aadhaar-front-upload" accept="image/*,application/pdf"
-               (change)="onFileChange($event, 'aadhaarFront')"
-               [disabled]="form.get('aadhaarVerified')?.value" hidden />
-        <button mat-raised-button color="primary" type="button"
-                (click)="triggerFileInput('aadhaar-front-upload')"
-                [disabled]="form.get('aadhaarVerified')?.value">
-          Choose File
-        </button>
-        <span class="filename">{{ aadhaarFrontPreview ? 'File Selected' : 'No file chosen' }}</span>
-  
-        <div class="document-preview" *ngIf="aadhaarFrontPreview">
-          <img *ngIf="aadhaarFrontPreview.toString().startsWith('data:image')" [src]="aadhaarFrontPreview"
-               alt="Aadhaar Front Preview" />
-          <p *ngIf="!aadhaarFrontPreview.toString().startsWith('data:image')">PDF Uploaded</p>
+<div class="kyc-container">
+  <h2>
+    <mat-icon color="primary">verified_user</mat-icon>
+    KYC Details
+  </h2>
+
+  <form [formGroup]="form" novalidate>
+    <!-- Aadhaar Section -->
+    <div class="kyc-card">
+      <div class="card-header">
+        <div class="header-content">
+          <mat-icon class="header-icon">badge</mat-icon>
+          <h3>Aadhaar Card</h3>
         </div>
-  
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Aadhaar Number</mat-label>
-          <input matInput formControlName="aadhaarIdentifierNumber" placeholder="Enter Aadhaar Number" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Document Type</mat-label>
-          <mat-select formControlName="aadhaarDocumentType">
-            <mat-option value="identityProof">Identity Proof</mat-option>
-            <mat-option value="addressProof">Address Proof</mat-option>
-          </mat-select>
-        </mat-form-field>
-  
-        <button mat-raised-button color="accent" class="upload-btn"
-                (click)="uploadDocument('aadhaarFront')"
-                [disabled]="!aadhaarFrontFile || !form.get('aadhaarIdentifierNumber')?.value || !form.get('aadhaarDocumentType')?.value">
-          Upload Aadhaar Front
-        </button>
-      </section>
-  
-      <mat-divider></mat-divider>
-  
-      <!-- Aadhaar Back -->
-      <section class="doc-section">
-        <label class="upload-label" for="aadhaar-back-upload">Upload Aadhaar Back *</label>
-        <input type="file" id="aadhaar-back-upload" accept="image/*,application/pdf"
-               (change)="onFileChange($event, 'aadhaarBack')"
-               [disabled]="form.get('aadhaarVerified')?.value" hidden />
-        <button mat-raised-button color="primary" type="button"
-                (click)="triggerFileInput('aadhaar-back-upload')"
-                [disabled]="form.get('aadhaarVerified')?.value">
-          Choose File
-        </button>
-        <span class="filename">{{ aadhaarBackPreview ? 'File Selected' : 'No file chosen' }}</span>
-  
-        <div class="document-preview" *ngIf="aadhaarBackPreview">
-          <img *ngIf="aadhaarBackPreview.toString().startsWith('data:image')" [src]="aadhaarBackPreview"
-               alt="Aadhaar Back Preview" />
-          <p *ngIf="!aadhaarBackPreview.toString().startsWith('data:image')">PDF Uploaded</p>
-        </div>
-  
-        <mat-checkbox formControlName="aadhaarVerified" color="primary">
-          Aadhaar Verified
+        <mat-checkbox formControlName="aadhaarVerified" color="primary" class="verified-checkbox">
+          Verified
         </mat-checkbox>
-  
-        <button mat-raised-button color="accent" class="upload-btn"
-                (click)="uploadDocument('aadhaarBack')"
-                [disabled]="!aadhaarBackFile || !form.get('aadhaarIdentifierNumber')?.value || !form.get('aadhaarDocumentType')?.value">
-          Upload Aadhaar Back
-        </button>
-      </section>
-  
-      <mat-divider></mat-divider>
-  
-      <!-- PAN Document -->
-      <section class="doc-section">
-        <label class="upload-label" for="pan-upload">Upload PAN *</label>
-        <input type="file" id="pan-upload" accept="image/*,application/pdf"
-               (change)="onFileChange($event, 'pan')"
-               [disabled]="form.get('panVerified')?.value" hidden />
-        <button mat-raised-button color="primary" type="button"
-                (click)="triggerFileInput('pan-upload')"
-                [disabled]="form.get('panVerified')?.value">
-          Choose File
-        </button>
-        <span class="filename">{{ panPreview ? 'File Selected' : 'No file chosen' }}</span>
-  
-        <div class="document-preview" *ngIf="panPreview">
-          <img *ngIf="panPreview.toString().startsWith('data:image')" [src]="panPreview" alt="PAN Preview" />
-          <p *ngIf="!panPreview.toString().startsWith('data:image')">PDF Uploaded</p>
+      </div>
+
+      <div class="card-body">
+        <!-- Aadhaar Number & Document Type -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Aadhaar Number</mat-label>
+            <input matInput formControlName="aadhaarIdentifierNumber" placeholder="Enter 12-digit Aadhaar" maxlength="12" />
+            <mat-icon matPrefix>credit_card</mat-icon>
+            <mat-error *ngIf="form.get('aadhaarIdentifierNumber')?.hasError('required')">
+              Aadhaar number is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Document Type</mat-label>
+            <mat-select formControlName="aadhaarDocumentType">
+              <mat-option value="Addhar Card">Addhar Card</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>description</mat-icon>
+            <mat-error *ngIf="form.get('aadhaarDocumentType')?.hasError('required')">
+              Document type is required
+            </mat-error>
+          </mat-form-field>
         </div>
-  
-        <mat-checkbox formControlName="panVerified" color="primary">
-          PAN Verified
+
+        <!-- Aadhaar Front -->
+        <div class="upload-section">
+          <label class="section-label">Aadhaar Front *</label>
+          
+          <!-- Document Details (if uploaded) -->
+          <div class="document-details" *ngIf="hasExistingDocument('aadhaarFront') && aadhaarFrontDoc">
+            <div class="detail-card">
+              <div class="detail-header">
+                <mat-icon color="primary">description</mat-icon>
+                <span class="detail-title">Document Details</span>
+                <div class="header-actions">
+                  <button mat-stroked-button color="primary" (click)="viewDocument(aadhaarFrontDoc, 'aadhaarFront')" 
+                          [disabled]="isLoadingImage['view_aadhaarFront_' + aadhaarFrontDoc.id]"
+                          class="view-btn">
+                    <mat-icon *ngIf="!isLoadingImage['view_aadhaarFront_' + aadhaarFrontDoc.id]">visibility</mat-icon>
+                    <mat-spinner *ngIf="isLoadingImage['view_aadhaarFront_' + aadhaarFrontDoc.id]" diameter="20" class="button-spinner"></mat-spinner>
+                    <span>{{ isLoadingImage['view_aadhaarFront_' + aadhaarFrontDoc.id] ? 'Loading...' : 'View' }}</span>
+                  </button>
+                  <button mat-icon-button color="primary" (click)="onEditDocument('aadhaarFront')" class="edit-btn">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="detail-content">
+                <div class="detail-row">
+                  <span class="detail-label">File Name:</span>
+                  <span class="detail-value">{{ aadhaarFrontDoc.fileName || 'N/A' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">File Size:</span>
+                  <span class="detail-value">{{ formatFileSize(aadhaarFrontDoc.size) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Uploaded At:</span>
+                  <span class="detail-value">{{ formatDate(aadhaarFrontDoc.uploadedAt) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Proof Type:</span>
+                  <span class="detail-value">{{ formatProofType(aadhaarFrontDoc.proofType) }}</span>
+                </div>
+                <div class="detail-row" *ngIf="aadhaarFrontDoc.identifierNumber">
+                  <span class="detail-label">Identifier Number:</span>
+                  <span class="detail-value">{{ aadhaarFrontDoc.identifierNumber }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="upload-area" *ngIf="!hasExistingDocument('aadhaarFront') || isEditingDocument === 'aadhaarFront'">
+            <input type="file" id="aadhaar-front-upload" accept="image/*,application/pdf"
+                   (change)="onFileChange($event, 'aadhaarFront')"
+                   hidden />
+            
+            <div class="preview-container" *ngIf="aadhaarFrontPreview || hasExistingDocument('aadhaarFront')">
+              <div class="preview-wrapper">
+                <img *ngIf="aadhaarFrontPreview && aadhaarFrontPreview.toString().startsWith('data:image')" 
+                     [src]="aadhaarFrontPreview" alt="Aadhaar Front" />
+                <div *ngIf="aadhaarFrontPreview && !aadhaarFrontPreview.toString().startsWith('data:image')" class="pdf-indicator">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  <span>PDF Document</span>
+                </div>
+                <div *ngIf="hasExistingDocument('aadhaarFront') && !aadhaarFrontPreview" class="existing-doc-indicator">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Document Uploaded</span>
+                </div>
+              </div>
+              <div class="preview-actions">
+                <button mat-icon-button color="warn" (click)="clearFile('aadhaarFront')" class="remove-btn" *ngIf="aadhaarFrontFile">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteDocument('aadhaarFront')" class="remove-btn" *ngIf="hasExistingDocument('aadhaarFront') && !aadhaarFrontFile">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="upload-placeholder" *ngIf="!aadhaarFrontPreview">
+              <mat-icon>cloud_upload</mat-icon>
+              <p>Click to upload or drag and drop</p>
+              <span>Supports: JPG, PNG, PDF</span>
+            </div>
+
+            <button mat-stroked-button color="primary" type="button"
+                    (click)="triggerFileInput('aadhaar-front-upload')"
+                    class="upload-button">
+              <mat-icon>attach_file</mat-icon>
+              Choose File
+            </button>
+          </div>
+          <button mat-raised-button color="accent" type="button"
+                  (click)="uploadDocument('aadhaarFront')"
+                  [disabled]="(!aadhaarFrontFile && !hasExistingDocument('aadhaarFront')) || !form.get('aadhaarIdentifierNumber')?.value"
+                  *ngIf="!hasExistingDocument('aadhaarFront') || isEditingDocument === 'aadhaarFront'"
+                  class="submit-button">
+            <mat-icon>{{ hasExistingDocument('aadhaarFront') ? 'update' : 'upload' }}</mat-icon>
+            {{ hasExistingDocument('aadhaarFront') ? 'Update Aadhaar Front' : 'Upload Aadhaar Front' }}
+          </button>
+          <button mat-stroked-button color="primary" type="button"
+                  (click)="cancelEdit('aadhaarFront')"
+                  *ngIf="hasExistingDocument('aadhaarFront') && isEditingDocument === 'aadhaarFront'"
+                  class="cancel-button">
+            <mat-icon>close</mat-icon>
+            Cancel
+          </button>
+        </div>
+
+        <!-- Aadhaar Back -->
+        <div class="upload-section">
+          <label class="section-label">Aadhaar Back *</label>
+          <p class="info-text" *ngIf="form.get('aadhaarIdentifierNumber')?.value">
+            <mat-icon>info</mat-icon>
+            Using Aadhaar Number: {{ form.get('aadhaarIdentifierNumber')?.value }}
+          </p>
+          
+          <!-- Document Details (if uploaded) -->
+          <div class="document-details" *ngIf="hasExistingDocument('aadhaarBack') && aadhaarBackDoc">
+            <div class="detail-card">
+              <div class="detail-header">
+                <mat-icon color="primary">description</mat-icon>
+                <span class="detail-title">Document Details</span>
+                <div class="header-actions">
+                  <button mat-stroked-button color="primary" (click)="viewDocument(aadhaarBackDoc, 'aadhaarBack')" 
+                          [disabled]="isLoadingImage['view_aadhaarBack_' + aadhaarBackDoc.id]"
+                          class="view-btn">
+                    <mat-icon *ngIf="!isLoadingImage['view_aadhaarBack_' + aadhaarBackDoc.id]">visibility</mat-icon>
+                    <mat-spinner *ngIf="isLoadingImage['view_aadhaarBack_' + aadhaarBackDoc.id]" diameter="20" class="button-spinner"></mat-spinner>
+                    <span>{{ isLoadingImage['view_aadhaarBack_' + aadhaarBackDoc.id] ? 'Loading...' : 'View' }}</span>
+                  </button>
+                  <button mat-icon-button color="primary" (click)="onEditDocument('aadhaarBack')" class="edit-btn">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="detail-content">
+                <div class="detail-row">
+                  <span class="detail-label">File Name:</span>
+                  <span class="detail-value">{{ aadhaarBackDoc.fileName || 'N/A' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">File Size:</span>
+                  <span class="detail-value">{{ formatFileSize(aadhaarBackDoc.size) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Uploaded At:</span>
+                  <span class="detail-value">{{ formatDate(aadhaarBackDoc.uploadedAt) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Proof Type:</span>
+                  <span class="detail-value">{{ formatProofType(aadhaarBackDoc.proofType) }}</span>
+                </div>
+                <div class="detail-row" *ngIf="aadhaarBackDoc.identifierNumber">
+                  <span class="detail-label">Identifier Number:</span>
+                  <span class="detail-value">{{ aadhaarBackDoc.identifierNumber }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="upload-area" *ngIf="!hasExistingDocument('aadhaarBack') || isEditingDocument === 'aadhaarBack'">
+            <input type="file" id="aadhaar-back-upload" accept="image/*,application/pdf"
+                   (change)="onFileChange($event, 'aadhaarBack')"
+                   hidden />
+            
+            <div class="preview-container" *ngIf="aadhaarBackPreview || hasExistingDocument('aadhaarBack')">
+              <div class="preview-wrapper">
+                <img *ngIf="aadhaarBackPreview && aadhaarBackPreview.toString().startsWith('data:image')" 
+                     [src]="aadhaarBackPreview" alt="Aadhaar Back" />
+                <div *ngIf="aadhaarBackPreview && !aadhaarBackPreview.toString().startsWith('data:image')" class="pdf-indicator">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  <span>PDF Document</span>
+                </div>
+                <div *ngIf="hasExistingDocument('aadhaarBack') && !aadhaarBackPreview" class="existing-doc-indicator">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Document Uploaded</span>
+                </div>
+              </div>
+              <div class="preview-actions">
+                <button mat-icon-button color="warn" (click)="clearFile('aadhaarBack')" class="remove-btn" *ngIf="aadhaarBackFile">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteDocument('aadhaarBack')" class="remove-btn" *ngIf="hasExistingDocument('aadhaarBack') && !aadhaarBackFile">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="upload-placeholder" *ngIf="!aadhaarBackPreview">
+              <mat-icon>cloud_upload</mat-icon>
+              <p>Click to upload or drag and drop</p>
+              <span>Supports: JPG, PNG, PDF</span>
+            </div>
+
+            <button mat-stroked-button color="primary" type="button"
+                    (click)="triggerFileInput('aadhaar-back-upload')"
+                    class="upload-button">
+              <mat-icon>attach_file</mat-icon>
+              Choose File
+            </button>
+          </div>
+          <button mat-raised-button color="accent" type="button"
+                  (click)="uploadDocument('aadhaarBack')"
+                  [disabled]="(!aadhaarBackFile && !hasExistingDocument('aadhaarBack')) || !form.get('aadhaarIdentifierNumber')?.value"
+                  *ngIf="!hasExistingDocument('aadhaarBack') || isEditingDocument === 'aadhaarBack'"
+                  class="submit-button">
+            <mat-icon>{{ hasExistingDocument('aadhaarBack') ? 'update' : 'upload' }}</mat-icon>
+            {{ hasExistingDocument('aadhaarBack') ? 'Update Aadhaar Back' : 'Upload Aadhaar Back' }}
+          </button>
+          <button mat-stroked-button color="primary" type="button"
+                  (click)="cancelEdit('aadhaarBack')"
+                  *ngIf="hasExistingDocument('aadhaarBack') && isEditingDocument === 'aadhaarBack'"
+                  class="cancel-button">
+            <mat-icon>close</mat-icon>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAN Section -->
+    <div class="kyc-card">
+      <div class="card-header">
+        <div class="header-content">
+          <mat-icon class="header-icon">account_circle</mat-icon>
+          <h3>PAN Card</h3>
+        </div>
+        <mat-checkbox formControlName="panVerified" color="primary" class="verified-checkbox">
+          Verified
         </mat-checkbox>
-  
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>PAN Number</mat-label>
-          <input matInput formControlName="panIdentifierNumber" placeholder="Enter PAN Number" />
-        </mat-form-field>
-  
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Document Type</mat-label>
-          <mat-select formControlName="panDocumentType">
-            <mat-option value="identityProof">Identity Proof</mat-option>
-            <mat-option value="addressProof">Address Proof</mat-option>
-          </mat-select>
-        </mat-form-field>
-  
-        <button mat-raised-button color="accent" class="upload-btn"
-                (click)="uploadDocument('pan')"
-                [disabled]="!panFile || !form.get('panIdentifierNumber')?.value || !form.get('panDocumentType')?.value">
-          Upload PAN
+      </div>
+
+      <div class="card-body">
+        <!-- PAN Number & Document Type -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>PAN Number</mat-label>
+            <input matInput formControlName="panIdentifierNumber" placeholder="Enter PAN Number" maxlength="10" />
+            <mat-icon matPrefix>credit_card</mat-icon>
+            <mat-error *ngIf="form.get('panIdentifierNumber')?.hasError('required')">
+              PAN number is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Document Type</mat-label>
+            <mat-select formControlName="panDocumentType">
+              <mat-option value="Pan Card">Pan Card</mat-option>
+            </mat-select>
+            <mat-icon matPrefix>description</mat-icon>
+            <mat-error *ngIf="form.get('panDocumentType')?.hasError('required')">
+              Document type is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- PAN Upload -->
+        <div class="upload-section">
+          <label class="section-label">PAN Document *</label>
+          
+          <!-- Document Details (if uploaded) -->
+          <div class="document-details" *ngIf="hasExistingDocument('pan') && panDoc">
+            <div class="detail-card">
+              <div class="detail-header">
+                <mat-icon color="primary">description</mat-icon>
+                <span class="detail-title">Document Details</span>
+                <div class="header-actions">
+                  <button mat-stroked-button color="primary" (click)="viewDocument(panDoc, 'pan')" 
+                          [disabled]="isLoadingImage['view_pan_' + panDoc.id]"
+                          class="view-btn">
+                    <mat-icon *ngIf="!isLoadingImage['view_pan_' + panDoc.id]">visibility</mat-icon>
+                    <mat-spinner *ngIf="isLoadingImage['view_pan_' + panDoc.id]" diameter="20" class="button-spinner"></mat-spinner>
+                    <span>{{ isLoadingImage['view_pan_' + panDoc.id] ? 'Loading...' : 'View' }}</span>
+                  </button>
+                  <button mat-icon-button color="primary" (click)="onEditDocument('pan')" class="edit-btn">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="detail-content">
+                <div class="detail-row">
+                  <span class="detail-label">File Name:</span>
+                  <span class="detail-value">{{ panDoc.fileName || 'N/A' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">File Size:</span>
+                  <span class="detail-value">{{ formatFileSize(panDoc.size) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Uploaded At:</span>
+                  <span class="detail-value">{{ formatDate(panDoc.uploadedAt) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Proof Type:</span>
+                  <span class="detail-value">{{ formatProofType(panDoc.proofType) }}</span>
+                </div>
+                <div class="detail-row" *ngIf="panDoc.identifierNumber">
+                  <span class="detail-label">Identifier Number:</span>
+                  <span class="detail-value">{{ panDoc.identifierNumber }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="upload-area" *ngIf="!hasExistingDocument('pan') || isEditingDocument === 'pan'">
+            <input type="file" id="pan-upload" accept="image/*,application/pdf"
+                   (change)="onFileChange($event, 'pan')"
+                   hidden />
+            
+            <div class="preview-container" *ngIf="panPreview || hasExistingDocument('pan')">
+              <div class="preview-wrapper">
+                <img *ngIf="panPreview && panPreview.toString().startsWith('data:image')" 
+                     [src]="panPreview" alt="PAN Card" />
+                <div *ngIf="panPreview && !panPreview.toString().startsWith('data:image')" class="pdf-indicator">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  <span>PDF Document</span>
+                </div>
+                <div *ngIf="hasExistingDocument('pan') && !panPreview" class="existing-doc-indicator">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Document Uploaded</span>
+                </div>
+              </div>
+              <div class="preview-actions">
+                <button mat-icon-button color="warn" (click)="clearFile('pan')" class="remove-btn" *ngIf="panFile">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteDocument('pan')" class="remove-btn" *ngIf="hasExistingDocument('pan') && !panFile">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="upload-placeholder" *ngIf="!panPreview">
+              <mat-icon>cloud_upload</mat-icon>
+              <p>Click to upload or drag and drop</p>
+              <span>Supports: JPG, PNG, PDF</span>
+            </div>
+
+            <button mat-stroked-button color="primary" type="button"
+                    (click)="triggerFileInput('pan-upload')"
+                    class="upload-button">
+              <mat-icon>attach_file</mat-icon>
+              Choose File
+            </button>
+          </div>
+          <button mat-raised-button color="accent" type="button"
+                  (click)="uploadDocument('pan')"
+                  [disabled]="(!panFile && !hasExistingDocument('pan')) || !form.get('panIdentifierNumber')?.value"
+                  *ngIf="!hasExistingDocument('pan') || isEditingDocument === 'pan'"
+                  class="submit-button">
+            <mat-icon>{{ hasExistingDocument('pan') ? 'update' : 'upload' }}</mat-icon>
+            {{ hasExistingDocument('pan') ? 'Update PAN' : 'Upload PAN' }}
+          </button>
+          <button mat-stroked-button color="primary" type="button"
+                  (click)="cancelEdit('pan')"
+                  *ngIf="hasExistingDocument('pan') && isEditingDocument === 'pan'"
+                  class="cancel-button">
+            <mat-icon>close</mat-icon>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Image View Modal -->
+  <div class="image-modal" *ngIf="viewingImage" (click)="closeImageView()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ viewingImage.title }}</h3>
+        <button mat-icon-button (click)="closeImageView()" class="close-btn">
+          <mat-icon>close</mat-icon>
         </button>
-      </section>
-  
-    </form>
+      </div>
+      <div class="modal-body">
+        <img [src]="viewingImage.url" alt="{{ viewingImage.title }}" />
+      </div>
+    </div>
+  </div>
+</div>
   

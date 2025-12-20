@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
-import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
+import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
+import { ToastService } from 'src/app/services/toast.service';
 
 interface JewelleryItem {
   id: number;
@@ -20,8 +21,11 @@ interface JewelleryItem {
   styleUrls: ['./second-valuation.component.css']
 })
 export class SecondValuationComponent implements OnInit {
+  @Input() customerId!: string;
   @Input() loanApplicationId!: string;
+  @Output() stepCompleted = new EventEmitter<void>();
 
+  loanAccountNumber: string | null = null;
   form: FormGroup;
   jewelleryItems: JewelleryItem[] = [];
   uploadedImageUrl: string | null = null;
@@ -44,7 +48,11 @@ export class SecondValuationComponent implements OnInit {
     'netPurityWeight'
   ];
 
-  constructor(private fb: FormBuilder, private apiService: PersonalDetailsService) {
+  constructor(
+    private fb: FormBuilder,
+    private apiService: PersonalDetailsService,
+    private toastService: ToastService
+  ) {
     this.form = this.fb.group({
       items: this.fb.array([])
     });
@@ -55,15 +63,49 @@ export class SecondValuationComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Load stored loanAccountNumber from localStorage
+    this.loadStoredLoanAccountNumber();
     this.loadSecondValuation();
   }
 
+  /**
+   * Load loanAccountNumber from localStorage using customerId as key
+   */
+  loadStoredLoanAccountNumber(): void {
+    if (this.customerId) {
+      const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+      if (stored) {
+        this.loanAccountNumber = stored;
+      }
+    }
+    // Fallback to loanApplicationId if it's a valid loan account number
+    if (!this.loanAccountNumber && this.loanApplicationId && 
+        (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'))) {
+      this.loanAccountNumber = this.loanApplicationId;
+    }
+  }
+
+  /**
+   * Get the loan account number to use for API calls
+   * Uses the same logic as getSecondValuationDetails
+   */
+  getLoanAccountNumber(): string | null {
+    // Use stored loanAccountNumber or fallback to loanApplicationId
+    return this.loanAccountNumber || this.loanApplicationId || null;
+  }
+
   loadSecondValuation() {
-    if (!this.loanApplicationId) {
-      console.warn('loanApplicationId not provided');
+    if (!this.customerId) {
       return;
     }
-    this.apiService.getSecondValuationDetails(this.loanApplicationId).subscribe({
+
+    // Use stored loanAccountNumber or fallback to loanApplicationId (same as PUT API)
+    const accountNumber = this.getLoanAccountNumber();
+    if (!accountNumber) {
+      return;
+    }
+
+    this.apiService.getSecondValuationDetails(this.customerId, accountNumber).subscribe({
       next: (res) => {
         const apiItems = res?.data?.jewelleryItems || [];
 
@@ -117,37 +159,50 @@ export class SecondValuationComponent implements OnInit {
                 netWeight: newNetWeight,
                 netPurityWeight: newNetPurityWeight
               };
+              
+              // Recalculate totals
+              this.recalculateTotals();
             }
           });
 
           this.itemsFormArray.push(fg);
         });
       },
-      error: err => console.error('Error loading second valuation:', err)
+      error: err => {
+        // Silently handle - no data means form is empty
+      }
     });
     this.loadFirstValuationImage();
 
   }
 
   loadFirstValuationImage() {
-    this.apiService.getFirstValuationImage(this.loanApplicationId).subscribe({
-      next: (imageBlob) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          this.uploadedImageUrl = reader.result as string;
-        };
-        reader.readAsDataURL(imageBlob);
-      },
-      error: err => {
-        console.error('Failed to load first valuation image:', err);
-        this.uploadedImageUrl = null;
-      }
-    });
+    // this.apiService.getFirstValuationImage(this.loanApplicationId).subscribe({
+    //   next: (imageBlob) => {
+    //     const reader = new FileReader();
+    //     reader.onload = () => {
+    //       this.uploadedImageUrl = reader.result as string;
+    //     };
+    //     reader.readAsDataURL(imageBlob);
+    //   },
+    //   error: err => {
+    //     // Silently handle - image may not exist yet
+    //     this.uploadedImageUrl = null;
+    //   }
+    // });
   }
 
   submitAll() {
     if (this.form.invalid) {
-      alert('Please correct the form fields before submitting.');
+      this.toastService.showWarning('Please correct the form fields before submitting.');
+      return;
+    }
+
+    // Use stored loanAccountNumber or fallback to loanApplicationId (same as GET API)
+    const accountNumber = this.getLoanAccountNumber();
+    
+    if (!this.customerId || !accountNumber) {
+      this.toastService.showError('Customer ID and Loan Account Number are required.');
       return;
     }
   
@@ -165,17 +220,16 @@ export class SecondValuationComponent implements OnInit {
       };
     });
   
-    console.log('Submitting updated items:', updatedItems);
-  
-    this.apiService.updateSecondValuation(this.loanApplicationId, updatedItems).subscribe({
+    this.apiService.updateSecondValuation(this.customerId, accountNumber, updatedItems).subscribe({
       next: res => {
-        alert('Valuation updated successfully!');
+        this.toastService.showSuccess('Second valuation updated successfully!');
+        this.stepCompleted.emit();
         // Optionally refresh the data or update UI
         this.loadSecondValuation();
       },
       error: err => {
-        console.error('Update failed:', err);
-        alert('Failed to update valuation. Please try again.');
+        const errorMsg = err?.error?.message || 'Failed to update valuation. Please try again.';
+        this.toastService.showError(errorMsg);
       }
     });
   }
@@ -186,5 +240,13 @@ export class SecondValuationComponent implements OnInit {
 
   getFormControl(index: number, field: string): FormControl {
     return this.itemsFormArray.at(index).get(field) as FormControl;
+  }
+
+  recalculateTotals(): void {
+    this.totalQuantity = this.jewelleryItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    this.totalGrossWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.grossWeight || 0), 0);
+    this.totalStoneWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.stoneWeight || 0), 0);
+    this.totalNetWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.netWeight || 0), 0);
+    this.totalNetPurityWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.netPurityWeight || 0), 0);
   }
 }

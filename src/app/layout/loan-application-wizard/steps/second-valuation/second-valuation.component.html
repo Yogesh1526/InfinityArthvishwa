@@ -1,85 +1,363 @@
+<div class="second-valuation-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">verified</mat-icon>
+      Second Valuation
+    </h2>
+    <p class="subtitle">Review and update stone weight and purity for second valuation</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards" *ngIf="jewelleryItems.length > 0">
+    <div class="summary-card">
+      <mat-icon class="card-icon">inventory_2</mat-icon>
+      <div class="card-content">
+        <span class="card-label">Total Items</span>
+        <span class="card-value">{{ jewelleryItems.length }}</span>
+      </div>
+    </div>
+    <div class="summary-card">
+      <mat-icon class="card-icon">scale</mat-icon>
+      <div class="card-content">
+        <span class="card-label">Total Gross Weight</span>
+        <span class="card-value">{{ totalGrossWeight | number:'1.2-2' }} g</span>
+      </div>
+    </div>
+    <div class="summary-card">
+      <mat-icon class="card-icon">brightness_1</mat-icon>
+      <div class="card-content">
+        <span class="card-label">Total Stone Weight</span>
+        <span class="card-value">{{ totalStoneWeight | number:'1.2-2' }} g</span>
+      </div>
+    </div>
+    <div class="summary-card">
+      <mat-icon class="card-icon">straighten</mat-icon>
+      <div class="card-content">
+        <span class="card-label">Total Net Weight</span>
+        <span class="card-value">{{ totalNetWeight | number:'1.2-2' }} g</span>
+      </div>
+    </div>
+    <div class="summary-card">
+      <mat-icon class="card-icon">verified</mat-icon>
+      <div class="card-content">
+        <span class="card-label">Total Net Purity Weight</span>
+        <span class="card-value">{{ totalNetPurityWeight | number:'1.2-2' }} g</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop Table View -->
+  <div class="table-section" *ngIf="jewelleryItems.length > 0">
+    <div class="section-header">
+      <h3>
+        <mat-icon>edit</mat-icon>
+        Edit Valuation Details
+      </h3>
+      <p class="section-description">Update stone weight and purity percentage for each item</p>
+    </div>
+    
 <form [formGroup]="form">
-    <table mat-table [dataSource]="jewelleryItems" class="mat-elevation-z8 full-width-table">
+      <!-- Desktop Table -->
+      <div class="table-container desktop-view">
+        <table mat-table [dataSource]="jewelleryItems" class="jewellery-table mat-elevation-z4">
   
       <!-- Jewellery Name -->
       <ng-container matColumnDef="jewelleryName">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let item">{{ item.jewelleryName }}</td>
-        <td mat-footer-cell *matFooterCellDef>Total</td>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>label</mat-icon>
+                <span>Name</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let item">
+              <div class="cell-content">
+                <span class="item-name">{{ item.jewelleryName }}</span>
+              </div>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell">
+              <strong>Total</strong>
+            </td>
       </ng-container>
   
       <!-- Quantity -->
       <ng-container matColumnDef="quantity">
-        <th mat-header-cell *matHeaderCellDef>Qty</th>
-        <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
-        <td mat-footer-cell *matFooterCellDef>{{ totalQuantity }}</td>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>confirmation_number</mat-icon>
+                <span>Qty</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let item" class="readonly-cell">
+              <span>{{ item.quantity }}</span>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell">
+              <strong>{{ totalQuantity }}</strong>
+            </td>
       </ng-container>
   
       <!-- Gross Weight -->
       <ng-container matColumnDef="grossWeight">
-        <th mat-header-cell *matHeaderCellDef>Gross Wt</th>
-        <td mat-cell *matCellDef="let item">{{ item.grossWeight | number:'1.2-2' }}</td>
-        <td mat-footer-cell *matFooterCellDef>{{ totalGrossWeight | number:'1.2-2' }}</td>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>scale</mat-icon>
+                <span>Gross Wt</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let item" class="readonly-cell">
+              <span>{{ item.grossWeight | number:'1.2-2' }}</span>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell">
+              <strong>{{ totalGrossWeight | number:'1.2-2' }}</strong>
+            </td>
       </ng-container>
   
       <!-- Stone Weight -->
       <ng-container matColumnDef="stoneWeight">
-        <th mat-header-cell *matHeaderCellDef>Stone Wt</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>brightness_1</mat-icon>
+                <span>Stone Wt</span>
+              </div>
+            </th>
         <td mat-cell *matCellDef="let item; let i = index">
-          <input matInput type="number" [formControl]="getFormControl(i, 'stoneWeight')" />
+              <mat-form-field appearance="outline" class="table-input-field">
+                <input 
+                  matInput 
+                  type="number" 
+                  step="0.01"
+                  min="0"
+                  [formControl]="getFormControl(i, 'stoneWeight')" 
+                  placeholder="0.00" />
+              </mat-form-field>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell">
+              <strong>{{ totalStoneWeight | number:'1.2-2' }}</strong>
         </td>
-        <td mat-footer-cell *matFooterCellDef>{{ totalStoneWeight | number:'1.2-2' }}</td>
       </ng-container>
   
       <!-- Net Weight -->
       <ng-container matColumnDef="netWeight">
-        <th mat-header-cell *matHeaderCellDef>Net Wt</th>
-        <td mat-cell *matCellDef="let item">{{ item.netWeight | number:'1.2-2' }}</td>
-        <td mat-footer-cell *matFooterCellDef>{{ totalNetWeight | number:'1.2-2' }}</td>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>straighten</mat-icon>
+                <span>Net Wt</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let item" class="readonly-cell">
+              <span>{{ item.netWeight | number:'1.2-2' }}</span>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell">
+              <strong>{{ totalNetWeight | number:'1.2-2' }}</strong>
+            </td>
       </ng-container>
   
       <!-- Karat -->
       <ng-container matColumnDef="karat">
-        <th mat-header-cell *matHeaderCellDef>Karat</th>
-        <td mat-cell *matCellDef="let item">{{ item.karat }}</td>
-        <td mat-footer-cell *matFooterCellDef></td>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>category</mat-icon>
+                <span>Karat</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let item" class="readonly-cell">
+              <span class="karat-badge">{{ item.karat }}</span>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
       </ng-container>
   
       <!-- Purity -->
       <ng-container matColumnDef="purity">
-        <th mat-header-cell *matHeaderCellDef>Purity %</th>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>percent</mat-icon>
+                <span>Purity %</span>
+              </div>
+            </th>
         <td mat-cell *matCellDef="let item; let i = index">
-          <input matInput type="number" [formControl]="getFormControl(i, 'purity')" />
+              <mat-form-field appearance="outline" class="table-input-field">
+                <input 
+                  matInput 
+                  type="number" 
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  [formControl]="getFormControl(i, 'purity')" 
+                  placeholder="0.00" />
+              </mat-form-field>
         </td>
-        <td mat-footer-cell *matFooterCellDef></td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
       </ng-container>
   
       <!-- Net Purity Weight -->
       <ng-container matColumnDef="netPurityWeight">
-        <th mat-header-cell *matHeaderCellDef>Net Purity Wt</th>
-        <td mat-cell *matCellDef="let item">{{ item.netPurityWeight | number:'1.2-2' }}</td>
-        <td mat-footer-cell *matFooterCellDef>{{ totalNetPurityWeight | number:'1.2-2' }}</td>
+            <th mat-header-cell *matHeaderCellDef>
+              <div class="header-cell">
+                <mat-icon>verified</mat-icon>
+                <span>Net Purity Wt</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let item" class="readonly-cell">
+              <span>{{ item.netPurityWeight | number:'1.2-2' }}</span>
+            </td>
+            <td mat-footer-cell *matFooterCellDef class="footer-cell">
+              <strong>{{ totalNetPurityWeight | number:'1.2-2' }}</strong>
+            </td>
       </ng-container>
   
       <!-- Header Row -->
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
   
       <!-- Data Rows -->
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-data-row"></tr>
   
       <!-- Footer Row -->
-      <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
+          <tr mat-footer-row *matFooterRowDef="displayedColumns" class="table-footer-row"></tr>
   
     </table>
-  
-    <div class="button-row">
-      <button mat-raised-button color="primary" (click)="submitAll()">Update Valuation</button>
-    </div>
-  </form>
-  <div *ngIf="uploadedImageUrl" class="valuation-image-container" style="margin-bottom: 20px;">
-    <img 
-      [src]="uploadedImageUrl" 
-      alt="First Valuation Image" 
-      style="max-width: 300px; max-height: 300px; border: 1px solid #ccc; padding: 5px; border-radius: 4px;"
-    />
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="mobile-view">
+        <div class="item-card" *ngFor="let item of jewelleryItems; let i = index">
+          <div class="card-header">
+            <h4>
+              <mat-icon>label</mat-icon>
+              {{ item.jewelleryName }}
+            </h4>
+            <span class="karat-badge">{{ item.karat }}</span>
+          </div>
+          
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item readonly">
+                <label>
+                  <mat-icon>confirmation_number</mat-icon>
+                  Quantity
+                </label>
+                <span>{{ item.quantity }}</span>
+              </div>
+              
+              <div class="info-item readonly">
+                <label>
+                  <mat-icon>scale</mat-icon>
+                  Gross Weight (g)
+                </label>
+                <span>{{ item.grossWeight | number:'1.2-2' }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>
+                  <mat-icon>brightness_1</mat-icon>
+                  Stone Weight (g)
+                </label>
+                <mat-form-field appearance="outline" class="mobile-input">
+                  <input 
+                    matInput 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    [formControl]="getFormControl(i, 'stoneWeight')" 
+                    placeholder="0.00" />
+                </mat-form-field>
+              </div>
+              
+              <div class="info-item readonly">
+                <label>
+                  <mat-icon>straighten</mat-icon>
+                  Net Weight (g)
+                </label>
+                <span>{{ item.netWeight | number:'1.2-2' }}</span>
+              </div>
+              
+              <div class="info-item">
+                <label>
+                  <mat-icon>percent</mat-icon>
+                  Purity (%)
+                </label>
+                <mat-form-field appearance="outline" class="mobile-input">
+                  <input 
+                    matInput 
+                    type="number" 
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    [formControl]="getFormControl(i, 'purity')" 
+                    placeholder="0.00" />
+                </mat-form-field>
+              </div>
+              
+              <div class="info-item readonly">
+                <label>
+                  <mat-icon>verified</mat-icon>
+                  Net Purity Weight (g)
+                </label>
+                <span class="highlight-value">{{ item.netPurityWeight | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile Totals -->
+        <div class="mobile-totals">
+          <h4>Totals</h4>
+          <div class="totals-grid">
+            <div class="total-item">
+              <span class="total-label">Quantity:</span>
+              <span class="total-value">{{ totalQuantity }}</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Gross Weight:</span>
+              <span class="total-value">{{ totalGrossWeight | number:'1.2-2' }} g</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Stone Weight:</span>
+              <span class="total-value">{{ totalStoneWeight | number:'1.2-2' }} g</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Net Weight:</span>
+              <span class="total-value">{{ totalNetWeight | number:'1.2-2' }} g</span>
+            </div>
+            <div class="total-item">
+              <span class="total-label">Net Purity Weight:</span>
+              <span class="total-value highlight">{{ totalNetPurityWeight | number:'1.2-2' }} g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="submitAll()" 
+          [disabled]="form.invalid"
+          class="submit-button">
+          <mat-icon>save</mat-icon>
+          Update Valuation
+        </button>
+      </div>
+    </form>
   </div>
+
+  <!-- Image Preview Section -->
+  <div class="image-section" *ngIf="uploadedImageUrl">
+    <div class="section-header">
+      <h3>
+        <mat-icon>image</mat-icon>
+        Valuation Image Preview
+      </h3>
+    </div>
+    <div class="image-preview-container">
+      <img [src]="uploadedImageUrl" alt="Second Valuation Image" />
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="jewelleryItems.length === 0">
+    <mat-icon class="empty-icon">inventory_2</mat-icon>
+    <h3>No Jewellery Items Found</h3>
+    <p>Please complete the first valuation before proceeding with the second valuation</p>
+  </div>
+</div>

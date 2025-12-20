@@ -1,36 +1,39 @@
+/* Import common styles */
+@import './styles/common.css';
+
 html, body {
-    height: 100%;
-  }
-  
-  body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
-  }
-  
-  /* Move snackbar down */
-  .cdk-global-overlay-wrapper {
-    align-items: flex-start !important;
-    padding-top: 60px !important;
-  }
-  
-  /* Custom toast colors */
-  .mat-snack-bar-container.toast-success {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .mat-snack-bar-container.toast-error {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .mat-snack-bar-container.toast-info {
-    background-color: #2196f3;
-    color: white;
-  }
-  
-  .mat-snack-bar-container.toast-warning {
-    background-color: #ff9800;
-    color: white;
-  }
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Move snackbar down */
+.cdk-global-overlay-wrapper {
+  align-items: flex-start !important;
+  padding-top: 60px !important;
+}
+
+/* Custom toast colors */
+.mat-snack-bar-container.toast-success {
+  background-color: var(--success-color, #4caf50);
+  color: white;
+}
+
+.mat-snack-bar-container.toast-error {
+  background-color: var(--error-color, #f44336);
+  color: white;
+}
+
+.mat-snack-bar-container.toast-info {
+  background-color: var(--info-color, #2196f3);
+  color: white;
+}
+
+.mat-snack-bar-container.toast-warning {
+  background-color: var(--warning-color, #ff9800);
+  color: white;
+}
   

@@ -1,53 +1,98 @@
-<div class="customer-form-container" *ngIf="customer">
-  <!-- Header -->
-  <div class="card-header">
-    <!-- Profile Section -->
-    <div class="title-profile-wrap">
-      <!-- Profile Image -->
-      <div class="profile-image-container">
-        <img
-          [src]="profilePreview || 'assets/default-profile.png'"
-          alt="Profile Picture"
-          class="profile-image small"
-        />
-        <mat-icon
-          class="profile-edit-icon"
-          matTooltip="Change Photo"
-          (click)="openWebcam()"
-        >photo_camera</mat-icon>
+<div class="form-container" *ngIf="customer">
+  <h2>
+    <mat-icon color="primary">person</mat-icon>
+    Personal Details
+  </h2>
+
+  <div class="form-card view-mode">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-section">
+        <div class="profile-image-container">
+          <img
+            [src]="profilePreview || 'assets/default-profile.png'"
+            alt="Profile Picture"
+            class="profile-image"
+          />
+          <button mat-icon-button class="profile-edit-icon" matTooltip="Change Photo" (click)="openWebcam()">
+            <mat-icon>photo_camera</mat-icon>
+          </button>
+        </div>
+        <div class="profile-info">
+          <h3>{{ customer?.firstName }} {{ customer?.middleName }} {{ customer?.lastName }}</h3>
+          <p class="loan-account">customer No: {{ customer?.customerId }}</p>
+        </div>
       </div>
-      
-      <!-- Text Centered Vertically -->
-      <div class="title-text">
-        <h3>{{ customer?.firstName }} {{ customer?.middleName }} {{ customer?.lastName }}</h3>
-        <p class="user-id">Loan Account No: {{ customer?.loanAccountNo }}</p>
+      <div class="profile-actions">
+        <button mat-stroked-button color="primary" (click)="onEditClick()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
       </div>
     </div>
 
-    <!-- Edit Button -->
-    <div class="profile-right">
-      <button mat-stroked-button color="primary" (click)="onEditClick()">
-        <mat-icon>edit</mat-icon>&nbsp; Edit
-      </button>
+    <!-- Details Grid -->
+    <div class="detail-grid">
+      <div class="detail-item">
+        <label>Date of Birth</label>
+        <span>{{ customer?.dateOfBirth | date:'dd/MM/yyyy' || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Gender</label>
+        <span>{{ customer?.gender || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Marital Status</label>
+        <span>{{ customer?.maritalStatus || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Mobile</label>
+        <span>{{ customer?.mobileNumber || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Alternate Mobile</label>
+        <span>{{ customer?.alternateMobileNumber || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Email</label>
+        <span>{{ customer?.email || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Office</label>
+        <span>{{ customer?.office || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Client Type</label>
+        <span>{{ customer?.clientType || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Education</label>
+        <span>{{ customer?.education || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Preferred Language</label>
+        <span>{{ customer?.preferredLanguage || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Religion</label>
+        <span>{{ customer?.religion || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Risk Category</label>
+        <span>{{ customer?.riskCategory || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Nationality</label>
+        <span>{{ customer?.nationality || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>External ID</label>
+        <span>{{ customer?.externalId || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <label>Application Status</label>
+        <span>{{ customer?.applicationStatus || 'N/A' }}</span>
+      </div>
     </div>
-  </div>
-
-  <!-- Details Grid -->
-  <div class="details-grid">
-    <div class="detail-row"><strong>Date of Birth:</strong> {{ customer?.dateOfBirth | date }}</div>
-    <div class="detail-row"><strong>Gender:</strong> {{ customer?.gender }}</div>
-    <div class="detail-row"><strong>Marital Status:</strong> {{ customer?.maritalStatus }}</div>
-    <div class="detail-row"><strong>Mobile:</strong> {{ customer?.mobileNumber }}</div>
-    <div class="detail-row"><strong>Alt Mobile:</strong> {{ customer?.alternateMobileNumber }}</div>
-    <div class="detail-row"><strong>Email:</strong> {{ customer?.email }}</div>
-    <div class="detail-row"><strong>Office:</strong> {{ customer?.office }}</div>
-    <div class="detail-row"><strong>Client Type:</strong> {{ customer?.clientType }}</div>
-    <div class="detail-row"><strong>Education:</strong> {{ customer?.education }}</div>
-    <div class="detail-row"><strong>Preferred Language:</strong> {{ customer?.preferredLanguage }}</div>
-    <div class="detail-row"><strong>Religion:</strong> {{ customer?.religion }}</div>
-    <div class="detail-row"><strong>Risk Category:</strong> {{ customer?.riskCategory }}</div>
-    <div class="detail-row"><strong>Nationality:</strong> {{ customer?.nationality }}</div>
-    <div class="detail-row"><strong>External ID:</strong> {{ customer?.externalId }}</div>
-    <div class="detail-row"><strong>Application Status:</strong> {{ customer?.applicationStatus }}</div>
   </div>
 </div>

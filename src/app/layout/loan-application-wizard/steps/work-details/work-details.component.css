@@ -1,31 +1,75 @@
-.work-form-card {
-    margin: 30px auto;
-    padding: 36px 48px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    background: #fff;
-    font-family: 'Roboto', sans-serif;
+.form-container {
+  padding: var(--spacing-lg);
+}
+
+.form-container h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: var(--spacing-xl);
+}
+
+.form-card {
+  background: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--border-color);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-field {
+  width: 100%;
+}
+
+.form-field mat-icon[matPrefix] {
+  margin-right: var(--spacing-sm);
+  color: var(--primary-color);
+  opacity: 0.7;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+.form-actions button {
+  min-width: 120px;
+}
+
+.form-actions button mat-icon {
+  margin-right: var(--spacing-xs);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: var(--spacing-md);
   }
-  
-  h2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 28px;
-    color: #1a237e;
-    margin-bottom: 32px;
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .form-row {
-    display: flex;
-    gap: 28px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
+
+  .form-actions {
+    flex-direction: column;
   }
-  
-  .form-field {
-    flex: 1 1 280px;
-    min-width: 280px;
+
+  .form-actions button {
+    width: 100%;
   }
+}
   

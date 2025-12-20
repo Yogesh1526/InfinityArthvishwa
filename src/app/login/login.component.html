@@ -22,7 +22,15 @@
           <input matInput type="password" name="password" [(ngModel)]="password" required />
         </mat-form-field>
 
-        <button mat-raised-button color="primary" (click)="onSubmit()" class="full-width">Login</button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="onSubmit()" 
+          class="full-width"
+          [disabled]="isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+          <span>{{ isLoading ? 'Logging in...' : 'Login' }}</span>
+        </button>
         <div *ngIf="loginFailed" class="error-text">Invalid credentials</div>
       </form>
     </div>

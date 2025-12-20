@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "InfinityArthvishvaCRM": {
+    "dhanvarshagoldloan": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/infinity-arthvishva-crm",
+            "outputPath": "dist/dhanvarshagoldloan",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -44,7 +44,13 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/app/environment.ts",
+                  "with": "src/app/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "buildOptimizer": false,
@@ -61,10 +67,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "InfinityArthvishvaCRM:build:production"
+              "browserTarget": "dhanvarshagoldloan:build:production"
             },
             "development": {
-              "browserTarget": "InfinityArthvishvaCRM:build:development"
+              "browserTarget": "dhanvarshagoldloan:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -72,7 +78,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "InfinityArthvishvaCRM:build"
+            "browserTarget": "dhanvarshagoldloan:build"
           }
         },
         "test": {

@@ -1,0 +1,513 @@
+/* ============================================
+   COMMON STYLES - Shared across all components
+   ============================================ */
+
+/* ============================================
+   CSS Variables (Design Tokens)
+   ============================================ */
+:root {
+  /* Colors */
+  --primary-color: #1976d2;
+  --primary-dark: #1e40af;
+  --primary-light: #90caf9;
+  --secondary-color: #5D4037;
+  --success-color: #4caf50;
+  --error-color: #d32f2f;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
+  
+  /* Text Colors */
+  --text-primary: #2c3e50;
+  --text-secondary: #555;
+  --text-muted: #757575;
+  --text-light: #EDE0D4;
+  
+  /* Background Colors */
+  --bg-primary: #fff;
+  --bg-secondary: #f5f8fa;
+  --bg-hover: #f9f9f9;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 10px rgba(25, 118, 210, 0.3);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease-in-out;
+}
+
+/* ============================================
+   Container Styles
+   ============================================ */
+.page-container {
+  padding: var(--spacing-lg);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  font-family: 'Roboto', sans-serif;
+}
+
+.content-container {
+  margin: var(--spacing-lg) auto;
+  padding: var(--spacing-xl) var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
+  font-family: 'Roboto', sans-serif;
+}
+
+/* ============================================
+   Card Styles
+   ============================================ */
+.form-card,
+.content-card,
+.customer-form-card,
+.loan-form-card,
+.gold-ownership-form-card,
+.family-form-card {
+  margin: var(--spacing-lg) auto;
+  padding: 36px var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
+  font-family: 'Roboto', sans-serif;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 700;
+  font-size: 28px;
+  color: #1a237e;
+  margin-bottom: var(--spacing-lg);
+}
+
+.card-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 28px;
+  color: #1a237e;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ============================================
+   Form Styles
+   ============================================ */
+.form-row {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.form-field {
+  flex: 1 1 280px;
+  min-width: 280px;
+}
+
+.full-width {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-start;
+  margin-top: var(--spacing-sm);
+}
+
+.form-actions button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 30px 0 var(--spacing-md) 0;
+}
+
+.toggle-label {
+  user-select: none;
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+button[mat-raised-button] {
+  padding: 0 var(--spacing-lg);
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+}
+
+button[mat-raised-button]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(25, 118, 210, 0.4);
+}
+
+button[mat-stroked-button] {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+button mat-icon {
+  margin-right: var(--spacing-xs);
+}
+
+.button-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  margin-top: var(--spacing-md);
+}
+
+/* ============================================
+   Material Form Field Overrides
+   ============================================ */
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-color: var(--primary-light);
+}
+
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  border-color: var(--primary-dark);
+}
+
+.mat-error {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--error-color);
+}
+
+/* ============================================
+   Table Styles
+   ============================================ */
+.data-table,
+.styled-table {
+  width: 100%;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.table-header-row,
+.data-table th {
+  background-color: #f0f4f7;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.table-body-row:hover,
+.data-table tr:hover {
+  background-color: var(--bg-hover);
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+.table-scroll-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.filter-field,
+.search-field {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* ============================================
+   Loading & Error States
+   ============================================ */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px var(--spacing-md);
+  min-height: 400px;
+}
+
+.loading-container p {
+  margin-top: var(--spacing-md);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.error-container {
+  padding: var(--spacing-md);
+}
+
+.error-text {
+  color: var(--error-color);
+  font-size: 14px;
+  margin-top: var(--spacing-xs);
+}
+
+.retry-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-md);
+}
+
+.retry-button-container button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* ============================================
+   Status & Badge Styles
+   ============================================ */
+.status-card {
+  flex: 1 1 180px;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.status-card:hover {
+  transform: translateY(-4px);
+}
+
+.status-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.status-count {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.badge,
+.activity-pill {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  display: inline-block;
+  text-transform: capitalize;
+}
+
+/* ============================================
+   Section Styles
+   ============================================ */
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.section-title mat-icon {
+  margin-right: var(--spacing-xs);
+  color: var(--primary-color);
+}
+
+/* ============================================
+   Filter & Search Styles
+   ============================================ */
+.filter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-row input {
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid #ccc;
+  flex: 1 1 300px;
+  max-width: 100%;
+}
+
+/* ============================================
+   Pagination Styles
+   ============================================ */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.pagination-controls button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pagination-controls button:hover:not([disabled]) {
+  background-color: var(--primary-dark);
+}
+
+.pagination-controls button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 768px) {
+  .content-container,
+  .form-card {
+    padding: var(--spacing-md);
+    margin: var(--spacing-md);
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .form-field {
+    min-width: 100%;
+  }
+
+  .table-tools {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .filter-field,
+  .search-field {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .button-row button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-container {
+    padding: var(--spacing-sm);
+  }
+
+  .card-header h2 {
+    font-size: 24px;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+}
+

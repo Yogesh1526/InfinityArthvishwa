@@ -1,9 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
-import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
-import { forkJoin } from 'rxjs';
+import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
+import { ToastService } from 'src/app/services/toast.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-first-valuation',
@@ -11,8 +13,10 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./first-valuation.component.css']
 })
 export class FirstValuationComponent implements OnInit {
+  @Input() customerId!: string;
   @Input() loanApplicationId!: string;
 
+  loanAccountNumber: string | null = null;
   karatOptions = [
     { value: '22HM', label: '22HM', min: 98, max: 100 },
     { value: '22', label: '22', min: 95, max: 97 },
@@ -48,13 +52,39 @@ export class FirstValuationComponent implements OnInit {
 
   jewelleryList: any[] = [];
   dataSource = new MatTableDataSource<any>(this.jewelleryList);
+  isValuationSaved = false;
+  showImageUploadPrompt = false;
 
-  constructor(private fb: FormBuilder, private apiService : PersonalDetailsService) {}
+  @Output() stepCompleted = new EventEmitter<void>();
+
+  constructor(
+    private fb: FormBuilder,
+    private apiService: PersonalDetailsService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
+    // Load stored loanAccountNumber from localStorage
+    this.loadStoredLoanAccountNumber();
     this.loadInitialValuationData();
     this.registerFormListeners();
+  }
 
+  /**
+   * Load loanAccountNumber from localStorage using customerId as key
+   */
+  loadStoredLoanAccountNumber(): void {
+    if (this.customerId) {
+      const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+      if (stored) {
+        this.loanAccountNumber = stored;
+      }
+    }
+    // Fallback to loanApplicationId if it's a valid loan account number
+    if (!this.loanAccountNumber && this.loanApplicationId && 
+        (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'))) {
+      this.loanAccountNumber = this.loanApplicationId;
+    }
   }
 
   registerFormListeners() {
@@ -109,31 +139,77 @@ export class FirstValuationComponent implements OnInit {
   }
 
   loadInitialValuationData(): void {
-    const loanId = this.loanApplicationId;
-  
-    // Call both APIs in parallel
-    forkJoin({
-      valuation: this.apiService.getFirstValuationDetails(loanId),
-      image: this.apiService.getFirstValuationImage(loanId)
-    }).subscribe({
-      next: ({ valuation, image }) => {
+    if (!this.customerId) {
+      return;
+    }
 
+    // Use stored loanAccountNumber or fallback to loanApplicationId
+    const accountNumber = this.loanAccountNumber || this.loanApplicationId;
+    if (!accountNumber) {
+      return;
+    }
+  
+    // Only load valuation data first - don't call image API yet
+    this.apiService.getFirstValuationDetails(this.customerId, accountNumber).pipe(
+      catchError(err => {
+        // If 404 or no data, return empty data instead of error
+        if (err.status === 404 || err.status === 0) {
+          return of({ data: { jewelleryItems: [] } });
+        }
+        return of({ data: { jewelleryItems: [] } });
+      })
+    ).subscribe({
+      next: (valuation: any) => {
         if (valuation?.data?.jewelleryItems?.length > 0) {
           this.jewelleryList = valuation.data.jewelleryItems;
-          this.dataSource.data = [...this.jewelleryList];  // trigger table refresh
+          this.dataSource.data = [...this.jewelleryList];
+          this.isValuationSaved = true;
+          
+          // Only load image if valuation data exists
+          this.loadValuationImage();
+        } else {
+          this.isValuationSaved = false;
+          this.showImageUploadPrompt = false;
         }
-        
-  
+      },
+      error: (err) => {
+        // Silently handle - no data means form is empty, which is fine
+        this.isValuationSaved = false;
+        this.showImageUploadPrompt = false;
+      }
+    });
+  }
+
+  loadValuationImage(): void {
+    if (!this.customerId) {
+      return;
+    }
+
+    // Use stored loanAccountNumber or fallback to loanApplicationId
+    const accountNumber = this.loanAccountNumber || this.loanApplicationId;
+    if (!accountNumber) {
+      return;
+    }
+
+    this.apiService.getFirstValuationImage(this.customerId, accountNumber).pipe(
+      catchError(() => of(null)) // Return null if image doesn't exist
+    ).subscribe({
+      next: (image: any) => {
         if (image) {
           const reader = new FileReader();
           reader.onload = () => {
             this.uploadedImageUrl = reader.result as string;
+            this.showImageUploadPrompt = false;
           };
           reader.readAsDataURL(image);
+        } else {
+          // Image doesn't exist, show prompt to upload
+          this.showImageUploadPrompt = true;
         }
       },
-      error: (err) => {
-        console.error('Failed to fetch valuation/image:', err);
+      error: () => {
+        // Image doesn't exist or failed to load, show prompt
+        this.showImageUploadPrompt = true;
       }
     });
   }
@@ -149,7 +225,12 @@ export class FirstValuationComponent implements OnInit {
 
   submitAll() {
     if (this.jewelleryList.length === 0) {
-      alert('No jewellery items to submit!');
+      this.toastService.showWarning('Please add at least one jewellery item before submitting.');
+      return;
+    }
+
+    if (!this.customerId) {
+      this.toastService.showError('Customer ID is required.');
       return;
     }
   
@@ -163,15 +244,25 @@ export class FirstValuationComponent implements OnInit {
       purity: item.purity
     }));
   
-    this.apiService.saveFirstValuationDetails(this.loanApplicationId,payload).subscribe({
-      next: () => {
-        alert('Jewellery submitted!');
-        this.jewelleryList = [];
-        this.dataSource.data = [];
+    this.apiService.saveFirstValuationDetails(this.customerId, payload).subscribe({
+      next: (response: any) => {
+        // Extract loan account number from response if available
+        if (response && response.data && response.data.loanAccountNumber) {
+          this.loanAccountNumber = response.data.loanAccountNumber;
+          if (this.customerId && this.loanAccountNumber) {
+            localStorage.setItem(`loanAccountNumber_${this.customerId}`, this.loanAccountNumber);
+          }
+        }
+        this.toastService.showSuccess('First valuation submitted successfully! Please upload the consolidated image.');
+        this.isValuationSaved = true;
+        this.showImageUploadPrompt = true; // Highlight image upload button
+        this.stepCompleted.emit();
+        // Load image if it exists, otherwise show prompt
+        this.loadValuationImage();
       },
       error: (err) => {
-        console.error('Submit failed', err);
-        alert('Error submitting data!');
+        const errorMsg = err?.error?.message || 'Failed to submit first valuation. Please try again.';
+        this.toastService.showError(errorMsg);
       }
     });
   }
@@ -187,9 +278,32 @@ export class FirstValuationComponent implements OnInit {
     if (!input.files || input.files.length === 0) return;
   
     const file = input.files[0];
+
+    // Check if valuation is saved before allowing image upload
+    if (!this.isValuationSaved) {
+      this.toastService.showWarning('Please save the first valuation before uploading the image.');
+      input.value = ''; // Reset input
+      return;
+    }
+
+    if (!this.customerId) {
+      this.toastService.showError('Customer ID is required.');
+      input.value = '';
+      return;
+    }
+
+    // Use stored loanAccountNumber or fallback to loanApplicationId
+    const accountNumber = this.loanAccountNumber || this.loanApplicationId;
+    if (!accountNumber) {
+      this.toastService.showError('Loan Account Number is required. Please save gold ownership first.');
+      input.value = '';
+      return;
+    }
   
-    this.apiService.uploadFirstValuationImage(this.loanApplicationId, file).subscribe({
+    this.apiService.uploadFirstValuationImage(this.customerId, accountNumber, file).subscribe({
       next: () => {
+        this.toastService.showSuccess('Image uploaded successfully!');
+        this.showImageUploadPrompt = false; // Hide prompt after successful upload
         // Preview the uploaded image using FileReader
         const reader = new FileReader();
         reader.onload = () => {
@@ -198,8 +312,9 @@ export class FirstValuationComponent implements OnInit {
         reader.readAsDataURL(file);
       },
       error: (err) => {
-        console.error('Image upload failed', err);
-        alert('Image upload failed.');
+        const errorMsg = err?.error?.message || 'Failed to upload image. Please try again.';
+        this.toastService.showError(errorMsg);
+        input.value = ''; // Reset input on error
       }
     });
   }

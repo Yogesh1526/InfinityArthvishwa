@@ -1,39 +1,66 @@
 // login.component.ts
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { ToastService } from '../services/toast.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
-  username = 'admin';
-  password = 'admin123';
+export class LoginComponent implements OnInit {
+  username = '';
+  password = '';
   loginFailed = false;
+  isLoading = false;
+  returnUrl: string = '/dashboard';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private toastService: ToastService
+  ) {}
+
+  ngOnInit(): void {
+    // Get return url from route parameters or default to '/dashboard'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    
+    // If already logged in, redirect to return URL
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate([this.returnUrl]);
+    }
+  }
 
   onSubmit() {
-    // login.component.ts
+    if (!this.username || !this.password) {
+      this.toastService.showWarning('Please enter both username and password');
+      return;
+    }
+
+    this.loginFailed = false;
+    this.isLoading = true;
+
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
-        console.log('Login success:', res);
-        this.router.navigate(['/dashboard']);
+        this.isLoading = false;
+        if (res?.token) {
+          this.toastService.showSuccess('Login successful!');
+          // Redirect to return URL or dashboard
+          this.router.navigate([this.returnUrl]);
+        } else {
+          this.loginFailed = true;
+          this.toastService.showError('Invalid response from server');
+        }
       },
       error: (err) => {
+        this.isLoading = false;
+        this.loginFailed = true;
+        const errorMessage = err?.error?.message || 'Invalid credentials. Please try again.';
+        this.toastService.showError(errorMessage);
         console.error('Login error:', err);
-        this.router.navigate(['/dashboard']);
-        // this.errorMessage = 'Invalid credentials or server error.';
       }
     });
-
-    const success = this.authService.login(this.username, this.password);
-    if (success) {
-      this.router.navigate(['/dashboard']);
-    } else {
-      this.loginFailed = true;
-    }
   }
 }

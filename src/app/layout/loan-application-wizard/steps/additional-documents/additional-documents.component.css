@@ -1,56 +1,180 @@
-.additional-docs-card {
-    margin: 30px auto;
-    padding: 36px 48px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    background: #fff;
-    font-family: 'Roboto', sans-serif;
+.form-container {
+  padding: var(--spacing-lg);
+}
+
+.form-container h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: var(--spacing-xl);
+}
+
+.form-card {
+  background: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--border-color);
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.upload-card {
+  background: var(--background-light);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  transition: var(--transition-ease);
+}
+
+.upload-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.upload-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.upload-header .doc-icon {
+  color: var(--primary-color);
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.upload-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color-dark);
+  margin: 0;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.preview-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--spacing-sm);
+}
+
+.preview-wrapper {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: white;
+  position: relative;
+}
+
+.preview-wrapper img {
+  width: 100%;
+  max-height: 250px;
+  object-fit: contain;
+  display: block;
+}
+
+.pdf-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  background: var(--background-light);
+  gap: var(--spacing-sm);
+}
+
+.pdf-indicator mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--warn-color);
+}
+
+.pdf-indicator span {
+  font-weight: 600;
+  color: var(--text-color-dark);
+}
+
+.remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: white;
+  box-shadow: var(--shadow-md);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: #666;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: white;
+  min-height: 150px;
+}
+
+.upload-placeholder mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--primary-color);
+  opacity: 0.5;
+}
+
+.upload-placeholder p {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--text-color-dark);
+}
+
+.upload-placeholder span {
+  font-size: 12px;
+  color: #999;
+}
+
+.upload-button {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+.upload-button mat-icon {
+  margin-right: var(--spacing-xs);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: var(--spacing-md);
   }
-  
-  h2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 28px;
-    color: #1a237e;
-    margin-bottom: 32px;
-  }
-  
+
   .upload-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 36px;
+    grid-template-columns: 1fr;
   }
-  
-  .upload-section {
-    flex: 1 1 300px;
-    min-width: 280px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+
+  .upload-card {
+    padding: var(--spacing-md);
   }
-  
-  .upload-label {
-    font-weight: 600;
-    color: #333;
-  }
-  
-  .preview-box {
-    margin-top: 8px;
-    padding: 8px;
-    background: #f5f5f5;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-  }
-  
-  .preview-image {
-    max-width: 80px;
-    height: auto;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
+}
   

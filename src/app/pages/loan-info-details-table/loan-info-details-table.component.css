@@ -139,4 +139,6 @@
     background-color: #ccc;
     cursor: not-allowed;
   }
+
+  /* Loading and Error States - using common.css classes */
   

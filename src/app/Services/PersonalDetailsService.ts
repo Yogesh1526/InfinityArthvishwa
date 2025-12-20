@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environment';
 
@@ -8,7 +8,7 @@ import { environment } from '../environment';
 })
 export class PersonalDetailsService {
 
-  private baseUrl =`${environment.apiUrl}/api`;
+  private baseUrl = `${environment.apiUrl}/api`;
   
   constructor(private http: HttpClient) {}
 
@@ -41,24 +41,63 @@ export class PersonalDetailsService {
     return this.http.get(`${this.baseUrl}/familyDetails/getFamilyDetails/${customerId}`);
   }
 
-  getAddressDetailsByLoanApplicantId(loanApplicationId: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/address/${loanApplicationId}`);
+  getAllFamilyDetails(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/familyDetails/getAllFamilyDetails`);
+  }
+
+  updateFamilyDetails(data: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}/familyDetails/updateFamilyDetails`, data);
+  }
+
+  deleteFamilyDetails(customerId: string, id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/familyDetails/${customerId}/${id}`);
+  }
+
+  getAddressDetailsByCustomerId(customerId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/address/${customerId}`);
+  }
+
+  getAllAddressDetails(loanAccountNo: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/address/getAllAddressDetails/${loanAccountNo}`);
   }
 
   saveAddressDetails(body: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/address/saveAddressDetails`, body);
   }
 
-  getWorkDetailsByApplicantId(applicantId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/work-details/getAllWorkDetails/${applicantId}`);
+  updateAddressDetails(body: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/address/updateAddressDetails`, body);
+  }
+
+  deleteAddressDetails(customerId: string, addressId?: number): Observable<any> {
+    if (addressId) {
+      return this.http.delete<any>(`${this.baseUrl}/address/deleteAddressDetail/${customerId}/${addressId}`);
+    }
+    return this.http.delete<any>(`${this.baseUrl}/address/deleteAddressDetail/${customerId}`);
+  }
+
+  getWorkDetailsByCustomerId(customerId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/work-details/${customerId}`);
+  }
+
+  getAllWorkDetails(loanAccountNo: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/work-details/getAllWorkDetails/${loanAccountNo}`);
   }
 
   saveWorkDetails(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/work-details`, data);
   }
 
-  getNomineeByLoanAccount(loanAccountNo: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/nominees/getNominee/${loanAccountNo}`);
+  updateWorkDetails(data: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}/work-details/updateWorkDetails`, data);
+  }
+
+  deleteWorkDetails(id: number, loanAccountNo: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/work-details/deleteWorkDetail/${id}/${loanAccountNo}`);
+  }
+
+  getNomineeByCustomerId(customerId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/nominees/getNominee/${customerId}`);
   }
 
   saveNominee(data: any): Observable<any> {
@@ -68,9 +107,13 @@ export class PersonalDetailsService {
   updateNominee(payload: any) {
     return this.http.put(`${this.baseUrl}/nominees/updateNomineeDetails`, payload);
   }
+
+  deleteNominee(loanAccountNo: string, id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/nominees/deleteNominee/${loanAccountNo}/${id}`);
+  }
   
-  getReferenceDetails(loanAccountNo: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/reference/applicant/${loanAccountNo}`);
+  getReferenceDetailsByCustomerId(customerId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reference/applicant/${customerId}`);
   }
 
   saveReferenceDetails(payload: any): Observable<any> {
@@ -81,8 +124,12 @@ export class PersonalDetailsService {
     return this.http.put(`${this.baseUrl}/reference/updateReferenceDetails`, payload);
   }
 
-  getGoldOwnershipDetails(loanAccountNo: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/gold-ownership/getGoldOwnershipDetail/${loanAccountNo}`);
+  deleteReferenceDetails(loanAccountNo: string, id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/reference/deleteRefrence/${loanAccountNo}/${id}`);
+  }
+
+  getGoldOwnershipDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/gold-ownership/getGoldOwnershipDetail/${customerId}/${loanAccountNumber}`);
   }
 
   saveGoldOwnershipDetails(payload: any): Observable<any> {
@@ -93,61 +140,82 @@ export class PersonalDetailsService {
     return this.http.put(`${this.baseUrl}/gold-ownership/updateGoldOwnershipDetail`, payload);
   }
 
-  saveFirstValuationDetails(loanId: string, payload: any[]) {
-    return this.http.post(`${this.baseUrl}/firstValuation/save/${loanId}`, payload);
+  deleteGoldOwnershipDetails(loanAccountNo: string, id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/gold-ownership/deleteGoldOwnershipDetail/${loanAccountNo}/${id}`);
   }
 
-  uploadFirstValuationImage(loanApplicationId: any, file: File) {
+  saveFirstValuationDetails(customerId: string, payload: any[]) {
+    return this.http.post(`${this.baseUrl}/firstValuation/save/${customerId}`, payload);
+  }
+
+  uploadFirstValuationImage(customerId: string, loanAccountNumber: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
   
     return this.http.post(
-      `${this.baseUrl}/firstValuation/uploadImage/${loanApplicationId}`,
+      `${this.baseUrl}/firstValuation/uploadImage/${customerId}/${loanAccountNumber}`,
       formData
     );
   }
   
-  getFirstValuationDetails(loanApplicationId: string) {
+  getFirstValuationDetails(customerId: string, loanAccountNumber: string) {
     return this.http.get<any>(
-      `${this.baseUrl}/firstValuation/getValuation/${loanApplicationId}`
+      `${this.baseUrl}/firstValuation/getValuation/${customerId}/${loanAccountNumber}`
     );
   }
   
-  getFirstValuationImage(loanApplicationId: string) {
-    return this.http.get(`${this.baseUrl}/firstValuation/getJewelleryImage/${loanApplicationId}`, {
+  getFirstValuationImage(customerId: string, loanAccountNumber: string) {
+    return this.http.get(`${this.baseUrl}/firstValuation/getJewelleryImage/${customerId}/${loanAccountNumber}`, {
       responseType: 'blob'
     });
   }
-  
-  getSecondValuationDetails(loanApplicationId: string) {
-    return this.http.get<any>(
-      `${this.baseUrl}/second-valuation/getSecondValuation/${loanApplicationId}`
-    );
+
+  updateFirstValuation(loanAccountNumber: string, updatedBy: string, payload: any[]) {
+    return this.http.put(`${this.baseUrl}/firstValuation/update/${loanAccountNumber}/${updatedBy}`, payload);
   }
   
-  updateSecondValuation(loanAccountNo: string, updatedItems: any[]) {
-    return this.http.put(`${this.baseUrl}/second-valuation/updateSecondValuation/${loanAccountNo}`, updatedItems);
+  getSecondValuationDetails(customerId: string, loanAccountNumber: string) {
+    return this.http.get<any>(
+      `${this.baseUrl}/second-valuation/getSecondValuation/${customerId}/${loanAccountNumber}`
+    );
+  }
+
+  updateSecondValuation(customerId: string, loanAccountNumber: string, updatedItems: any[]) {
+    return this.http.put(`${this.baseUrl}/second-valuation/updateSecondValuation/${customerId}/${loanAccountNumber}`, updatedItems);
   }
   
   saveSecondValuationDetails(loanId: string, payload: any) {
     return this.http.post(`${this.baseUrl}/second-valuation/updateSecondValuation/${loanId}`, payload);
   }
 
-  saveFinalValuation(loanAccountNo: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/final-valuation/save/${loanAccountNo}`, {});
+  getFinalValuationById(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/final-valuation/getFinalValuationById/${customerId}/${loanAccountNumber}`
+    );
   }
 
-  uploadPhoto(loanAccountNo: string, file: File): Observable<any> {
+  saveFinalValuation(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/final-valuation/save/${customerId}/${loanAccountNumber}`, {});
+  }
+
+  uploadPhoto(customerId: string, file: File): Observable<any> {
     const formData = new FormData();
-    formData.append('loanAccountNo', loanAccountNo);
+    formData.append('customerId', customerId);
     formData.append('file', file, file.name);
 
     return this.http.post(`${this.baseUrl}/applicantDetails/upload-photo`, formData);
   }
 
-  getPhoto(loanAccountNo: string): Observable<Blob> {
-    // Assuming the API returns raw image bytes (or you might need to adjust if returns base64)
-    return this.http.get(`${this.baseUrl}/${loanAccountNo}/applicantDetails/photo`, { responseType: 'blob' });
+  getPhoto(customerId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/applicantDetails/${customerId}/photo`, { responseType: 'blob' });
+  }
+
+  updatePhoto(customerId: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('customerId', customerId);
+    formData.append('file', file, file.name);
+
+    return this.http.put(`${this.baseUrl}/applicantDetails/update-photo`, formData);
   }
   
   // ... your existing methods ...
@@ -157,7 +225,7 @@ export class PersonalDetailsService {
    * @param data Upload data containing file, proofType, side, etc.
    */
   uploadKycDocument(data: {
-    loanAccountNo: string;
+    customerId: string;
     file: File;
     proofType: string;
     side?: string;
@@ -165,7 +233,7 @@ export class PersonalDetailsService {
     documentType: string;
   }): Observable<any> {
     const formData = new FormData();
-    formData.append('loanAccountNo', data.loanAccountNo);
+    formData.append('customerId', data.customerId);
     formData.append('file', data.file);
     formData.append('proofType', data.proofType);
     if (data.side) {
@@ -177,11 +245,130 @@ export class PersonalDetailsService {
     return this.http.post(`${this.baseUrl}/kyc-documents/uploadKycDocuments`, formData);
   }
   
-  getDocumentByType(loanAccountNo: string, documentType: string, side: string = 'NA'): Observable<any> {
+  getDocumentByType(customerId: string, documentType: string, side: string = 'NA'): Observable<Blob> {
+    // API returns document directly as blob/binary data
     let params = new HttpParams()
-      .set('loanAccountNo', loanAccountNo)
+      .set('customerId', customerId)
       .set('documentType', documentType)
       .set('side', side);
-    return this.http.get(`${this.baseUrl}/kyc-documents/getDocumentByType`, { params });
+    
+    // Explicitly set responseType to blob to prevent JSON parsing
+    return this.http.get(`${this.baseUrl}/kyc-documents/getDocumentByType`, { 
+      params,
+      responseType: 'blob' as 'json'
+    }) as Observable<Blob>;
+  }
+
+  getAllKycDocuments(customerId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/kyc-documents/getAllKycDocuments/${customerId}`);
+  }
+
+  updateKycDocument(data: {
+    customerId: string;
+    file?: File;
+    proofType: string;
+    side?: string;
+    identifierNumber: string;
+    documentType: string;
+    id?: number;
+  }): Observable<any> {
+    const formData = new FormData();
+    formData.append('customerId', data.customerId);
+    if (data.file) {
+      formData.append('file', data.file);
+    }
+    formData.append('proofType', data.proofType);
+    if (data.side) {
+      formData.append('side', data.side);
+    }
+    formData.append('identifierNumber', data.identifierNumber);
+    formData.append('documentType', data.documentType);
+    if (data.id) {
+      formData.append('id', data.id.toString());
+    }
+
+    return this.http.put(`${this.baseUrl}/kyc-documents/updateKycDocuments`, formData);
+  }
+
+  deleteKycDocument(id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/kyc-documents/deleteKycDocuments/${id}`);
+  }
+
+  // Bank Details APIs
+  getBankDetails(customerId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/bank-details/getBankDetails/${customerId}`);
+  }
+
+  saveBankDetails(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/bank-details/saveBankDetails`, payload);
+  }
+
+  updateBankDetails(payload: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}/bank-details/updateBankDetails`, payload);
+  }
+
+  refreshPennyDropStatus(loanAccountNo: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/bank-details/refreshPennyDrop/${loanAccountNo}`, {});
+  }
+
+  deleteBankDetails(loanAccountNo: string, id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/bank-details/deleteApplicantBankDetails/${loanAccountNo}/${id}`);
+  }
+
+  // Packet Allotment APIs - New endpoints with customerId and loanAccountNumber
+  public getPacketAllotmentDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/pocketAllotment/getPocketAllotmentDetails/${customerId}/${loanAccountNumber}`);
+  }
+
+  public savePocketAllotment(customerId: string, loanAccountNumber: string, packetId: string, items: string[]): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/pocketAllotment/savePocketAllotment/${customerId}/${loanAccountNumber}/${packetId}`, items);
+  }
+
+  public updatePocketAllotment(customerId: string, loanAccountNumber: string, id: string, packetId: string, items: string[]): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/pocketAllotment/updatePocketAllotment/${customerId}/${loanAccountNumber}/${id}/${packetId}`, items);
+  }
+
+  // Legacy methods for backward compatibility
+  getPacketAllotment(loanAccountNo: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/packet-allotment/getPacketAllotment/${loanAccountNo}`);
+  }
+
+  savePacketAllotment(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/packet-allotment/savePacketAllotment`, payload);
+  }
+
+  updatePacketAllotment(payload: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}/packet-allotment/updatePacketAllotment`, payload);
+  }
+
+  // GL Scheme Selection API
+  addLoanAccount(loanAccountNumber: string, payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/loan/add-loan-account/${loanAccountNumber}`, payload);
+  }
+
+  getSchemeSelectionDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/loan/getSchemeSelectionDetails/${customerId}/${loanAccountNumber}`
+    );
+  }
+
+  saveGoldLoanSchemeSelection(customerId: string, loanAccountNumber: string, payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/loan/gl-scheme-selection/${customerId}/${loanAccountNumber}`, payload);
+  }
+
+  // File APIs for Loan Application Approval
+  getApprovalFiles(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/file/getApprovalFiles/${customerId}/${loanAccountNumber}`
+    );
+  }
+
+  downloadFile(fileName: string): Observable<Blob> {
+    const params = new HttpParams().set('fileName', fileName);
+    return this.http.get(`${environment.apiUrl}/file/download`, {
+      params,
+      responseType: 'blob'
+    });
   }
 }
+

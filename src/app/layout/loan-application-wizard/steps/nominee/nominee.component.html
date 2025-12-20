@@ -1,28 +1,38 @@
-<div  *ngIf="formLoaded">
+<div class="form-container" *ngIf="formLoaded">
   <h2>
     <mat-icon color="primary">person_add</mat-icon>
     Nominee Details
   </h2>
 
-  <form [formGroup]="form" novalidate (ngSubmit)="onSubmit()">
-    <div class="form-row">
+  <form [formGroup]="form" novalidate (ngSubmit)="onSubmit()" class="form-card">
+    <div class="form-grid">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>First Name</mat-label>
         <input matInput formControlName="firstName" [disabled]="!isEditable" />
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="form.get('firstName')?.hasError('required')">
+          First name is required
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Last Name</mat-label>
         <input matInput formControlName="lastName" [disabled]="!isEditable" />
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="form.get('lastName')?.hasError('required')">
+          Last name is required
+        </mat-error>
       </mat-form-field>
-    </div>
 
-    <div class="form-row">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Relationship</mat-label>
         <mat-select formControlName="relationship" [disabled]="!isEditable">
           <mat-option *ngFor="let relation of relationshipOptions" [value]="relation">{{ relation }}</mat-option>
         </mat-select>
+        <mat-icon matPrefix>people</mat-icon>
+        <mat-error *ngIf="form.get('relationship')?.hasError('required')">
+          Relationship is required
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
@@ -30,13 +40,22 @@
         <mat-select formControlName="gender" [disabled]="!isEditable">
           <mat-option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</mat-option>
         </mat-select>
+        <mat-icon matPrefix>wc</mat-icon>
+        <mat-error *ngIf="form.get('gender')?.hasError('required')">
+          Gender is required
+        </mat-error>
       </mat-form-field>
-    </div>
 
-    <div class="form-row">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Mobile Number</mat-label>
         <input matInput formControlName="mobileNumber" maxlength="10" [disabled]="!isEditable" />
+        <mat-icon matPrefix>phone</mat-icon>
+        <mat-error *ngIf="form.get('mobileNumber')?.hasError('required')">
+          Mobile number is required
+        </mat-error>
+        <mat-error *ngIf="form.get('mobileNumber')?.hasError('pattern')">
+          Please enter a valid 10-digit mobile number
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
@@ -44,19 +63,35 @@
         <input matInput [matDatepicker]="dobPicker" formControlName="dob" [disabled]="!isEditable" />
         <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
         <mat-datepicker #dobPicker></mat-datepicker>
+        <mat-icon matPrefix>calendar_today</mat-icon>
+        <mat-error *ngIf="form.get('dob')?.hasError('required')">
+          Date of birth is required
+        </mat-error>
       </mat-form-field>
-    </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
+      <mat-form-field appearance="outline" class="form-field readonly-field">
         <mat-label>Age</mat-label>
         <input matInput formControlName="age" maxlength="3" [disabled]="true" />
+        <mat-icon matPrefix>cake</mat-icon>
       </mat-form-field>
     </div>
 
-    <div class="button-row">
-      <button mat-flat-button color="primary" *ngIf="!isEditable && isDataAvailable" (click)="onEdit()">Edit</button>
-      <button mat-flat-button color="accent" *ngIf="isEditable" type="submit">Submit</button>
+    <div class="form-actions">
+      <button mat-stroked-button color="primary" *ngIf="!isEditable && isDataAvailable" type="button" (click)="onEdit()">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+      <button mat-stroked-button color="warn" *ngIf="!isEditable && isDataAvailable" type="button" (click)="onDelete()">
+        <mat-icon>delete</mat-icon>
+        Delete
+      </button>
+      <button mat-stroked-button type="button" *ngIf="isEditable" (click)="onCancel()">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" *ngIf="isEditable" type="submit">
+        <mat-icon>save</mat-icon>
+        {{ nomineeId ? 'Update' : 'Save' }}
+      </button>
     </div>
   </form>
 </div>

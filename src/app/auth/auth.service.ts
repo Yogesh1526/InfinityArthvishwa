@@ -9,6 +9,7 @@ import { environment } from '../environment';
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly TOKEN_EXPIRY_KEY = 'auth_token_expiry';
   private readonly API_URL = `${environment.apiUrl}/api/auth/signin`;
 
   constructor(
@@ -26,16 +27,47 @@ export class AuthService {
       tap(response => {
         if (response?.token) {
           localStorage.setItem(this.TOKEN_KEY, response.token);
+          
+          // Store token expiration if provided (assuming 24 hours default)
+          const expiresIn = response.expiresIn || 86400000; // 24 hours in milliseconds
+          const expiryTime = new Date().getTime() + expiresIn;
+          localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
         }
       })
     );
   }
 
   /**
-   * Checks if a token is stored
+   * Checks if a token is stored and valid
    */
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    
+    // Check if token is expired
+    if (this.isTokenExpired()) {
+      this.clearAuthData();
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Checks if the token has expired
+   */
+  isTokenExpired(): boolean {
+    const expiryTime = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+    if (!expiryTime) {
+      // If no expiry time is set, assume token is valid (for backward compatibility)
+      // But you might want to validate the token structure
+      return false;
+    }
+    
+    const now = new Date().getTime();
+    return now > parseInt(expiryTime, 10);
   }
 
   /**
@@ -46,10 +78,36 @@ export class AuthService {
   }
 
   /**
+   * Validates token format (basic validation)
+   */
+  isValidTokenFormat(token: string): boolean {
+    // Basic JWT token format validation
+    // JWT tokens have 3 parts separated by dots
+    const parts = token.split('.');
+    return parts.length === 3;
+  }
+
+  /**
+   * Clears all authentication data
+   */
+  clearAuthData(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
+  }
+
+  /**
    * Clears token and navigates to login
    */
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    this.router.navigate(['/login']);
+    this.clearAuthData();
+    this.router.navigate(['/login'], { replaceUrl: true });
+  }
+
+  /**
+   * Check if user should be redirected after login
+   */
+  getReturnUrl(): string | null {
+    // This can be used to get the return URL from query params
+    return null;
   }
 }

@@ -1,101 +1,177 @@
-<div *ngIf="formLoaded">
+<div class="form-container" *ngIf="formLoaded">
   <!-- Saved Addresses -->
   <div *ngIf="addressList.length > 0 && !isEditable">
-    <h2><mat-icon>home</mat-icon> Saved Addresses</h2>
+    <h2>
+      <mat-icon color="primary">home</mat-icon>
+      Address Details
+    </h2>
 
-    <div class="card-list">
+    <div class="address-list">
       <div *ngFor="let addr of addressList" class="address-card">
         <div class="card-body">
-          <p><strong>Ownership:</strong> {{ addr.ownership }}</p>
-          <p><strong>Address:</strong> {{ addr.addressLine1 }}, {{ addr.addressLine2 }}</p>
-          <p><strong>Landmark:</strong> {{ addr.landmark }}</p>
-          <p><strong>Village:</strong> {{ addr.village }}</p>
-          <p><strong>District:</strong> {{ addr.district }}</p>
-          <p><strong>State:</strong> {{ addr.state }}</p>
-          <p><strong>Pincode:</strong> {{ addr.pincode }}</p>
-          <p><strong>Country:</strong> {{ addr.country }}</p>
-          <p><strong>Years at Residence:</strong> {{ addr.yearsOfResidence }}</p>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Ownership</label>
+              <span>{{ addr.ownership || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Address Line 1</label>
+              <span>{{ addr.addressLine1 || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Address Line 2</label>
+              <span>{{ addr.addressLine2 || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Landmark</label>
+              <span>{{ addr.landmark || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Village/Town/City</label>
+              <span>{{ addr.village || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>District</label>
+              <span>{{ addr.district || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>State</label>
+              <span>{{ addr.state || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Pincode</label>
+              <span>{{ addr.pincode || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Country</label>
+              <span>{{ addr.country || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Years at Residence</label>
+              <span>{{ addr.yearsOfResidence || 'N/A' }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="card-actions">
-          <button mat-stroked-button color="accent" (click)="editAddress(addr)">Edit</button>
+          <button mat-stroked-button color="primary" (click)="editAddress(addr)">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+          <button mat-stroked-button color="warn" (click)="deleteAddress(addr)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
         </div>
       </div>
     </div>
 
-    <div class="add-button">
-      <button mat-flat-button color="primary" (click)="addNew()">Add New Address</button>
+    <div class="add-button-container">
+      <button mat-raised-button color="primary" (click)="addNew()">
+        <mat-icon>add</mat-icon>
+        Add New Address
+      </button>
     </div>
   </div>
 
   <!-- Address Form -->
-  <div *ngIf="isEditable" >
-    <h2><mat-icon color="primary">edit_location_alt</mat-icon> Address Form</h2>
+  <div *ngIf="isEditable">
+    <h2>
+      <mat-icon color="primary">edit_location_alt</mat-icon>
+      Address Form
+    </h2>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form-row">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Address Type</mat-label>
+          <mat-select formControlName="addressType">
+            <mat-option *ngFor="let type of addressTypeOptions" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>category</mat-icon>
+        </mat-form-field>
+
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Ownership</mat-label>
-          <input matInput formControlName="residentialAddressOwnership" />
+          <mat-select formControlName="ownership">
+            <mat-option *ngFor="let option of ownershipOptions" [value]="option">
+              {{ option }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>home</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Address Line 1</mat-label>
           <input matInput formControlName="addressLine1" />
+          <mat-icon matPrefix>location_on</mat-icon>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Address Line 2</mat-label>
           <input matInput formControlName="addressLine2" />
+          <mat-icon matPrefix>location_on</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Landmark</mat-label>
           <input matInput formControlName="landmark" />
+          <mat-icon matPrefix>place</mat-icon>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Village/Town/City</mat-label>
-          <input matInput formControlName="villageTownCity" />
+          <input matInput formControlName="village" />
+          <mat-icon matPrefix>location_city</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>District</mat-label>
-          <input matInput formControlName="district" />
+          <input matInput formControlName="district" placeholder="Enter district" />
+          <mat-icon matPrefix>map</mat-icon>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>State</mat-label>
-          <input matInput formControlName="state" />
+          <mat-select formControlName="state">
+            <mat-option *ngFor="let state of indianStates" [value]="state">
+              {{ state }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>public</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Pincode</mat-label>
-          <input matInput maxlength="6" formControlName="pincode" />
+          <input matInput formControlName="pincode" maxlength="6" placeholder="Enter 6-digit pincode" pattern="[0-9]{6}" />
+          <mat-icon matPrefix>markunread_mailbox</mat-icon>
         </mat-form-field>
-      </div>
 
-      <div class="form-row">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Country</mat-label>
-          <input matInput formControlName="country" />
+          <mat-select formControlName="country">
+            <mat-option value="India">India</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>flag</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Years at Residence</mat-label>
-          <input matInput type="number" formControlName="yearsAtResidence" />
+          <input matInput type="number" formControlName="yearsOfResidence" />
+          <mat-icon matPrefix>schedule</mat-icon>
         </mat-form-field>
       </div>
 
       <div class="form-actions">
-        <button mat-flat-button color="primary" type="submit">Save</button>
-        <button mat-stroked-button color="warn" type="button">Cancel</button>
+        <button mat-stroked-button type="button" (click)="isEditable = false; loadAddresses()">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit">
+          <mat-icon>save</mat-icon>
+          Save
+        </button>
       </div>
     </form>
   </div>

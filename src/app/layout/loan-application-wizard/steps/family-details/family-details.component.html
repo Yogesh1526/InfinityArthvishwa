@@ -1,83 +1,91 @@
-<div class="family-form-card">
-
-  <h2><mat-icon color="primary">groups</mat-icon> Family Details</h2>
+<div class="form-container">
+  <h2>
+    <mat-icon color="primary">groups</mat-icon>
+    Family Details
+  </h2>
 
   <!-- View Mode -->
-  <div *ngIf="familyDetails && !isEditMode" class="detail-view">
+  <div *ngIf="familyDetails && !isEditMode" class="form-card view-mode">
     <div class="detail-grid">
       <div class="detail-item">
-        <label>Spouse First Name:</label>
+        <label>Spouse First Name</label>
         <span>{{ familyDetails.spouseFirstName || 'N/A' }}</span>
       </div>
       <div class="detail-item">
-        <label>Spouse Last Name:</label>
+        <label>Spouse Last Name</label>
         <span>{{ familyDetails.spouseLastName || 'N/A' }}</span>
       </div>
       <div class="detail-item">
-        <label>Father First Name:</label>
+        <label>Father First Name</label>
         <span>{{ familyDetails.fatherFirstName || 'N/A' }}</span>
       </div>
       <div class="detail-item">
-        <label>Father Last Name:</label>
+        <label>Father Last Name</label>
         <span>{{ familyDetails.fatherLastName || 'N/A' }}</span>
       </div>
       <div class="detail-item">
-        <label>Mother First Name:</label>
+        <label>Mother First Name</label>
         <span>{{ familyDetails.motherFirstName || 'N/A' }}</span>
       </div>
       <div class="detail-item">
-        <label>Mother Last Name:</label>
+        <label>Mother Last Name</label>
         <span>{{ familyDetails.motherLastName || 'N/A' }}</span>
       </div>
     </div>
 
-    <div class="action-row">
+    <div class="form-actions">
       <button mat-stroked-button color="primary" (click)="editDetails()">
-        <mat-icon>edit</mat-icon> Edit
+        <mat-icon>edit</mat-icon>
+        Edit
       </button>
     </div>
   </div>
 
   <!-- Form Mode -->
-  <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-    <div class="form-row">
+  <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="form-card">
+    <div class="form-grid">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Spouse First Name</mat-label>
         <input matInput formControlName="spouseFirstName" />
+        <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Spouse Last Name</mat-label>
         <input matInput formControlName="spouseLastName" />
+        <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
-    </div>
 
-    <div class="form-row">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Father's First Name</mat-label>
         <input matInput formControlName="fatherFirstName" />
+        <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Father's Last Name</mat-label>
         <input matInput formControlName="fatherLastName" />
+        <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
-    </div>
 
-    <div class="form-row">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Mother's First Name</mat-label>
         <input matInput formControlName="motherFirstName" />
+        <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Mother's Last Name</mat-label>
         <input matInput formControlName="motherLastName" />
+        <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
     </div>
 
-    <div class="submit-row">
-      <button mat-raised-button color="primary" type="submit">Submit</button>
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit">
+        <mat-icon>save</mat-icon>
+        Submit
+      </button>
     </div>
   </form>
 </div>

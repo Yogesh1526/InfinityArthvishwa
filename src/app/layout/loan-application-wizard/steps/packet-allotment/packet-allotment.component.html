@@ -1,0 +1,134 @@
+<div class="packet-allotment-container">
+  <h2>
+    <mat-icon color="primary">inventory</mat-icon>
+    Packet Allotment
+  </h2>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading packet allotment...</p>
+  </div>
+
+  <!-- View Mode -->
+  <div *ngIf="formLoaded && !isLoading && isDataAvailable && !isEditMode" class="detail-view">
+    <div class="allotted-list-section">
+      <h3>
+        <mat-icon>list</mat-icon>
+        Allotted List
+      </h3>
+      
+      <div class="allotted-card">
+        <div class="form-field-view">
+          <label>Packet ID:</label>
+          <div class="value-display">
+            <span class="packet-number">{{ form.get('packetId')?.value || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <div class="form-field-view" *ngIf="itemsFormArray.length > 0">
+          <label>Items:</label>
+          <div class="value-display">
+            <div class="items-list">
+              <span *ngFor="let item of itemsFormArray.controls; let i = index" class="item-badge">
+                {{ item.get('item')?.value }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Button -->
+      <div class="action-row">
+        <button mat-stroked-button color="primary" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Mode -->
+  <form *ngIf="formLoaded && !isLoading && isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="packet-form">
+    <div class="allotted-list-section">
+      <h3>
+        <mat-icon>list</mat-icon>
+        Allotted List
+      </h3>
+
+      <div class="allotted-card">
+        <mat-form-field appearance="outline" class="form-field packet-id-field">
+          <mat-label>Packet ID</mat-label>
+          <input matInput formControlName="packetId" type="number" placeholder="Enter packet ID" />
+          <mat-icon matPrefix>confirmation_number</mat-icon>
+          <div class="spinner-controls">
+            <button 
+              type="button" 
+              mat-icon-button 
+              (click)="incrementPacketId()"
+              [disabled]="form.get('packetId')?.disabled">
+              <mat-icon>keyboard_arrow_up</mat-icon>
+            </button>
+            <button 
+              type="button" 
+              mat-icon-button 
+              (click)="decrementPacketId()"
+              [disabled]="form.get('packetId')?.disabled || (form.get('packetId')?.value || 0) <= 0">
+              <mat-icon>keyboard_arrow_down</mat-icon>
+            </button>
+          </div>
+          <mat-error *ngIf="form.get('packetId')?.hasError('required')">
+            Packet ID is required
+          </mat-error>
+          <mat-error *ngIf="form.get('packetId')?.hasError('pattern')">
+            Packet ID must contain only digits
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Items Array -->
+        <div class="items-section">
+          <div class="items-header">
+            <label>Items *</label>
+            <button mat-icon-button color="primary" type="button" (click)="addItem()" class="add-item-btn">
+              <mat-icon>add_circle</mat-icon>
+            </button>
+          </div>
+
+          <div formArrayName="items" class="items-list">
+            <div *ngFor="let item of itemsFormArray.controls; let i = index" [formGroupName]="i" class="item-row">
+              <mat-form-field appearance="outline" class="item-field">
+                <mat-label>Item {{ i + 1 }}</mat-label>
+                <input matInput formControlName="item" placeholder="e.g., Ring, Bracelate" />
+                <mat-icon matPrefix>inventory_2</mat-icon>
+                <mat-error *ngIf="item.get('item')?.hasError('required')">
+                  Item is required
+                </mat-error>
+              </mat-form-field>
+              <button 
+                mat-icon-button 
+                color="warn" 
+                type="button" 
+                (click)="removeItem(i)"
+                [disabled]="itemsFormArray.length === 1"
+                class="remove-item-btn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="isEditMode = false; loadPacketAllotment()" *ngIf="isDataAvailable" [disabled]="isLoading">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading" class="update-button">
+          <mat-icon *ngIf="!isLoading">{{ packetAllotmentId ? 'update' : 'save' }}</mat-icon>
+          <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+          <span>{{ isLoading ? 'Saving...' : (packetAllotmentId ? 'Update' : 'Save') }}</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

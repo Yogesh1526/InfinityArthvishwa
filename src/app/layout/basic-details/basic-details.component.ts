@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Location } from '@angular/common';
-import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
-import { ToastService } from 'src/app/Services/toast.service';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
+import { ToastService } from 'src/app/services/toast.service';
 
 @Component({
   selector: 'app-basic-details',
@@ -14,6 +15,8 @@ export class BasicDetailsComponent implements OnInit {
   showAdvanceDetails = false;
   selectedOffice: string = '';
   customerId: string | null = null;
+  loanAccountNo: string | null = null;
+  customer: any = null;
 
 
   offices = [
@@ -115,7 +118,13 @@ export class BasicDetailsComponent implements OnInit {
             nationality: data.nationality
           });
  
-          this.id = data.id
+          this.id = data.id;
+          // Store full customer data for update
+          this.customer = data;
+          // Store loanAccountNo for navigation
+          this.loanAccountNo = data.loanAccountNo || null;
+          // Store customerId for update API
+          this.customerId = data.customerId || id;
           // Show advanced details if externalId or clientType exists
           this.showAdvanceDetails = !!(data.externalId || data.clientType);
         }
@@ -203,31 +212,67 @@ export class BasicDetailsComponent implements OnInit {
     };
   
     if (this.id && this.id !== '0') {
-      body.id = Number(this.id); // id must be number for update
-      body.loanAccountNo = this.customerId; // must exist in form
+      // Build complete update body with all required fields
+      body.id = Number(this.id);
+      body.customerId = this.customerId || null;
+      body.loanAccountNo = this.loanAccountNo || null;
+      body.occupation = this.customer?.occupation || null;
+      body.numbersOfYearsInCurrentJob = this.customer?.numbersOfYearsInCurrentJob || null;
+      body.income = this.customer?.income || null;
+      body.loanPurpose = this.customer?.loanPurpose || null;
+      body.otp = this.customer?.otp || null;
+      body.otpExpiry = this.customer?.otpExpiry || null;
+      body.applicationStatus = this.customer?.applicationStatus || null;
+      body.note = this.customer?.note || null;
+      body.customerSource = this.customer?.customerSource || null;
+      
+      // Format submittedDate as string if it's a Date object
+      if (body.submittedDate instanceof Date) {
+        body.submittedDate = body.submittedDate.toISOString().split('T')[0];
+      }
+      
+      // Format dateOfBirth as string if it's a Date object
+      if (body.dateOfBirth instanceof Date) {
+        body.dateOfBirth = body.dateOfBirth.toISOString().split('T')[0];
+      }
   
       this.apiService.update(body).subscribe({
         next: (res: any) => {
           if (res?.code === 200 || res?.success) {
             this.toast.showSuccess('Customer updated successfully!');
-            this.router.navigate(['/loan-wizard/', this.customerId]);
+            // Navigate to loan-wizard with customerId
+            if (this.customerId && this.customerId !== 'N/A') {
+              this.router.navigate(['/loan-wizard/', this.customerId]);
+            } else {
+              this.toast.showError('Customer ID is not available');
+            }
           } else {
             this.toast.showError(res?.message || 'Update failed');
           }
         },
         error: (err) => {
-          this.toast.showError('Something went wrong while updating the customer.');
+          const errorMsg = err?.error?.message || 'Something went wrong while updating the customer.';
+          this.toast.showError(errorMsg);
           console.error(err);
         }
       });
   
     } else {
       // It's a create
+      // Format dates as strings if they are Date objects
+      if (body.submittedDate instanceof Date) {
+        body.submittedDate = body.submittedDate.toISOString().split('T')[0];
+      }
+      if (body.dateOfBirth instanceof Date) {
+        body.dateOfBirth = body.dateOfBirth.toISOString().split('T')[0];
+      }
+      
       this.apiService.create(body).subscribe({
         next: (res: any) => {
           if (res?.code === 200 || res?.success) {
             this.toast.showSuccess('Customer saved successfully!');
-            this.router.navigate(['/loan-info-details/']);
+            // Navigate to list page after successful creation
+            this.router.navigate(['/loan-info-details']);
 
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });
@@ -236,7 +281,8 @@ export class BasicDetailsComponent implements OnInit {
           }
         },
         error: (err) => {
-          this.toast.showError('Error saving customer');
+          const errorMsg = err?.error?.message || 'Error saving customer';
+          this.toast.showError(errorMsg);
           console.error(err);
         }
       });

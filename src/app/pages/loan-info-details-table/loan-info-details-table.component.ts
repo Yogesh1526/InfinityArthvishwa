@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
+import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 
 interface LoanApplication {
   id: number;
   name: string;
   status: 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending';
   loanAppNo: string;
+  customerId: string;
   loanProduct: string;
   leadProduct: string;
   workflowStage: string;
@@ -36,38 +37,80 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
 
+  // Error and data states (loading handled by global LoaderInterceptor)
+  hasError: boolean = false;
+  errorMessage: string = '';
+  hasData: boolean = false;
+
   constructor(
     private router: Router,
     private loanService: PersonalDetailsService
   ) {}
 
   ngOnInit(): void {
+    this.loadCustomerDetails();
+  }
+
+  loadCustomerDetails(): void {
+    // Reset states (loading is handled by global LoaderInterceptor)
+    this.hasError = false;
+    this.errorMessage = '';
+    this.hasData = false;
+
     this.loanService.getAllCustomerDetails().subscribe({
       next: (response) => {
         const customers = response?.data || [];
 
-        this.loanList = customers.map((c: any) => ({
-          id: c.id,
-          name: `${c.firstName} ${c.middleName ?? ''} ${c.lastName}`.trim(),
-          status: this.mapStatus(c.applicationStatus),
-          loanAppNo: c.loanAccountNo ?? 'N/A',
-          loanProduct: c.loanProduct ?? 'Gold Loan',
-          leadProduct: c.leadProduct ?? 'N/A',
-          workflowStage: c.workflowStage ?? 'Initial',
-          sourcingChannel: c.sourcingChannel ?? 'Walk-in',
-          anchor: c.anchor ?? 'N/A',
-          office: c.office ?? 'N/A',
-          amountRequested: Number(c.loanAccountNo?.match(/\d+/)?.[0] ?? '0'),
-          date: c.submittedDate ?? 'N/A'
-        }));
-        
+        if (customers.length === 0) {
+          this.hasData = false;
+          this.hasError = true;
+          this.errorMessage = 'No customer data found';
+          this.loanList = [];
+        } else {
+          this.hasData = true;
+          this.hasError = false;
+          this.loanList = customers.map((c: any) => ({
+            id: c.id,
+            name: `${c.firstName} ${c.middleName ?? ''} ${c.lastName}`.trim(),
+            status: this.mapStatus(c.applicationStatus),
+            loanAppNo: c.loanAccountNo ?? 'N/A',
+            customerId: c.customerId ?? 'N/A',
+            loanProduct: c.loanProduct ?? 'Gold Loan',
+            leadProduct: c.leadProduct ?? 'N/A',
+            workflowStage: c.workflowStage ?? 'Initial',
+            sourcingChannel: c.sourcingChannel ?? 'Walk-in',
+            anchor: c.anchor ?? 'N/A',
+            office: c.office ?? 'N/A',
+            amountRequested: Number(c.loanAccountNo?.match(/\d+/)?.[0] ?? '0'),
+            date: c.submittedDate ?? 'N/A'
+          }));
+        }
 
         this.updateCounts();
       },
       error: (err) => {
+        this.hasError = true;
+        this.hasData = false;
+        this.loanList = [];
+        
+        // Set appropriate error message
+        if (err.status === 0) {
+          this.errorMessage = 'Unable to connect to server. Please check your internet connection.';
+        } else if (err.status === 404) {
+          this.errorMessage = 'API endpoint not found';
+        } else if (err.status >= 500) {
+          this.errorMessage = 'Server error. Please try again later.';
+        } else {
+          this.errorMessage = err?.error?.message || 'Failed to load customer data. Please try again.';
+        }
+        
         console.error('Error loading customer data', err);
       }
     });
+  }
+
+  retryLoad(): void {
+    this.loadCustomerDetails();
   }
 
   mapStatus(apiStatus: string): 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending' {
@@ -113,7 +156,11 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   editLoan(loan: LoanApplication): void {
-    this.router.navigate(['/loan-wizard', loan.loanAppNo]);
+    // Use customerId for navigation, fallback to loanAppNo if customerId is not available
+    const idToUse = loan.customerId && loan.customerId !== 'N/A' ? loan.customerId : loan.loanAppNo;
+    if (idToUse && idToUse !== 'N/A') {
+      this.router.navigate(['/loan-wizard', idToUse]);
+    }
   }
   
 

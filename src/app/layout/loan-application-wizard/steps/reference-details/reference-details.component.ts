@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService';
+import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
+import { ToastService } from 'src/app/services/toast.service';
 
 @Component({
   selector: 'app-reference-details',
@@ -8,7 +9,9 @@ import { PersonalDetailsService } from 'src/app/Services/PersonalDetailsService'
   styleUrls: ['./reference-details.component.css']
 })
 export class ReferenceDetailsComponent implements OnInit {
+  @Input() customerId!: string;
   @Input() loanApplicationId!: string;
+  @Output() stepCompleted = new EventEmitter<void>();
 
   form!: FormGroup;
   isLoading = false;
@@ -25,12 +28,13 @@ export class ReferenceDetailsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private referenceService: PersonalDetailsService
+    private referenceService: PersonalDetailsService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
     this.initForm();
-    if (this.loanApplicationId) {
+    if (this.customerId) {
       this.fetchReferenceList();
     }
   }
@@ -46,34 +50,75 @@ export class ReferenceDetailsComponent implements OnInit {
 
   fetchReferenceList(): void {
     this.isLoading = true;
-    this.referenceService.getReferenceDetails(this.loanApplicationId).subscribe(res => {
-      this.referenceList = res?.data || [];
-      this.isLoading = false;
+    this.referenceService.getReferenceDetailsByCustomerId(this.customerId).subscribe({
+      next: (res) => {
+        // Handle different response structures
+        if (Array.isArray(res)) {
+          this.referenceList = res;
+        } else if (res?.data) {
+          this.referenceList = Array.isArray(res.data) ? res.data : [res.data];
+        } else {
+          this.referenceList = [];
+        }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.referenceList = [];
+        this.isLoading = false;
+      }
     });
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.toastService.showWarning('Please fill all required fields correctly.');
+      return;
+    }
 
-    const payload = {
+    const payload: any = {
       name: this.form.value.name,
       mobileNumber: this.form.value.mobileNumber,
       relationshipWithApplicant: this.form.value.relationship,
       gender: this.form.value.gender,
-      loanAccountNo: this.loanApplicationId
+      customerId: this.customerId
     };
 
-    const request$ = this.isEditMode
-      ? this.referenceService.updateReferenceDetails({ ...payload, id: this.referenceList[this.editingIndex!].id })
-      : this.referenceService.saveReferenceDetails(payload);
-
-    request$.subscribe(() => {
-      this.showForm = false;
-      this.isEditMode = false;
-      this.editingIndex = null;
-      this.form.reset();
-      this.fetchReferenceList();
-    });
+    if (this.isEditMode && this.editingIndex !== null) {
+      // Update existing reference
+      payload.id = this.referenceList[this.editingIndex].id;
+      this.referenceService.updateReferenceDetails(payload).subscribe({
+        next: () => {
+          this.toastService.showSuccess('Reference details updated successfully!');
+          this.showForm = false;
+          this.isEditMode = false;
+          this.editingIndex = null;
+          this.form.reset();
+          this.fetchReferenceList();
+          this.stepCompleted.emit();
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || 'Failed to update reference details. Please try again.';
+          this.toastService.showError(errorMsg);
+        }
+      });
+    } else {
+      // Create new reference
+      this.referenceService.saveReferenceDetails(payload).subscribe({
+        next: () => {
+          this.toastService.showSuccess('Reference details saved successfully!');
+          this.showForm = false;
+          this.isEditMode = false;
+          this.editingIndex = null;
+          this.form.reset();
+          this.fetchReferenceList();
+          this.stepCompleted.emit();
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || 'Failed to save reference details. Please try again.';
+          this.toastService.showError(errorMsg);
+        }
+      });
+    }
   }
 
   editReference(ref: any, index: number): void {
@@ -93,5 +138,22 @@ export class ReferenceDetailsComponent implements OnInit {
     this.isEditMode = false;
     this.editingIndex = null;
     this.form.reset();
+  }
+
+  deleteReference(ref: any, index: number): void {
+    if (confirm('Are you sure you want to delete this reference?')) {
+      if (ref.id && this.loanApplicationId) {
+        this.referenceService.deleteReferenceDetails(this.loanApplicationId, ref.id).subscribe({
+          next: () => {
+            this.toastService.showSuccess('Reference deleted successfully!');
+            this.fetchReferenceList();
+          },
+          error: (err) => {
+            const errorMsg = err?.error?.message || 'Failed to delete reference. Please try again.';
+            this.toastService.showError(errorMsg);
+          }
+        });
+      }
+    }
   }
 }
