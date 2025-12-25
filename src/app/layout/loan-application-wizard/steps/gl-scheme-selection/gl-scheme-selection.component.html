@@ -19,13 +19,6 @@
     <!-- Loan Offer Summary Cards (when data is available) -->
     <div class="summary-cards" *ngIf="schemeData">
       <div class="summary-card">
-        <mat-icon class="card-icon">account_balance</mat-icon>
-        <div class="card-content">
-          <span class="card-label">Disbursed Amount</span>
-          <span class="card-value">{{ formatCurrency(schemeData.disbursedAmount) }}</span>
-        </div>
-      </div>
-      <div class="summary-card">
         <mat-icon class="card-icon">trending_up</mat-icon>
         <div class="card-content">
           <span class="card-label">Max Loan Amount</span>
@@ -33,10 +26,10 @@
         </div>
       </div>
       <div class="summary-card">
-        <mat-icon class="card-icon">monetization_on</mat-icon>
+        <mat-icon class="card-icon">account_balance</mat-icon>
         <div class="card-content">
-          <span class="card-label">Offered LTV Amount</span>
-          <span class="card-value">{{ formatCurrency(schemeData.offeredLtvAmount) }}</span>
+          <span class="card-label">Processing Fees</span>
+          <span class="card-value">{{ formatCurrency(schemeData.processingFees) }}</span>
         </div>
       </div>
       <div class="summary-card highlight">
@@ -102,19 +95,6 @@
             <mat-icon matPrefix>calendar_today</mat-icon>
             <mat-error *ngIf="form.get('repaymentFrequency')?.hasError('required')">
               Repayment frequency is required
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Disbursed Amount (₹)</mat-label>
-            <input matInput type="number" formControlName="disbursedAmount" placeholder="Enter amount" min="0" />
-            <mat-icon matPrefix>currency_rupee</mat-icon>
-            <mat-hint>Enter the loan disbursement amount</mat-hint>
-            <mat-error *ngIf="form.get('disbursedAmount')?.hasError('required')">
-              Disbursed amount is required
-            </mat-error>
-            <mat-error *ngIf="form.get('disbursedAmount')?.hasError('min')">
-              Amount must be greater than 0
             </mat-error>
           </mat-form-field>
 
@@ -219,27 +199,6 @@
         </mat-card-header>
         <mat-card-content>
           <div class="details-grid">
-            <div class="detail-item highlight">
-              <div class="detail-label">
-                <mat-icon>currency_rupee</mat-icon>
-                <span>Disbursed Amount</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.disbursedAmount) }}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">
-                <mat-icon>account_balance</mat-icon>
-                <span>Processing Fees</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.processingFees) }}</div>
-            </div>
-            <div class="detail-item highlight">
-              <div class="detail-label">
-                <mat-icon>payments</mat-icon>
-                <span>Disbursed with Fees</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.disbursedWithFees) }}</div>
-            </div>
             <div class="detail-item">
               <div class="detail-label">
                 <mat-icon>trending_up</mat-icon>
@@ -247,19 +206,12 @@
               </div>
               <div class="detail-value">{{ formatCurrency(schemeData.maxLoanAmount) }}</div>
             </div>
-            <div class="detail-item highlight">
-              <div class="detail-label">
-                <mat-icon>monetization_on</mat-icon>
-                <span>Offered LTV Amount</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.offeredLtvAmount) }}</div>
-            </div>
             <div class="detail-item">
               <div class="detail-label">
-                <mat-icon>account_balance_wallet</mat-icon>
-                <span>LTV with Fees</span>
+                <mat-icon>account_balance</mat-icon>
+                <span>Processing Fees</span>
               </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.ltvWithFees) }}</div>
+              <div class="detail-value">{{ formatCurrency(schemeData.processingFees) }}</div>
             </div>
           </div>
         </mat-card-content>
@@ -308,16 +260,9 @@
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>currency_rupee</mat-icon>
-                  <span>Annual Interest (Disbursed)</span>
+                  <span>Annual Interest Amount</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.annualInterestAmtDisb) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
-                  <span>Annual Interest (LTV)</span>
-                </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.annualInterestAmtLtv) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.annualInterestAmt) }}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">
@@ -329,16 +274,9 @@
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>currency_rupee</mat-icon>
-                  <span>Annual Rebate (Disbursed)</span>
+                  <span>Annual Rebate Amount</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.annualRebateAmtDisb) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
-                  <span>Annual Rebate (LTV)</span>
-                </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.annualRebateAmtLtv) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.annualRebateAmt) }}</div>
               </div>
             </div>
           </mat-card-content>
@@ -352,45 +290,24 @@
             <div class="details-grid">
               <div class="detail-item">
                 <div class="detail-label">
-                  <mat-icon>percent</mat-icon>
+                  <mat-icon>currency_rupee</mat-icon>
                   <span>Monthly Interest Rate</span>
                 </div>
-                <div class="detail-value">{{ formatPercent(schemeData.monthlyInterestRate) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.monthlyInterestRate) }}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>currency_rupee</mat-icon>
-                  <span>Monthly Interest (Disbursed)</span>
+                  <span>Monthly Interest Amount</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.monthlyInterestAmtDisb) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.monthlyInterestAmt) }}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>currency_rupee</mat-icon>
-                  <span>Monthly Interest (LTV)</span>
+                  <span>Monthly Rebate Amount</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.monthlyInterestAmtLtv) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>percent</mat-icon>
-                  <span>Monthly Rebate Rate</span>
-                </div>
-                <div class="detail-value">{{ formatPercent(schemeData.monthlyRebateRate) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
-                  <span>Monthly Rebate (Disbursed)</span>
-                </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.monthlyRebateAmtDisb) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
-                  <span>Monthly Rebate (LTV)</span>
-                </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.monthlyRebateAmtLtv) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.monthlyRebateAmt) }}</div>
               </div>
             </div>
           </mat-card-content>
@@ -412,95 +329,29 @@
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>currency_rupee</mat-icon>
-                  <span>Daily Interest (Disbursed)</span>
+                  <span>Daily Interest Amount</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.dailyInterestAmtDisb) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
-                  <span>Daily Interest (LTV)</span>
-                </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.dailyInterestAmtLtv) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.dailyInterestAmt) }}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>percent</mat-icon>
-                  <span>Daily Rebate Rate</span>
+                  <span>Daily Rebate Interest Rate</span>
                 </div>
-                <div class="detail-value">{{ formatPercent(schemeData.dailyRebateRate) }}</div>
+                <div class="detail-value">{{ formatPercent(schemeData.dailyRebateInterestRate) }}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">
                   <mat-icon>currency_rupee</mat-icon>
-                  <span>Daily Rebate (Disbursed)</span>
+                  <span>Daily Rebate Interest Amount</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.dailyRebateAmtDisb) }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
-                  <span>Daily Rebate (LTV)</span>
-                </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.dailyRebateAmtLtv) }}</div>
+                <div class="detail-value">{{ formatCurrency(schemeData.dailyRebateIntAmt) }}</div>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
       </div>
 
-      <!-- Period-wise Interest & Rebate -->
-      <mat-card class="details-card">
-        <mat-card-header>
-          <mat-card-title>Period-wise Interest & Rebate</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="details-grid">
-            <div class="detail-item">
-              <div class="detail-label">
-                <mat-icon>calendar_month</mat-icon>
-                <span>1 Month Interest</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.oneMonthInterestAmt) }}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">
-                <mat-icon>calendar_month</mat-icon>
-                <span>1 Month Rebate</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.oneMonthRebateAmt) }}</div>
-            </div>
-            <div class="detail-item highlight">
-              <div class="detail-label">
-                <mat-icon>calendar_month</mat-icon>
-                <span>3 Months Interest</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.threeMonthInterestAmt) }}</div>
-            </div>
-            <div class="detail-item highlight">
-              <div class="detail-label">
-                <mat-icon>calendar_month</mat-icon>
-                <span>3 Months Rebate</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.threeMonthRebateAmt) }}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">
-                <mat-icon>calendar_month</mat-icon>
-                <span>6 Months Interest</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.sixMonthInterestAmt) }}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">
-                <mat-icon>calendar_month</mat-icon>
-                <span>6 Months Rebate</span>
-              </div>
-              <div class="detail-value">{{ formatCurrency(schemeData.sixMonthRebateAmt) }}</div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
 
       <!-- Repayment Schedules Table -->
       <mat-card class="details-card" *ngIf="repaymentSchedules && repaymentSchedules.length > 0">
@@ -687,13 +538,33 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Edit Button -->
-      <div class="action-section">
-        <button mat-raised-button color="primary" (click)="onEdit()">
-          <mat-icon>edit</mat-icon>
-          Edit Scheme Selection
-        </button>
-      </div>
+      <!-- Update GL Scheme Section -->
+      <mat-card class="details-card">
+        <mat-card-header>
+          <mat-card-title>Update GL Scheme</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="update-section">
+            <mat-form-field appearance="outline" class="loan-amount-field">
+              <mat-label>Loan Amount (₹)</mat-label>
+              <input matInput type="number" [(ngModel)]="loanAmount" placeholder="Enter loan amount" min="0" />
+              <mat-icon matPrefix>currency_rupee</mat-icon>
+              <mat-hint>Enter the new loan amount to update the scheme</mat-hint>
+            </mat-form-field>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="onUpdateLoanAmount()" 
+              [disabled]="!loanAmount || loanAmount <= 0 || isUpdating"
+              class="update-button">
+              <mat-icon *ngIf="!isUpdating">update</mat-icon>
+              <mat-spinner *ngIf="isUpdating" diameter="20" class="button-spinner"></mat-spinner>
+              <span>{{ isUpdating ? 'Updating...' : 'Update GL Scheme' }}</span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
     </div>
   </div>
 </div>

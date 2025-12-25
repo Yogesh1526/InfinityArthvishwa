@@ -328,6 +328,30 @@ export class PersonalDetailsService {
     return this.http.put<any>(`${this.baseUrl}/pocketAllotment/updatePocketAllotment/${customerId}/${loanAccountNumber}/${id}/${packetId}`, items);
   }
 
+  // Tare Weight APIs
+  public getTareWeightById(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/tare-weight/getTareWeightById/${customerId}/${loanAccountNumber}`);
+  }
+
+  public saveTareWeight(payload: {
+    customerId: string;
+    loanAccountNumber: string;
+    packetNo: string;
+    tareWeightInGrams: number;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/tare-weight/saveTareWeight`, payload);
+  }
+
+  public updateTareWeight(payload: {
+    id: number;
+    customerId: string;
+    loanAccountNumber: string;
+    packetNo: string;
+    tareWeightInGrams: number;
+  }): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/tare-weight/updateTareWeight`, payload);
+  }
+
   // Legacy methods for backward compatibility
   getPacketAllotment(loanAccountNo: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/packet-allotment/getPacketAllotment/${loanAccountNo}`);
@@ -354,6 +378,14 @@ export class PersonalDetailsService {
 
   saveGoldLoanSchemeSelection(customerId: string, loanAccountNumber: string, payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/loan/gl-scheme-selection/${customerId}/${loanAccountNumber}`, payload);
+  }
+
+  updateGlSchemeSelection(customerId: string, loanAccountNumber: string, loanAmount: number): Observable<any> {
+    const params = new HttpParams()
+      .set('customerId', customerId)
+      .set('loanAccountNumber', loanAccountNumber)
+      .set('loanAmount', loanAmount.toString());
+    return this.http.put(`${this.baseUrl}/loan/update-gl-scheme-selection`, null, { params });
   }
 
   // File APIs for Loan Application Approval

@@ -52,6 +52,41 @@
 }
 
 /* ============================================
+   Global Layout & Scrolling
+   ============================================ */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  position: relative;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Main App Container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Scrollable Content Area */
+.scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
    Container Styles
    ============================================ */
 .page-container {
@@ -59,15 +94,23 @@
   background-color: var(--bg-secondary);
   border-radius: var(--radius-lg);
   font-family: 'Roboto', sans-serif;
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .content-container {
   margin: var(--spacing-lg) auto;
-  padding: var(--spacing-xl) var(--spacing-xl);
+  padding: var(--spacing-xl);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   background: var(--bg-primary);
   font-family: 'Roboto', sans-serif;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ============================================
@@ -85,6 +128,10 @@
   box-shadow: var(--shadow-lg);
   background: var(--bg-primary);
   font-family: 'Roboto', sans-serif;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .card-header {
@@ -115,6 +162,8 @@
   gap: 28px;
   margin-bottom: 28px;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-grid {
@@ -122,11 +171,38 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-field {
   flex: 1 1 280px;
-  min-width: 280px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.form-field mat-form-field {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Ensure all mat-form-fields don't overflow */
+mat-form-field {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+mat-form-field .mat-form-field-wrapper {
+  width: 100%;
+  max-width: 100%;
+}
+
+mat-form-field .mat-form-field-infix {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .full-width {
@@ -408,6 +484,145 @@ button mat-icon {
 }
 
 /* ============================================
+   Material Card Overrides
+   ============================================ */
+mat-card {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+mat-card.mat-card {
+  overflow-x: hidden;
+  word-wrap: break-word;
+}
+
+/* ============================================
+   Wizard Step Components Common Styles
+   ============================================ */
+/* All wizard step form containers */
+app-personal-details .form-container,
+app-family-details .form-container,
+app-address-activity .form-container,
+app-work-details .form-container,
+app-kyc-details .form-container,
+app-additional-documents .form-container,
+app-nominee .form-container,
+app-reference-details .form-container,
+app-gold-ownership-details .form-container,
+app-first-valuation .form-container,
+app-second-valuation .form-container,
+app-final-valuation .form-container,
+app-gl-scheme-selection .form-container,
+app-bank-details .form-container,
+app-packet-allotment .form-container,
+app-loan-application-approval .form-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* All wizard step form cards */
+app-personal-details .form-card,
+app-family-details .form-card,
+app-address-activity .form-card,
+app-work-details .form-card,
+app-kyc-details .form-card,
+app-additional-documents .form-card,
+app-nominee .form-card,
+app-reference-details .form-card,
+app-gold-ownership-details .form-card,
+app-first-valuation .form-card,
+app-second-valuation .form-card,
+app-final-valuation .form-card,
+app-gl-scheme-selection .form-card,
+app-bank-details .form-card,
+app-packet-allotment .form-card,
+app-loan-application-approval .form-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* All wizard step form grids */
+app-personal-details .form-grid,
+app-family-details .form-grid,
+app-address-activity .form-grid,
+app-work-details .form-grid,
+app-kyc-details .form-grid,
+app-additional-documents .form-grid,
+app-nominee .form-grid,
+app-reference-details .form-grid,
+app-gold-ownership-details .form-grid,
+app-first-valuation .form-grid,
+app-second-valuation .form-grid,
+app-final-valuation .form-grid,
+app-gl-scheme-selection .form-grid,
+app-bank-details .form-grid,
+app-packet-allotment .form-grid,
+app-loan-application-approval .form-grid,
+app-personal-details .form-row,
+app-family-details .form-row,
+app-address-activity .form-row,
+app-work-details .form-row,
+app-kyc-details .form-row,
+app-gold-ownership-details .form-row {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* All wizard step form fields */
+app-personal-details .form-field,
+app-family-details .form-field,
+app-address-activity .form-field,
+app-work-details .form-field,
+app-kyc-details .form-field,
+app-additional-documents .form-field,
+app-nominee .form-field,
+app-reference-details .form-field,
+app-gold-ownership-details .form-field,
+app-first-valuation .form-field,
+app-second-valuation .form-field,
+app-final-valuation .form-field,
+app-gl-scheme-selection .form-field,
+app-bank-details .form-field,
+app-packet-allotment .form-field,
+app-loan-application-approval .form-field {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* All wizard step form actions */
+app-personal-details .form-actions,
+app-family-details .form-actions,
+app-address-activity .form-actions,
+app-work-details .form-actions,
+app-kyc-details .form-actions,
+app-additional-documents .form-actions,
+app-nominee .form-actions,
+app-reference-details .form-actions,
+app-gold-ownership-details .form-actions,
+app-first-valuation .form-actions,
+app-second-valuation .form-actions,
+app-final-valuation .form-actions,
+app-gl-scheme-selection .form-actions,
+app-bank-details .form-actions,
+app-packet-allotment .form-actions,
+app-loan-application-approval .form-actions {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+/* ============================================
    Utility Classes
    ============================================ */
 .text-center {
@@ -416,6 +631,10 @@ button mat-icon {
 
 .text-right {
   text-align: right;
+}
+
+.text-left {
+  text-align: left;
 }
 
 .mt-sm { margin-top: var(--spacing-sm); }
@@ -446,27 +665,108 @@ button mat-icon {
   align-items: center;
 }
 
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .gap-sm { gap: var(--spacing-sm); }
 .gap-md { gap: var(--spacing-md); }
 .gap-lg { gap: var(--spacing-lg); }
 
+/* Width utilities */
+.w-full {
+  width: 100%;
+  max-width: 100%;
+}
+
+.w-auto {
+  width: auto;
+}
+
+/* Overflow utilities */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+/* Box sizing */
+.box-border {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 /* ============================================
    Responsive Design
    ============================================ */
+@media (max-width: 1200px) {
+  .content-container,
+  .form-card,
+  .customer-form-card {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md);
+  }
+
+  .form-row {
+    gap: var(--spacing-md);
+  }
+}
+
 @media (max-width: 768px) {
   .content-container,
-  .form-card {
+  .form-card,
+  .customer-form-card {
     padding: var(--spacing-md);
-    margin: var(--spacing-md);
+    margin: var(--spacing-sm);
   }
 
   .form-row {
     flex-direction: column;
     gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
   }
 
   .form-field {
     min-width: 100%;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .table-tools {
@@ -478,22 +778,30 @@ button mat-icon {
   .search-field {
     flex: 1 1 100%;
     min-width: 100%;
+    max-width: 100%;
   }
 
   .form-actions {
     flex-direction: column;
+    gap: var(--spacing-sm);
   }
 
   .form-actions button {
     width: 100%;
+    margin: 0;
   }
 
   .button-row {
     flex-direction: column;
+    gap: var(--spacing-sm);
   }
 
   .button-row button {
     width: 100%;
+  }
+
+  .page-container {
+    padding: var(--spacing-md);
   }
 }
 
@@ -502,12 +810,41 @@ button mat-icon {
     padding: var(--spacing-sm);
   }
 
+  .content-container,
+  .form-card {
+    padding: var(--spacing-sm);
+    margin: var(--spacing-xs);
+  }
+
   .card-header h2 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .section-title {
-    font-size: 20px;
+    font-size: 18px;
+  }
+
+  .form-row {
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: var(--spacing-xs);
+  }
+
+  .content-container,
+  .form-card {
+    padding: var(--spacing-xs);
+    margin: 0;
+    border-radius: var(--radius-md);
+  }
+
+  .card-header h2 {
+    font-size: 18px;
+    margin-bottom: var(--spacing-sm);
   }
 }
 

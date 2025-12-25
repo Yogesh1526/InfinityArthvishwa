@@ -7,7 +7,7 @@ import {
   HttpResponse
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, finalize } from 'rxjs/operators';
 import { LoaderService } from '../services/loader.service';
 
 @Injectable()
@@ -38,7 +38,16 @@ export class LoaderInterceptor implements HttpInterceptor {
             this.loaderService.hide();
           }
         }
-      )
+      ),
+      // Ensure loader is hidden when observable completes
+      finalize(() => {
+        if (!this.shouldExclude(req)) {
+          // Small delay to ensure all responses are processed
+          setTimeout(() => {
+            this.loaderService.hide();
+          }, 100);
+        }
+      })
     );
   }
 

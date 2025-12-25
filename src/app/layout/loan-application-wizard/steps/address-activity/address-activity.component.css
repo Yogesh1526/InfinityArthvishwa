@@ -1,5 +1,9 @@
 .form-container {
   padding: var(--spacing-lg);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .form-container h2 {
@@ -99,22 +103,37 @@
 
 /* Form Card */
 .form-card {
-  background: var(--surface-color);
-  border-radius: var(--border-radius-lg);
+  background: var(--surface-color, #ffffff);
+  border-radius: var(--border-radius-lg, 12px);
   padding: var(--spacing-xl);
-  box-shadow: var(--shadow-light);
-  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-light, 0 2px 4px rgba(0, 0, 0, 0.1));
+  border: 1px solid var(--border-color, #e0e0e0);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .form-field {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.form-field mat-form-field {
+  width: 100%;
+  max-width: 100%;
 }
 
 .form-field mat-icon[matPrefix] {
@@ -129,11 +148,18 @@
   justify-content: flex-end;
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color, #e0e0e0);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .form-actions button {
   min-width: 120px;
+  max-width: 200px;
+  flex: 0 1 auto;
+  box-sizing: border-box;
 }
 
 .form-actions button mat-icon {

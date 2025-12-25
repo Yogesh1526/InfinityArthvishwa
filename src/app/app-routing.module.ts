@@ -10,6 +10,10 @@ import { BasicDetailsComponent } from './layout/basic-details/basic-details.comp
 import { LoanInfoComponent } from './layout/loan-info/loan-info.component';
 import { LoanApplicationWizardComponent } from './layout/loan-application-wizard/loan-application-wizard.component';
 import { LoanInfoDetailsTableComponent } from './pages/loan-info-details-table/loan-info-details-table.component';
+import { CustomerProfileComponent } from './layout/customer-profile/customer-profile.component';
+import { RoleListComponent } from './layout/roles-permissions/role-list/role-list.component';
+import { RoleFormComponent } from './layout/roles-permissions/role-form/role-form.component';
+import { RoleGuard } from './auth/role.guard';
 
 const routes: Routes = [
   // Default path redirects to login
@@ -45,9 +49,30 @@ const routes: Routes = [
         canActivate: [AuthGuard]
       },
       { 
+        path: 'customer-profile/:id', 
+        component: CustomerProfileComponent,
+        canActivate: [AuthGuard]
+      },
+      { 
         path: 'loan-info', 
         component: LoanInfoComponent,
         canActivate: [AuthGuard]
+      },
+      // Roles & Permissions - Admin Only
+      { 
+        path: 'roles', 
+        component: RoleListComponent,
+        canActivate: [AuthGuard, RoleGuard]
+      },
+      { 
+        path: 'roles/create', 
+        component: RoleFormComponent,
+        canActivate: [AuthGuard, RoleGuard]
+      },
+      { 
+        path: 'roles/edit/:id', 
+        component: RoleFormComponent,
+        canActivate: [AuthGuard, RoleGuard]
       },
       { 
         path: 'loan-wizard/:id', 

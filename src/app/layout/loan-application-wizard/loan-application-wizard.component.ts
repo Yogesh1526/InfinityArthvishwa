@@ -36,6 +36,8 @@ export class LoanApplicationWizardComponent implements OnInit {
     { label: 'GL Scheme Selection', key: 'glSchemeSelection' },
     { label: 'Bank Details', key: 'bankDetails' },
     { label: 'Packet Allotment', key: 'packetAllotment' },
+    { label: 'Tare Weight', key: 'tareWeight' },
+    { label: 'Expected Closure Date', key: 'expectedClosureDate' },
     { label: 'Loan Application Approval', key: 'loanApplicationApproval' }
   ];
 
@@ -265,7 +267,45 @@ export class LoanApplicationWizardComponent implements OnInit {
       this.personalService.getPacketAllotment(this.loanApplicationId).pipe(
         catchError(() => of({ data: [] }))
       ),
-      // Step 15: Loan Application Approval
+      // Step 15: Tare Weight
+      (() => {
+        let accountNumber = null;
+        if (this.customerId) {
+          const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+          if (stored && (stored.startsWith('AP') || stored.startsWith('GL'))) {
+            accountNumber = stored;
+          }
+        }
+        if (!accountNumber && this.loanApplicationId && 
+            (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL')) && 
+            this.loanApplicationId !== this.customerId) {
+          accountNumber = this.loanApplicationId;
+        }
+        // Assuming API endpoint exists - adjust as needed
+        return of({ data: null });
+      })().pipe(
+        catchError(() => of({ data: null }))
+      ),
+      // Step 16: Expected Closure Date
+      (() => {
+        let accountNumber = null;
+        if (this.customerId) {
+          const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+          if (stored && (stored.startsWith('AP') || stored.startsWith('GL'))) {
+            accountNumber = stored;
+          }
+        }
+        if (!accountNumber && this.loanApplicationId && 
+            (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL')) && 
+            this.loanApplicationId !== this.customerId) {
+          accountNumber = this.loanApplicationId;
+        }
+        // Assuming API endpoint exists - adjust as needed
+        return of({ data: null });
+      })().pipe(
+        catchError(() => of({ data: null }))
+      ),
+      // Step 17: Loan Application Approval
       (() => {
         let accountNumber = null;
         if (this.customerId) {
@@ -342,6 +382,8 @@ export class LoanApplicationWizardComponent implements OnInit {
         if (index === 12) return false; // GL Scheme Selection - skip for now
         if (index === 13) return !!(result?.data && result.data.length > 0); // Bank Details
         if (index === 14) return !!(result?.data && result.data.length > 0); // Packet Allotment
+        if (index === 15) return !!(result?.data?.id); // Tare Weight
+        if (index === 16) return !!(result?.data?.id); // Expected Closure Date
         // Default: handle both array and object
         if (result?.data) {
           return Array.isArray(result.data) ? result.data.length > 0 : !!result.data.id;

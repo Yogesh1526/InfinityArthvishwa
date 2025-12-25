@@ -98,11 +98,18 @@
             <div *ngFor="let item of itemsFormArray.controls; let i = index" [formGroupName]="i" class="item-row">
               <mat-form-field appearance="outline" class="item-field">
                 <mat-label>Item {{ i + 1 }}</mat-label>
-                <input matInput formControlName="item" placeholder="e.g., Ring, Bracelate" />
+                <mat-select formControlName="item" placeholder="Select ornament">
+                  <mat-option *ngFor="let ornament of availableOrnaments" [value]="ornament">
+                    {{ ornament }}
+                  </mat-option>
+                </mat-select>
                 <mat-icon matPrefix>inventory_2</mat-icon>
                 <mat-error *ngIf="item.get('item')?.hasError('required')">
                   Item is required
                 </mat-error>
+                <mat-hint *ngIf="availableOrnaments.length === 0">
+                  No ornaments available. Please complete first and second valuation first.
+                </mat-hint>
               </mat-form-field>
               <button 
                 mat-icon-button 

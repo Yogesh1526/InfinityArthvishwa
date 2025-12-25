@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://median-similar-tutorial-communicate.trycloudflare.com'
+    apiUrl: 'https://intense-bee-bullet-fiction.trycloudflare.com'
   };
   

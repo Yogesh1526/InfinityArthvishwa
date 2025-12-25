@@ -65,17 +65,51 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
-        // Handle 401 Unauthorized - token expired or invalid
+        let errorMessage = 'An error occurred. Please try again.';
+        
+        // Handle different error status codes
         if (error.status === 401) {
+          // Unauthorized - token expired or invalid
+          errorMessage = 'Your session has expired. Please login again.';
           this.authService.logout();
-          this.toastService.showError('Session expired. Please login again.');
         } else if (error.status === 403) {
-          this.toastService.showError('You do not have permission to access this resource.');
+          // Forbidden - no permission
+          errorMessage = 'You do not have permission to access this resource.';
+        } else if (error.status === 404) {
+          // Not found
+          errorMessage = error.error?.message || 'The requested resource was not found.';
+        } else if (error.status === 400) {
+          // Bad request
+          errorMessage = error.error?.message || 'Invalid request. Please check your input.';
+        } else if (error.status === 409) {
+          // Conflict
+          errorMessage = error.error?.message || 'A conflict occurred. The resource may already exist.';
+        } else if (error.status === 422) {
+          // Unprocessable entity
+          errorMessage = error.error?.message || 'Validation error. Please check your input.';
+        } else if (error.status === 429) {
+          // Too many requests
+          errorMessage = 'Too many requests. Please try again later.';
         } else if (error.status === 0) {
           // Network error
-          this.toastService.showError('Network error. Please check your connection.');
+          errorMessage = 'Network error. Please check your internet connection.';
         } else if (error.status >= 500) {
-          this.toastService.showError('Server error. Please try again later.');
+          // Server errors
+          errorMessage = error.error?.message || 'Server error. Please try again later.';
+        } else if (error.error?.message) {
+          // Use server-provided error message if available
+          errorMessage = error.error.message;
+        }
+
+        // Show appropriate toast notification
+        if (error.status === 401) {
+          this.toastService.showError(errorMessage, 6000);
+        } else if (error.status >= 500) {
+          this.toastService.showError(errorMessage, 5000);
+        } else if (error.status === 403) {
+          this.toastService.showWarning(errorMessage, 5000);
+        } else {
+          this.toastService.showError(errorMessage, 4000);
         }
 
         return throwError(() => error);

@@ -1,0 +1,659 @@
+/* Main Wrapper */
+.customer-profile-wrapper {
+  min-height: calc(100vh - 64px);
+  background: #f5f7fa;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Header Section - Simplified */
+.profile-header-section {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 24px;
+  margin-bottom: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.back-button {
+  color: #666;
+  margin-bottom: 16px;
+  background: transparent;
+}
+
+.back-button:hover {
+  background: #f5f5f5;
+}
+
+.profile-header-main {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.profile-avatar-section {
+  flex-shrink: 0;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #2196f3;
+}
+
+.avatar-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #2196f3;
+}
+
+.profile-info-section {
+  flex: 1;
+  min-width: 250px;
+}
+
+.customer-name {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.customer-identifiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.identifier-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #666;
+}
+
+.identifier-item mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #999;
+}
+
+.identifier-item strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.header-action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Main Content */
+.profile-main-content {
+  padding: 24px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.profile-tabs {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tab-content-wrapper {
+  padding: 24px;
+}
+
+/* Detail Cards - Simplified */
+.detail-card {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.detail-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header-primary,
+.card-header-secondary,
+.card-header-status {
+  padding: 16px 24px;
+  margin: 0;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.card-header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-header-content mat-icon {
+  color: #2196f3;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.card-header-content mat-card-title {
+  color: #212529;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  padding: 24px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.detail-label mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #999;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #212529;
+  word-break: break-word;
+}
+
+.phone-value a,
+.email-value a {
+  color: #2196f3;
+  text-decoration: none;
+}
+
+.phone-value a:hover,
+.email-value a:hover {
+  text-decoration: underline;
+}
+
+/* Status Chips - Simplified */
+.status-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.risk-chip.risk-low {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.risk-chip.risk-medium {
+  background: #fff9c4;
+  color: #f57f17;
+}
+
+.risk-chip.risk-high {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.client-chip.client-regular {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.client-chip.client-premium {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.client-chip.client-vip {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status-badge-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-badge-large mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.status-pending {
+  background: #fff9c4;
+  color: #f57f17;
+}
+
+.status-approved,
+.status-active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-rejected {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-closed {
+  background: #f5f5f5;
+  color: #616161;
+}
+
+.status-disbursed {
+  background: #e0f2f1;
+  color: #00695c;
+}
+
+.status-container {
+  padding: 16px 0;
+}
+
+.status-note {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #2196f3;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.status-note mat-icon {
+  color: #2196f3;
+  flex-shrink: 0;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.status-note p {
+  margin: 0;
+  color: #495057;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Loans Section */
+.loans-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.loans-section-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.add-loan-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-state-icon {
+  margin-bottom: 16px;
+}
+
+.empty-state-icon mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #dee2e6;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #495057;
+}
+
+.empty-state p {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+}
+
+.create-loan-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.loan-card {
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #2196f3;
+}
+
+.loan-card-header {
+  padding: 16px;
+}
+
+.loan-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loan-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #2196f3;
+}
+
+.loan-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.loan-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.loan-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.loan-info-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.loan-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.loan-info-value.amount {
+  color: #2196f3;
+  font-size: 16px;
+}
+
+/* Documents Placeholder */
+.documents-placeholder {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.documents-placeholder mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #dee2e6;
+  margin-bottom: 16px;
+}
+
+.documents-placeholder h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #495057;
+}
+
+.documents-placeholder p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Loading and Error States */
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  padding: 40px;
+}
+
+.error-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #dc3545;
+}
+
+.error-state h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #212529;
+}
+
+.error-state p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* Badge Count */
+.badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  background: #2196f3;
+  color: white;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .details-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  
+  .loans-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .customer-profile-wrapper {
+    padding: 0;
+  }
+
+  .profile-header-section {
+    padding: 16px;
+    margin-bottom: 0;
+  }
+
+  .profile-header-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .avatar-circle {
+    width: 64px;
+    height: 64px;
+  }
+
+  .avatar-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .customer-name {
+    font-size: 22px;
+  }
+
+  .header-action-buttons {
+    width: 100%;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .profile-main-content {
+    padding: 16px;
+  }
+
+  .tab-content-wrapper {
+    padding: 16px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .loans-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .loans-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .add-loan-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .customer-identifiers {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-name {
+    font-size: 20px;
+  }
+
+  .tab-content-wrapper {
+    padding: 12px;
+  }
+
+  .detail-item {
+    padding: 10px;
+  }
+
+  .card-header-content mat-card-title {
+    font-size: 16px;
+  }
+
+  .details-grid {
+    padding: 12px;
+  }
+}

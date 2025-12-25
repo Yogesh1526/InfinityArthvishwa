@@ -3,7 +3,7 @@
     <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Go Back">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <h2><mat-icon color="primary">person_add</mat-icon> {{ isEditMode ? 'Edit' : 'Add New' }} Individual Customer</h2>
+    <h2><mat-icon color="primary">person_add</mat-icon> Customer Details</h2>
   </div>
   <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" novalidate>
 

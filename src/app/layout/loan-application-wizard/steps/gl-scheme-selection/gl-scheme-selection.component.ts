@@ -20,9 +20,11 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
   formLoaded = false;
   isLoading = false;
   isSaving = false;
+  isUpdating = false;
   loanAccountNumber: string | null = null;
   schemeData: any = null; // Store the full response data
   repaymentSchedules: any[] = []; // Store repayment schedules array
+  loanAmount: number | null = null;
   displayedColumns: string[] = [
     'installmentNumber',
     'dueDate',
@@ -37,14 +39,11 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
   ];
 
   tenureOptions = [
-    '1 YEAR',
-    '2 YEARS',
-    '3 YEARS',
-    '4 YEARS',
-    '5 YEARS'
+    '1 YEAR'
   ];
 
   repaymentFrequencyOptions = [
+    '1 MONTHS',
     '3 MONTHS',
     '6 MONTHS'
   ];
@@ -116,7 +115,6 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
       tenure: ['', Validators.required],
       repaymentFrequency: ['', Validators.required],
       schemeName: ['', Validators.required],
-      disbursedAmount: ['', [Validators.required, Validators.min(0)]],
       loanPurpose: ['', Validators.required]
     });
   }
@@ -160,7 +158,6 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
             tenure: calculationData.tenureMonths || calculationData.tenure || '',
             repaymentFrequency: calculationData.repaymentFrequency || '',
             schemeName: calculationData.schemeName || '',
-            disbursedAmount: calculationData.disbursedAmount || calculationData.disbursedWithFees || '',
             loanPurpose: calculationData.endUse || calculationData.loanPurpose || ''
           });
           
@@ -179,11 +176,6 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
         this.isDataAvailable = false;
       }
     });
-  }
-
-  onEdit(): void {
-    this.isEditMode = true;
-    this.form.enable();
   }
 
   onSubmit(): void {
@@ -207,7 +199,6 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
       tenure: this.form.value.tenure,
       repaymentFrequency: this.form.value.repaymentFrequency,
       schemeName: this.form.value.schemeName,
-      disbursedAmount: Number(this.form.value.disbursedAmount),
       loanPurpose: this.form.value.loanPurpose
     };
 
@@ -255,5 +246,39 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
   formatPercent(value: number | null | undefined, decimals: number = 2): string {
     if (value === null || value === undefined) return '0%';
     return `${value.toFixed(decimals)}%`;
+  }
+
+  onUpdateLoanAmount(): void {
+    if (!this.loanAmount || this.loanAmount <= 0) {
+      this.toastService.showWarning('Please enter a valid loan amount.');
+      return;
+    }
+
+    if (!this.customerId) {
+      this.toastService.showError('Customer ID is required.');
+      return;
+    }
+
+    const accountNumber = this.getLoanAccountNumber();
+    if (!accountNumber) {
+      this.toastService.showError('Loan Account Number is required.');
+      return;
+    }
+
+    this.isUpdating = true;
+    this.personalService.updateGlSchemeSelection(this.customerId, accountNumber, this.loanAmount).subscribe({
+      next: (res: any) => {
+        this.isUpdating = false;
+        this.toastService.showSuccess('GL Scheme updated successfully!');
+        // Reload the data after updating to get the updated response
+        this.loadSchemeDetails();
+        this.loanAmount = null;
+      },
+      error: (err: any) => {
+        this.isUpdating = false;
+        const errorMsg = err?.error?.message || 'Failed to update GL scheme. Please try again.';
+        this.toastService.showError(errorMsg);
+      }
+    });
   }
 }

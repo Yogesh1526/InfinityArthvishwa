@@ -2,6 +2,8 @@ import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-packet-allotment',
@@ -20,6 +22,7 @@ export class PacketAllotmentComponent implements OnInit {
   packetAllotmentId: number | null = null;
   loanAccountNumber: string | null = null;
   isLoading = false;
+  availableOrnaments: string[] = []; // Ornaments that have completed both valuations
 
   constructor(
     private fb: FormBuilder,
@@ -31,6 +34,7 @@ export class PacketAllotmentComponent implements OnInit {
     this.loadStoredLoanAccountNumber();
     this.initForm();
     if (this.customerId && this.getLoanAccountNumber()) {
+      this.loadAvailableOrnaments();
       this.loadPacketAllotment();
     } else {
       this.isEditMode = true;
@@ -93,24 +97,34 @@ export class PacketAllotmentComponent implements OnInit {
     this.packetService.getPacketAllotmentDetails(this.customerId, this.getLoanAccountNumber()!).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        if (res && res.data) {
-          const data = res.data;
+        // API returns data as an array
+        if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+          // Get the first item from the array (or handle multiple if needed)
+          const data = res.data[0];
           this.packetAllotmentId = data.id || null;
           this.isDataAvailable = true;
           this.isEditMode = false;
           
-          // Load form data
+          // Load form data - use pocketNumber from API response
           this.form.patchValue({
-            packetId: data.packetId || data.packetNo || ''
+            packetId: data.pocketNumber || data.packetId || data.packetNo || ''
           });
 
-          // Load items array
-          if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+          // Load items array - use ornamentNames from API response
+          if (data.ornamentNames && Array.isArray(data.ornamentNames) && data.ornamentNames.length > 0) {
             // Clear existing items
             while (this.itemsFormArray.length > 0) {
               this.itemsFormArray.removeAt(0);
             }
             // Add items from response
+            data.ornamentNames.forEach((item: string) => {
+              this.itemsFormArray.push(this.fb.group({ item: [item, Validators.required] }));
+            });
+          } else if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+            // Fallback to items if ornamentNames is not available
+            while (this.itemsFormArray.length > 0) {
+              this.itemsFormArray.removeAt(0);
+            }
             data.items.forEach((item: string) => {
               this.itemsFormArray.push(this.fb.group({ item: [item, Validators.required] }));
             });
@@ -140,6 +154,10 @@ export class PacketAllotmentComponent implements OnInit {
   onEdit(): void {
     this.isEditMode = true;
     this.form.enable();
+    // Reload available ornaments when entering edit mode
+    if (this.customerId && this.getLoanAccountNumber()) {
+      this.loadAvailableOrnaments();
+    }
   }
 
   onSubmit(): void {
@@ -153,13 +171,13 @@ export class PacketAllotmentComponent implements OnInit {
       return;
     }
 
-    // Extract items array from form
+    // Extract items array from form and filter to only include valid ornaments
     const items: string[] = this.itemsFormArray.controls
       .map(control => control.get('item')?.value)
-      .filter(item => item && item.trim() !== '');
+      .filter(item => item && item.trim() !== '' && this.availableOrnaments.includes(item.trim()));
 
     if (items.length === 0) {
-      this.toastService.showWarning('Please add at least one item.');
+      this.toastService.showWarning('Please add at least one valid item.');
       return;
     }
 
@@ -226,6 +244,59 @@ export class PacketAllotmentComponent implements OnInit {
     if (currentValue > 0) {
       this.form.patchValue({ packetId: currentValue - 1 });
     }
+  }
+
+  /**
+   * Load ornaments that have completed both first and second valuation
+   */
+  loadAvailableOrnaments(): void {
+    if (!this.customerId || !this.getLoanAccountNumber()) {
+      return;
+    }
+
+    const accountNumber = this.getLoanAccountNumber()!;
+
+    // Fetch both first and second valuation data
+    const firstValuation$ = this.packetService.getFirstValuationDetails(this.customerId, accountNumber).pipe(
+      catchError(err => of({ data: { jewelleryItems: [] } }))
+    );
+
+    const secondValuation$ = this.packetService.getSecondValuationDetails(this.customerId, accountNumber).pipe(
+      catchError(err => of({ data: { jewelleryItems: [] } }))
+    );
+
+    forkJoin([firstValuation$, secondValuation$]).subscribe({
+      next: ([firstRes, secondRes]) => {
+        // Extract unique jewellery names from first valuation
+        const firstValuationOrnaments = new Set<string>();
+        if (firstRes?.data?.jewelleryItems && Array.isArray(firstRes.data.jewelleryItems)) {
+          firstRes.data.jewelleryItems.forEach((item: any) => {
+            if (item.jewelleryName && item.jewelleryName.trim()) {
+              firstValuationOrnaments.add(item.jewelleryName.trim());
+            }
+          });
+        }
+
+        // Extract unique jewellery names from second valuation
+        const secondValuationOrnaments = new Set<string>();
+        if (secondRes?.data?.jewelleryItems && Array.isArray(secondRes.data.jewelleryItems)) {
+          secondRes.data.jewelleryItems.forEach((item: any) => {
+            if (item.jewelleryName && item.jewelleryName.trim()) {
+              secondValuationOrnaments.add(item.jewelleryName.trim());
+            }
+          });
+        }
+
+        // Find intersection - ornaments that exist in both valuations
+        this.availableOrnaments = Array.from(firstValuationOrnaments).filter(ornament =>
+          secondValuationOrnaments.has(ornament)
+        ).sort();
+      },
+      error: (err) => {
+        // Silently handle - no ornaments available
+        this.availableOrnaments = [];
+      }
+    });
   }
 }
 

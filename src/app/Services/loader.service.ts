@@ -9,13 +9,17 @@ export class LoaderService {
   public loading$ = this.loadingSubject.asObservable();
 
   private requestCount = 0;
+  private isShowing = false;
 
   /**
    * Show the loader
    */
   show(): void {
     this.requestCount++;
-    this.loadingSubject.next(true);
+    if (!this.isShowing) {
+      this.isShowing = true;
+      this.loadingSubject.next(true);
+    }
   }
 
   /**
@@ -25,6 +29,7 @@ export class LoaderService {
     this.requestCount--;
     if (this.requestCount <= 0) {
       this.requestCount = 0;
+      this.isShowing = false;
       this.loadingSubject.next(false);
     }
   }
@@ -34,7 +39,15 @@ export class LoaderService {
    */
   forceHide(): void {
     this.requestCount = 0;
+    this.isShowing = false;
     this.loadingSubject.next(false);
+  }
+
+  /**
+   * Check if loader is currently showing
+   */
+  isLoading(): boolean {
+    return this.isShowing;
   }
 }
 

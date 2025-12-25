@@ -9,8 +9,11 @@ A comprehensive Customer Relationship Management (CRM) system built with Angular
 - **KYC Document Management**: Upload and manage Aadhaar, PAN, and other KYC documents
 - **Valuation System**: First, second, and final valuation tracking
 - **Dashboard**: Analytics and charts using ECharts
-- **Authentication**: Secure login with JWT token-based authentication
+- **Enhanced Authentication**: Secure login with JWT token-based authentication, rate limiting, and session management
 - **Document Upload**: Photo and document upload functionality with webcam support
+- **Modern UI/UX**: Improved views with better error handling, loading states, and user feedback
+- **Security Features**: Input sanitization, XSS protection, and comprehensive validation
+- **User Profile Management**: User info display, logout functionality, and session tracking
 
 ## 📋 Prerequisites
 
@@ -154,9 +157,32 @@ npm run format:check
 - **ngx-webcam** 0.4.1
 - **TypeScript** 5.1.3
 
-## 🔐 Authentication
+## 🔐 Authentication & Security
 
-The application uses JWT token-based authentication. The `AuthInterceptor` automatically adds the authentication token to all HTTP requests.
+The application uses JWT token-based authentication with enhanced security features:
+
+### Security Features
+- **JWT Token Management**: Automatic token validation and expiration handling
+- **Rate Limiting**: Login attempt tracking with account lockout after 5 failed attempts
+- **Input Sanitization**: XSS protection and input validation using security utilities
+- **Session Management**: Secure session handling with automatic token refresh
+- **Password Visibility Toggle**: User-friendly password field with show/hide functionality
+- **Security Headers**: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, and more
+- **Role-Based Access Control**: Support for user roles and permissions (ready for implementation)
+
+### Authentication Flow
+- The `AuthInterceptor` automatically adds the authentication token to all HTTP requests
+- `AuthGuard` protects routes and redirects unauthenticated users to login
+- `LoginGuard` prevents logged-in users from accessing the login page
+- Automatic session expiration handling with user-friendly error messages
+
+### Security Utilities
+Located in `src/app/utils/security.util.ts`:
+- Input sanitization functions
+- XSS protection helpers
+- Email, phone, and username validation
+- Password strength validation
+- HTML escaping utilities
 
 ## 📝 Key Components
 
@@ -178,8 +204,37 @@ Multi-step wizard for creating loan applications:
 
 ### Services
 
+- **AuthService**: Handles authentication, token management, and user info storage
 - **PersonalDetailsService**: Handles all customer-related API calls
-- **ToastService**: Provides toast notifications for user feedback
+- **ToastService**: Provides toast notifications for user feedback with enhanced error handling
+- **LoaderService**: Manages global loading states
+
+### Security & Utilities
+
+- **Security Utilities** (`src/app/utils/security.util.ts`): Input sanitization, XSS protection, and validation helpers
+- **Auth Interceptor**: Enhanced error handling with detailed error messages for different HTTP status codes
+- **Auth Guards**: Route protection with automatic redirects and session management
+
+### UI/UX Improvements
+
+- **Enhanced Login Page**: 
+  - Password visibility toggle
+  - Real-time form validation
+  - Login attempt tracking with lockout
+  - Better error messages and user feedback
+  - Improved accessibility
+
+- **Header Component**:
+  - User profile dropdown menu
+  - Logout functionality
+  - User information display
+  - Navigation with active route highlighting
+
+- **Error Handling**:
+  - Comprehensive error messages for all HTTP status codes
+  - User-friendly error notifications
+  - Network error detection and handling
+  - Retry mechanisms (ready for implementation)
 
 ## 🌐 API Configuration
 

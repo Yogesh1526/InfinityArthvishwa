@@ -14,6 +14,11 @@ export function appInitializer(authService: AuthService, router: Router): () => 
         authService.clearAuthData();
       }
 
+      // Load user info from token if available (in case it's not in storage)
+      if (token && !authService.isTokenExpired()) {
+        authService.loadUserInfoFromToken();
+      }
+
       // Check if user is logged in on app startup
       if (!authService.isLoggedIn()) {
         // Clear any stale data
@@ -33,7 +38,9 @@ export function appInitializer(authService: AuthService, router: Router): () => 
           resolve();
         }
       } else {
-        // User is logged in, allow the app to continue
+        // User is logged in, ensure user info is loaded from token
+        authService.loadUserInfoFromToken();
+        // Allow the app to continue
         resolve();
       }
     });

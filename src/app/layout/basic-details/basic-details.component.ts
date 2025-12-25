@@ -240,9 +240,9 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res?.code === 200 || res?.success) {
             this.toast.showSuccess('Customer updated successfully!');
-            // Navigate to loan-wizard with customerId
+            // Navigate to customer profile after successful update
             if (this.customerId && this.customerId !== 'N/A') {
-              this.router.navigate(['/loan-wizard/', this.customerId]);
+              this.router.navigate(['/customer-profile', this.customerId]);
             } else {
               this.toast.showError('Customer ID is not available');
             }
@@ -271,9 +271,56 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res?.code === 200 || res?.success) {
             this.toast.showSuccess('Customer saved successfully!');
-            // Navigate to list page after successful creation
-            this.router.navigate(['/loan-info-details']);
-
+            // Navigate to customer profile after successful creation
+            // Try multiple possible response structures
+            let customerId = null;
+            
+            // Check various possible response structures
+            if (res?.data) {
+              customerId = res.data.customerId || res.data.id || res.data.customer?.customerId || res.data.customer?.id;
+            } else if (res?.customerId) {
+              customerId = res.customerId;
+            } else if (res?.id) {
+              customerId = res.id;
+            }
+            
+            // If still no customerId, try to fetch it by getting all customers and finding the newly created one
+            if (!customerId) {
+              console.log('Customer ID not in response, attempting to fetch by mobile number...', res);
+              // Try to get customer by mobile number
+              const mobileNumber = body.mobileNumber;
+              if (mobileNumber) {
+                // Fetch all customers and find the one with matching mobile number
+                this.apiService.getAllCustomerDetails().subscribe({
+                  next: (allCustomersRes: any) => {
+                    const customers = allCustomersRes?.data || [];
+                    const newCustomer = customers.find((c: any) => 
+                      c.mobileNumber === mobileNumber || 
+                      c.mobileNumber === String(mobileNumber)
+                    );
+                    
+                    if (newCustomer && (newCustomer.customerId || newCustomer.id)) {
+                      const foundId = newCustomer.customerId || newCustomer.id;
+                      this.router.navigate(['/customer-profile', String(foundId)]);
+                    } else {
+                      this.toast.showInfo('Customer created. Please check the customer list.');
+                      this.router.navigate(['/loan-info-details']);
+                    }
+                  },
+                  error: () => {
+                    this.toast.showInfo('Customer created. Please check the customer list.');
+                    this.router.navigate(['/loan-info-details']);
+                  }
+                });
+              } else {
+                this.toast.showInfo('Customer created. Please check the customer list.');
+                this.router.navigate(['/loan-info-details']);
+              }
+            } else {
+              // Convert to string if it's a number
+              const customerIdStr = String(customerId);
+              this.router.navigate(['/customer-profile', customerIdStr]);
+            }
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });
           } else {
@@ -283,7 +330,11 @@ export class BasicDetailsComponent implements OnInit {
         error: (err) => {
           const errorMsg = err?.error?.message || 'Error saving customer';
           this.toast.showError(errorMsg);
-          console.error(err);
+          console.error('Create customer error:', err);
+          // Log full response for debugging
+          if (err?.error) {
+            console.log('Error response:', err.error);
+          }
         }
       });
     }

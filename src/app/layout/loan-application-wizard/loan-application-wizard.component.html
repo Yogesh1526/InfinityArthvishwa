@@ -50,7 +50,9 @@
         <app-gl-scheme-selection *ngSwitchCase="12" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(12)"></app-gl-scheme-selection>
         <app-bank-details *ngSwitchCase="13" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(13)"></app-bank-details>
         <app-packet-allotment *ngSwitchCase="14" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(14)"></app-packet-allotment>
-        <app-loan-application-approval *ngSwitchCase="15" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(15)"></app-loan-application-approval>
+        <app-tare-weight *ngSwitchCase="15" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(15)"></app-tare-weight>
+        <app-expected-closure-date *ngSwitchCase="16" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(16)"></app-expected-closure-date>
+        <app-loan-application-approval *ngSwitchCase="17" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(17)"></app-loan-application-approval>
       </ng-container>
     </div>
 

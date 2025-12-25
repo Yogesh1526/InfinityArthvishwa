@@ -1,0 +1,128 @@
+<div class="role-form-container">
+  <div class="form-header">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Go Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-content">
+      <h1>
+        <mat-icon>{{ isEditMode ? 'edit' : 'add_circle' }}</mat-icon>
+        {{ isEditMode ? 'Edit Role' : 'Create New Role' }}
+      </h1>
+      <p class="subtitle">{{ isEditMode ? 'Update role details and permissions' : 'Define a new role with specific permissions' }}</p>
+    </div>
+  </div>
+
+  <mat-card class="form-card">
+    <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+      <div class="form-section">
+        <h2 class="section-title">
+          <mat-icon>info</mat-icon>
+          Basic Information
+        </h2>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Role Name</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput formControlName="roleName" placeholder="e.g., Manager, Admin, User" />
+            <mat-error *ngIf="roleForm.get('roleName')?.hasError('required')">
+              Role name is required
+            </mat-error>
+            <mat-error *ngIf="roleForm.get('roleName')?.hasError('minlength')">
+              Role name must be at least 2 characters
+            </mat-error>
+            <mat-error *ngIf="roleForm.get('roleName')?.hasError('maxlength')">
+              Role name cannot exceed 50 characters
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Status</mat-label>
+            <mat-icon matPrefix>toggle_on</mat-icon>
+            <mat-select formControlName="status">
+              <mat-option value="Active">Active</mat-option>
+              <mat-option value="Inactive">Inactive</mat-option>
+            </mat-select>
+            <mat-error *ngIf="roleForm.get('status')?.hasError('required')">
+              Status is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Is Default</mat-label>
+            <mat-icon matPrefix>star</mat-icon>
+            <mat-select formControlName="isDefault">
+              <mat-option value="Y">Yes</mat-option>
+              <mat-option value="N">No</mat-option>
+            </mat-select>
+            <mat-error *ngIf="roleForm.get('isDefault')?.hasError('required')">
+              Default setting is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <mat-icon>security</mat-icon>
+            Permissions
+            <span class="selected-count">({{ getSelectedPermissionsCount() }} selected)</span>
+          </h2>
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search Permissions</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput (input)="onSearchChange($event)" placeholder="Search by name or module" />
+          </mat-form-field>
+        </div>
+
+        <div class="permissions-container" *ngIf="!isLoading">
+          <div class="permissions-grid">
+            <mat-card class="permission-card" 
+                     *ngFor="let permission of filteredPermissions"
+                     [class.selected]="isPermissionSelected(permission.permissionId)"
+                     (click)="togglePermission(permission.permissionId)">
+              <mat-card-content>
+                <div class="permission-header">
+                  <mat-checkbox 
+                    [checked]="isPermissionSelected(permission.permissionId)"
+                    (click)="$event.stopPropagation()"
+                    (change)="togglePermission(permission.permissionId)">
+                  </mat-checkbox>
+                  <mat-icon class="permission-icon">security</mat-icon>
+                </div>
+                <div class="permission-info">
+                  <h3>{{ permission.permissionName || 'Permission ' + permission.permissionId }}</h3>
+                  <p *ngIf="permission.module" class="permission-module">{{ permission.module }}</p>
+                  <p *ngIf="permission.description" class="permission-description">{{ permission.description }}</p>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <div class="loading-permissions" *ngIf="isLoading">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading permissions...</p>
+        </div>
+
+        <div class="no-permissions" *ngIf="!isLoading && filteredPermissions.length === 0">
+          <mat-icon>info</mat-icon>
+          <p>No permissions available</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="goBack()" [disabled]="isSaving">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="roleForm.invalid || isSaving">
+          <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+          <mat-icon *ngIf="!isSaving">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+          <span>{{ isSaving ? 'Saving...' : (isEditMode ? 'Update Role' : 'Create Role') }}</span>
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>
+

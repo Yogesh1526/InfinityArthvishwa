@@ -31,9 +31,14 @@ import { FinalValuationComponent } from './loan-application-wizard/steps/final-v
 import { BankDetailsComponent } from './loan-application-wizard/steps/bank-details/bank-details.component';
 import { PacketAllotmentComponent } from './loan-application-wizard/steps/packet-allotment/packet-allotment.component';
 import { GlSchemeSelectionComponent } from './loan-application-wizard/steps/gl-scheme-selection/gl-scheme-selection.component';
+import { TareWeightComponent } from './loan-application-wizard/steps/tare-weight/tare-weight.component';
+import { ExpectedClosureDateComponent } from './loan-application-wizard/steps/expected-closure-date/expected-closure-date.component';
 import { LoanApplicationApprovalComponent } from './loan-application-wizard/steps/loan-application-approval/loan-application-approval.component';
 import { WebcamComponent } from './loan-application-wizard/steps/webcam/webcam.component';
 import { WebcamModule } from 'ngx-webcam';
+import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
+import { RoleListComponent } from './roles-permissions/role-list/role-list.component';
+import { RoleFormComponent } from './roles-permissions/role-form/role-form.component';
 
 
 
@@ -48,6 +53,9 @@ import { WebcamModule } from 'ngx-webcam';
     BasicDetailsComponent,
     LoanInfoComponent,
     LoanApplicationWizardComponent,
+    CustomerProfileComponent,
+    RoleListComponent,
+    RoleFormComponent,
     PersonalDetailsComponent,
     FamilyDetailsComponent,
     AddressActivityComponent,
@@ -65,6 +73,8 @@ import { WebcamModule } from 'ngx-webcam';
     BankDetailsComponent,
     PacketAllotmentComponent,
     GlSchemeSelectionComponent,
+    TareWeightComponent,
+    ExpectedClosureDateComponent,
     LoanApplicationApprovalComponent,
     WebcamComponent
   ],
