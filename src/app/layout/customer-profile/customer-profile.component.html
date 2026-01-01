@@ -1,366 +1,304 @@
-<div class="customer-profile-wrapper">
-  <!-- Header Section -->
-  <div class="profile-header-section" *ngIf="customer">
-    <div class="header-background"></div>
-    <div class="header-content-wrapper">
-      <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Go Back">
-        <mat-icon>arrow_back</mat-icon>
+<mat-card class="customer-profile-card">
+  <!-- Compact Header -->
+  <div class="header-section">
+    <button 
+      mat-icon-button 
+      (click)="goBack()" 
+      class="back-button" 
+      matTooltip="Go Back"
+      aria-label="Go back to previous page">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    </button>
+    <h2>
+      <mat-icon color="primary">person</mat-icon>
+      Customer Profile
+    </h2>
+  </div>
+
+  <!-- Customer Info Header -->
+  <div class="customer-header" *ngIf="customer">
+    <div class="customer-basic-info">
+      <div class="avatar-container">
+        <mat-icon class="avatar-icon" aria-hidden="true">account_circle</mat-icon>
+      </div>
+      <div class="customer-main-info">
+        <h3 class="customer-name">{{ customer.firstName }} {{ customer.middleName }} {{ customer.lastName }}</h3>
+        <div class="customer-meta">
+          <span class="meta-item">
+            <mat-icon aria-hidden="true">badge</mat-icon>
+            {{ customer.customerId || 'N/A' }}
+          </span>
+          <span class="meta-item" *ngIf="customer.loanAccountNo">
+            <mat-icon aria-hidden="true">account_balance</mat-icon>
+            {{ customer.loanAccountNo }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="customer-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="editCustomer()"
+        aria-label="Edit customer">
+        <mat-icon aria-hidden="true">edit</mat-icon>
+        Edit
       </button>
-      
-      <div class="profile-header-main">
-        <div class="profile-avatar-section">
-          <div class="avatar-circle">
-            <mat-icon class="avatar-icon">account_circle</mat-icon>
-          </div>
-        </div>
-        
-        <div class="profile-info-section">
-          <h1 class="customer-name">{{ customer.firstName }} {{ customer.middleName }} {{ customer.lastName }}</h1>
-          <div class="customer-identifiers">
-            <div class="identifier-item">
-              <mat-icon>badge</mat-icon>
-              <span>Customer ID: <strong>{{ customer.customerId || 'N/A' }}</strong></span>
-            </div>
-            <div class="identifier-item" *ngIf="customer.loanAccountNo">
-              <mat-icon>account_balance</mat-icon>
-              <span>Loan Account: <strong>{{ customer.loanAccountNo }}</strong></span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="header-action-buttons">
-          <button mat-raised-button color="primary" (click)="editCustomer()" class="action-btn">
-            <mat-icon>edit</mat-icon>
-            <span>Edit</span>
-          </button>
-          <button mat-raised-button color="accent" (click)="addNewLoan()" class="action-btn">
-            <mat-icon>add</mat-icon>
-            <span>New Loan</span>
-          </button>
-        </div>
+      <button 
+        mat-raised-button 
+        color="accent" 
+        (click)="addNewLoan()"
+        aria-label="Add new loan">
+        <mat-icon aria-hidden="true">add</mat-icon>
+        New Loan
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards" *ngIf="customer">
+    <div class="summary-card">
+      <div class="card-icon-wrapper status">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="card-label">Status</div>
+        <div class="card-value">{{ customer.applicationStatus || 'Active' }}</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-icon-wrapper risk">
+        <mat-icon aria-hidden="true">assessment</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="card-label">Risk Category</div>
+        <div class="card-value">{{ customer.riskCategory || 'N/A' }}</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-icon-wrapper client">
+        <mat-icon aria-hidden="true">star</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="card-label">Client Type</div>
+        <div class="card-value">{{ customer.clientType || 'Regular' }}</div>
+      </div>
+    </div>
+    <div class="summary-card">
+      <div class="card-icon-wrapper loans">
+        <mat-icon aria-hidden="true">account_balance_wallet</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="card-label">Total Loans</div>
+        <div class="card-value">{{ loans.length }}</div>
       </div>
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="profile-main-content" *ngIf="customer">
-    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="profile-tabs" animationDuration="300ms">
-      <!-- Customer Details Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>person</mat-icon>
-          <span>Details</span>
-        </ng-template>
-        
-        <div class="tab-content-wrapper">
-          <!-- Personal Information -->
-          <mat-card class="detail-card">
-            <mat-card-header class="card-header-primary">
-              <div class="card-header-content">
-                <mat-icon>person</mat-icon>
-                <mat-card-title>Personal Information</mat-card-title>
-              </div>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="details-grid">
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>person_outline</mat-icon>
-                    Full Name
-                  </div>
-                  <div class="detail-value">{{ customer.firstName }} {{ customer.middleName }} {{ customer.lastName }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>cake</mat-icon>
-                    Date of Birth
-                  </div>
-                  <div class="detail-value">{{ customer.dateOfBirth | date:'dd MMM yyyy' }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>wc</mat-icon>
-                    Gender
-                  </div>
-                  <div class="detail-value">{{ customer.gender }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>favorite</mat-icon>
-                    Marital Status
-                  </div>
-                  <div class="detail-value">{{ customer.maritalStatus || 'N/A' }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>phone</mat-icon>
-                    Mobile Number
-                  </div>
-                  <div class="detail-value phone-value">
-                    <a [href]="'tel:' + customer.mobileNumber">{{ customer.mobileNumber }}</a>
-                  </div>
-                </div>
-                
-                <div class="detail-item" *ngIf="customer.alternateMobileNumber">
-                  <div class="detail-label">
-                    <mat-icon>phone_android</mat-icon>
-                    Alternate Mobile
-                  </div>
-                  <div class="detail-value phone-value">
-                    <a [href]="'tel:' + customer.alternateMobileNumber">{{ customer.alternateMobileNumber }}</a>
-                  </div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>email</mat-icon>
-                    Email
-                  </div>
-                  <div class="detail-value email-value">
-                    <a [href]="'mailto:' + customer.email">{{ customer.email }}</a>
-                  </div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>business</mat-icon>
-                    Office
-                  </div>
-                  <div class="detail-value">{{ customer.office || 'N/A' }}</div>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Additional Details -->
-          <mat-card class="detail-card">
-            <mat-card-header class="card-header-secondary">
-              <div class="card-header-content">
-                <mat-icon>info</mat-icon>
-                <mat-card-title>Additional Information</mat-card-title>
-              </div>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="details-grid">
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>school</mat-icon>
-                    Education
-                  </div>
-                  <div class="detail-value">{{ customer.education || 'N/A' }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>language</mat-icon>
-                    Preferred Language
-                  </div>
-                  <div class="detail-value">{{ customer.preferredLanguage || 'N/A' }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>place</mat-icon>
-                    Religion
-                  </div>
-                  <div class="detail-value">{{ customer.religion || 'N/A' }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>public</mat-icon>
-                    Nationality
-                  </div>
-                  <div class="detail-value">{{ customer.nationality || 'N/A' }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>warning</mat-icon>
-                    Risk Category
-                  </div>
-                  <div class="detail-value">
-                    <span class="status-chip risk-chip" [ngClass]="'risk-' + (customer.riskCategory?.toLowerCase() || 'medium')">
-                      {{ customer.riskCategory || 'N/A' }}
-                    </span>
-                  </div>
-                </div>
-                
-                <div class="detail-item" *ngIf="customer.clientType">
-                  <div class="detail-label">
-                    <mat-icon>star</mat-icon>
-                    Client Type
-                  </div>
-                  <div class="detail-value">
-                    <span class="status-chip client-chip" [ngClass]="'client-' + customer.clientType?.toLowerCase()">
-                      {{ customer.clientType }}
-                    </span>
-                  </div>
-                </div>
-                
-                <div class="detail-item" *ngIf="customer.externalId">
-                  <div class="detail-label">
-                    <mat-icon>tag</mat-icon>
-                    External ID
-                  </div>
-                  <div class="detail-value">{{ customer.externalId }}</div>
-                </div>
-                
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <mat-icon>event</mat-icon>
-                    Submitted Date
-                  </div>
-                  <div class="detail-value">{{ customer.submittedDate | date:'dd MMM yyyy' }}</div>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Application Status -->
-          <mat-card class="detail-card" *ngIf="customer.applicationStatus">
-            <mat-card-header class="card-header-status">
-              <div class="card-header-content">
-                <mat-icon>assignment</mat-icon>
-                <mat-card-title>Application Status</mat-card-title>
-              </div>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="status-container">
-                <div class="status-badge-large" [ngClass]="'status-' + (customer.applicationStatus?.toLowerCase() || 'pending')">
-                  <mat-icon>{{ getStatusIcon(customer.applicationStatus) }}</mat-icon>
-                  <span>{{ customer.applicationStatus }}</span>
-                </div>
-                <div class="status-note" *ngIf="customer.note">
-                  <mat-icon>note</mat-icon>
-                  <p>{{ customer.note }}</p>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </mat-tab>
-
-      <!-- Loans Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>account_balance_wallet</mat-icon>
-          <span>Loans</span>
-          <span class="badge-count" *ngIf="loans.length > 0">{{ loans.length }}</span>
-        </ng-template>
-        
-        <div class="tab-content-wrapper">
-          <div class="loans-section-header">
-            <h2>
-              <mat-icon>account_balance_wallet</mat-icon>
-              Loan Accounts
-            </h2>
-            <button mat-raised-button color="primary" (click)="addNewLoan()" class="add-loan-btn">
-              <mat-icon>add_circle</mat-icon>
-              <span>Add New Loan</span>
-            </button>
-          </div>
-
-          <div *ngIf="loans.length === 0" class="empty-state">
-            <div class="empty-state-icon">
-              <mat-icon>inbox</mat-icon>
+  <!-- Main Content Tabs -->
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="content-tabs" *ngIf="customer">
+    <!-- Personal Details Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon aria-hidden="true">person</mat-icon>
+        <span>Personal Details</span>
+      </ng-template>
+      
+      <div class="tab-content">
+        <!-- Basic Information -->
+        <div class="info-section">
+          <h4 class="section-title">Basic Information</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Full Name</span>
+              <span class="info-value">{{ customer.firstName }} {{ customer.middleName }} {{ customer.lastName }}</span>
             </div>
-            <h3>No Loans Found</h3>
-            <p>This customer doesn't have any loan accounts yet.</p>
-            <button mat-raised-button color="primary" (click)="addNewLoan()" class="create-loan-btn">
-              <mat-icon>add</mat-icon>
-              <span>Create First Loan</span>
-            </button>
-          </div>
-
-          <div class="loans-grid" *ngIf="loans.length > 0">
-            <mat-card class="loan-card" *ngFor="let loan of loans" (click)="viewLoan(loan.id)">
-              <mat-card-header>
-                <div class="loan-card-header">
-                  <div class="loan-title-section">
-                    <mat-icon class="loan-icon">account_balance</mat-icon>
-                    <div>
-                      <mat-card-title>Loan #{{ loan.loanAccountNo || loan.id }}</mat-card-title>
-                      <mat-card-subtitle>
-                        <span class="loan-status-badge" [ngClass]="getLoanStatusClass(loan.status)">
-                          {{ getLoanStatusLabel(loan.status) }}
-                        </span>
-                      </mat-card-subtitle>
-                    </div>
-                  </div>
-                </div>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="loan-info-list">
-                  <div class="loan-info-item">
-                    <span class="loan-info-label">Principal Amount</span>
-                    <span class="loan-info-value amount">₹{{ loan.principalAmount | number:'1.2-2' }}</span>
-                  </div>
-                  <div class="loan-info-item">
-                    <span class="loan-info-label">Interest Rate</span>
-                    <span class="loan-info-value">{{ loan.interestRate }}%</span>
-                  </div>
-                  <div class="loan-info-item">
-                    <span class="loan-info-label">Tenure</span>
-                    <span class="loan-info-value">{{ loan.tenure }} months</span>
-                  </div>
-                  <div class="loan-info-item" *ngIf="loan.disbursedDate">
-                    <span class="loan-info-label">Disbursed Date</span>
-                    <span class="loan-info-value">{{ loan.disbursedDate | date:'dd MMM yyyy' }}</span>
-                  </div>
-                  <div class="loan-info-item" *ngIf="loan.nextDueDate">
-                    <span class="loan-info-label">Next Due Date</span>
-                    <span class="loan-info-value">{{ loan.nextDueDate | date:'dd MMM yyyy' }}</span>
-                  </div>
-                </div>
-              </mat-card-content>
-              <mat-card-actions>
-                <button mat-button color="primary" (click)="viewLoan(loan.id); $event.stopPropagation()">
-                  <mat-icon>visibility</mat-icon>
-                  View Details
-                </button>
-              </mat-card-actions>
-            </mat-card>
+            <div class="info-item">
+              <span class="info-label">Date of Birth</span>
+              <span class="info-value">{{ customer.dateOfBirth | date:'dd MMM yyyy' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Gender</span>
+              <span class="info-value">{{ customer.gender }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Marital Status</span>
+              <span class="info-value">{{ customer.maritalStatus || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Mobile Number</span>
+              <span class="info-value">
+                <a [href]="'tel:' + customer.mobileNumber" aria-label="Call customer">{{ customer.mobileNumber }}</a>
+              </span>
+            </div>
+            <div class="info-item" *ngIf="customer.alternateMobileNumber">
+              <span class="info-label">Alternate Mobile</span>
+              <span class="info-value">
+                <a [href]="'tel:' + customer.alternateMobileNumber" aria-label="Call alternate number">{{ customer.alternateMobileNumber }}</a>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">
+                <a [href]="'mailto:' + customer.email" aria-label="Send email">{{ customer.email }}</a>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Office</span>
+              <span class="info-value">{{ customer.office || 'N/A' }}</span>
+            </div>
           </div>
         </div>
-      </mat-tab>
 
-      <!-- Documents Tab -->
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>folder</mat-icon>
-          <span>Documents</span>
-        </ng-template>
-        
-        <div class="tab-content-wrapper">
-          <div class="documents-placeholder">
-            <mat-icon>folder_open</mat-icon>
-            <h3>Documents</h3>
-            <p>Document management will be available here</p>
+        <!-- Additional Information -->
+        <div class="info-section">
+          <h4 class="section-title">Additional Information</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Education</span>
+              <span class="info-value">{{ customer.education || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Preferred Language</span>
+              <span class="info-value">{{ customer.preferredLanguage || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Religion</span>
+              <span class="info-value">{{ customer.religion || 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Nationality</span>
+              <span class="info-value">{{ customer.nationality || 'N/A' }}</span>
+            </div>
+            <div class="info-item" *ngIf="customer.externalId">
+              <span class="info-label">External ID</span>
+              <span class="info-value">{{ customer.externalId }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Submitted Date</span>
+              <span class="info-value">{{ customer.submittedDate | date:'dd MMM yyyy' }}</span>
+            </div>
           </div>
         </div>
-      </mat-tab>
-    </mat-tab-group>
+      </div>
+    </mat-tab>
+
+    <!-- Loans Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon aria-hidden="true">account_balance_wallet</mat-icon>
+        <span>Loans</span>
+        <span class="badge-count" *ngIf="loans.length > 0" [attr.aria-label]="loans.length + ' loans'">{{ loans.length }}</span>
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="loans-header">
+          <h4 class="section-title">Loan Accounts</h4>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="addNewLoan()"
+            aria-label="Add new loan">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            Add New Loan
+          </button>
+        </div>
+
+        <div *ngIf="loans.length === 0" class="empty-state">
+          <mat-icon aria-hidden="true">inbox</mat-icon>
+          <h3>No Loans Found</h3>
+          <p>This customer doesn't have any loan accounts yet.</p>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="addNewLoan()"
+            aria-label="Create first loan">
+            <mat-icon aria-hidden="true">add</mat-icon>
+            Create First Loan
+          </button>
+        </div>
+
+        <div class="loans-list" *ngIf="loans.length > 0" role="list">
+          <div 
+            class="loan-item" 
+            *ngFor="let loan of loans"
+            (click)="viewLoan(loan.id)"
+            role="listitem"
+            tabindex="0"
+            (keydown.enter)="viewLoan(loan.id)"
+            (keydown.space)="viewLoan(loan.id); $event.preventDefault()">
+            <div class="loan-header">
+              <div class="loan-title">
+                <mat-icon aria-hidden="true">account_balance</mat-icon>
+                <span>Loan #{{ loan.loanAccountNo || loan.id }}</span>
+              </div>
+              <span class="loan-status" [ngClass]="getLoanStatusClass(loan.status)">
+                {{ getLoanStatusLabel(loan.status) }}
+              </span>
+            </div>
+            <div class="loan-details">
+              <div class="loan-detail-item">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value">₹{{ loan.principalAmount | number:'1.2-2' }}</span>
+              </div>
+              <div class="loan-detail-item">
+                <span class="detail-label">Interest Rate</span>
+                <span class="detail-value">{{ loan.interestRate }}%</span>
+              </div>
+              <div class="loan-detail-item">
+                <span class="detail-label">Tenure</span>
+                <span class="detail-value">{{ loan.tenure }} months</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Documents Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon aria-hidden="true">folder</mat-icon>
+        <span>Documents</span>
+      </ng-template>
+      
+      <div class="tab-content">
+        <div class="empty-state">
+          <mat-icon aria-hidden="true">folder_open</mat-icon>
+          <h3>Documents</h3>
+          <p>Document management will be available here</p>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- Loading State -->
+  <div 
+    class="loading-state" 
+    *ngIf="isLoading && !loaderService.isLoading()" 
+    role="status" 
+    aria-live="polite"
+    aria-label="Loading customer details">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading customer details...</p>
   </div>
 
-<!-- Loading State - Only show if global loader is not active -->
-<div class="loading-state" *ngIf="isLoading && !loaderService.isLoading()">
-  <mat-spinner diameter="60"></mat-spinner>
-  <p>Loading customer details...</p>
-</div>
-
-<!-- Error State -->
-<div class="error-state" *ngIf="!customer && !isLoading">
-    <mat-icon>error_outline</mat-icon>
+  <!-- Error State -->
+  <div 
+    class="error-state" 
+    *ngIf="!customer && !isLoading" 
+    role="alert"
+    aria-live="assertive">
+    <mat-icon aria-hidden="true">error_outline</mat-icon>
     <h3>Customer Not Found</h3>
     <p>The requested customer could not be found.</p>
-    <button mat-raised-button color="primary" (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="goBack()"
+      aria-label="Go back to customer list">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
       Go Back
     </button>
   </div>
-</div>
+</mat-card>

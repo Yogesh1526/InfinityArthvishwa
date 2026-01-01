@@ -1,0 +1,111 @@
+<div class="loan-document-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">description</mat-icon>
+      Loan Agreement Document
+    </h2>
+    <p class="subtitle">Generate and download loan agreement document</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Processing...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading">
+    <!-- Documents Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>folder_open</mat-icon>
+          Documents
+        </h3>
+      </div>
+      
+      <div class="documents-list">
+        <div class="document-item" *ngFor="let doc of documents">
+          <div class="document-info">
+            <div class="document-icon">
+              <mat-icon>picture_as_pdf</mat-icon>
+            </div>
+            <div class="document-details">
+              <div class="document-name">{{ doc.name }}</div>
+              <div class="document-status" [ngClass]="'status-' + doc.status.toLowerCase()">
+                <mat-icon class="status-icon" [class.spinning]="doc.status === 'GENERATING'">
+                  {{ getStatusIcon(doc.status) }}
+                </mat-icon>
+                <span>{{ doc.status === 'GENERATING' ? 'Generating...' : doc.status }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="document-actions">
+            <!-- Generate Button (shown when PENDING) -->
+            <button 
+              mat-raised-button 
+              color="primary" 
+              *ngIf="doc.status === 'PENDING'"
+              (click)="generateDocument()"
+              [disabled]="isGenerating"
+              class="generate-button">
+              <mat-icon>play_arrow</mat-icon>
+              Generate Document
+            </button>
+
+            <!-- Generating State -->
+            <div *ngIf="doc.status === 'GENERATING'" class="generating-state">
+              <mat-spinner diameter="24"></mat-spinner>
+              <span>Generating...</span>
+            </div>
+
+            <!-- View/Download Actions (shown when SUCCESS) -->
+            <ng-container *ngIf="doc.status === 'SUCCESS'">
+              <button mat-stroked-button color="primary" (click)="viewDocument(doc)" class="view-button">
+                <mat-icon>open_in_new</mat-icon>
+                View
+              </button>
+              <button mat-icon-button [matMenuTriggerFor]="docMenu" class="menu-button">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #docMenu="matMenu">
+                <button mat-menu-item (click)="viewDocument(doc)">
+                  <mat-icon>visibility</mat-icon>
+                  <span>View</span>
+                </button>
+                <button mat-menu-item (click)="downloadDocument(doc)">
+                  <mat-icon>download</mat-icon>
+                  <span>Download</span>
+                </button>
+                <button mat-menu-item (click)="generateDocument()">
+                  <mat-icon>refresh</mat-icon>
+                  <span>Regenerate</span>
+                </button>
+              </mat-menu>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-card" *ngIf="documents[0]?.status === 'PENDING'">
+      <mat-icon>info</mat-icon>
+      <div class="info-content">
+        <p>Click the <strong>"Generate Document"</strong> button to create the Loan Agreement Document. Once generated, you can view or download the PDF.</p>
+      </div>
+    </div>
+
+    <!-- Success Section -->
+    <div class="success-card" *ngIf="documents[0]?.status === 'SUCCESS'">
+      <mat-icon>check_circle</mat-icon>
+      <div class="success-content">
+        <h3>Document Generated Successfully!</h3>
+        <p>The Loan Agreement Document has been generated. You can view or download it using the buttons above.</p>
+      </div>
+    </div>
+  </div>
+</div>
+

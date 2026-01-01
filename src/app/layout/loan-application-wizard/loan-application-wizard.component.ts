@@ -38,7 +38,9 @@ export class LoanApplicationWizardComponent implements OnInit {
     { label: 'Packet Allotment', key: 'packetAllotment' },
     { label: 'Tare Weight', key: 'tareWeight' },
     { label: 'Expected Closure Date', key: 'expectedClosureDate' },
-    { label: 'Loan Application Approval', key: 'loanApplicationApproval' }
+    { label: 'Loan Application Approval', key: 'loanApplicationApproval' },
+    { label: 'Disbursement', key: 'disbursement' },
+    { label: 'Loan Agreement Document', key: 'loanAgreementDocument' }
   ];
 
   constructor(
@@ -342,6 +344,46 @@ export class LoanApplicationWizardComponent implements OnInit {
           : of({ data: null });
       })().pipe(
         catchError(() => of({ data: null }))
+      ),
+      // Step 18: Disbursement
+      (() => {
+        let accountNumber = null;
+        if (this.customerId) {
+          const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+          if (stored && (stored.startsWith('AP') || stored.startsWith('GL'))) {
+            accountNumber = stored;
+          }
+        }
+        if (!accountNumber && this.loanApplicationId && 
+            (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL')) && 
+            this.loanApplicationId !== this.customerId) {
+          accountNumber = this.loanApplicationId;
+        }
+        return (this.customerId && accountNumber)
+          ? this.personalService.getDisbursementInfo(this.customerId, accountNumber)
+          : of({ data: null });
+      })().pipe(
+        catchError(() => of({ data: null }))
+      ),
+      // Step 19: Loan Agreement Document - check localStorage
+      (() => {
+        let accountNumber = null;
+        if (this.customerId) {
+          const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+          if (stored && (stored.startsWith('AP') || stored.startsWith('GL'))) {
+            accountNumber = stored;
+          }
+        }
+        if (!accountNumber && this.loanApplicationId && 
+            (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL')) && 
+            this.loanApplicationId !== this.customerId) {
+          accountNumber = this.loanApplicationId;
+        }
+        // Check if document was generated (stored in localStorage)
+        const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
+        return of({ generated: !!docGenerated });
+      })().pipe(
+        catchError(() => of({ generated: false }))
       )
     ];
 
@@ -421,6 +463,18 @@ export class LoanApplicationWizardComponent implements OnInit {
             return !!(fileData['CAM-Gold-File-Name'] || fileData['Credit-Summary-File-Name']);
           }
           return false;
+        }
+        if (index === 18) {
+          // Disbursement - returns { code: 200, data: { disbusmentStatus: 'ACTIVE' | 'DISBURSED' | ... } }
+          if (result?.code === 200 && result?.data) {
+            const status = result.data.disbusmentStatus;
+            return status === 'ACTIVE' || status === 'DISBURSED';
+          }
+          return false;
+        }
+        if (index === 19) {
+          // Loan Agreement Document - check if generated (from localStorage check)
+          return !!(result?.generated);
         }
         // Default: handle both array and object
         if (result?.data) {

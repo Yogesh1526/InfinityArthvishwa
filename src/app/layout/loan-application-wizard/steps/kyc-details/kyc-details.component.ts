@@ -41,6 +41,12 @@ export class KycDetailsComponent implements OnInit {
   panDoc: KycDocument | null = null;
   isEditingDocument: 'aadhaarFront' | 'aadhaarBack' | 'pan' | null = null;
 
+  // Track if identifier numbers can be edited
+  isEditingAadhaarNumber = false;
+  isEditingPanNumber = false;
+  originalAadhaarNumber = '';
+  originalPanNumber = '';
+
   @Input() customerId!: string;
   @Input() loanApplicationId!: string;
   @Output() stepCompleted = new EventEmitter<void>();
@@ -112,23 +118,29 @@ export class KycDetailsComponent implements OnInit {
              (doc.side === 'NA' || !doc.side || doc.side === '' || doc.side?.toLowerCase() === 'na')
     ) || null;
 
-    // Load previews and form values
+    // Load previews and populate form values
     if (this.aadhaarFrontDoc) {
       this.loadDocumentPreview(this.aadhaarFrontDoc, 'aadhaarFront');
-      // Don't auto-fill identifier number from document - let user enter it
+      // Auto-fill Aadhaar identifier number from front document
+      if (this.aadhaarFrontDoc.identifierNumber) {
+        this.form.patchValue({ aadhaarIdentifierNumber: this.aadhaarFrontDoc.identifierNumber });
+      }
     }
 
     if (this.aadhaarBackDoc) {
       this.loadDocumentPreview(this.aadhaarBackDoc, 'aadhaarBack');
-      // Use same Aadhaar number as front if front exists
-      if (this.aadhaarFrontDoc && this.form.get('aadhaarIdentifierNumber')?.value) {
-        // Already set from front
+      // If no front doc but back has identifier, use that
+      if (!this.aadhaarFrontDoc && this.aadhaarBackDoc.identifierNumber) {
+        this.form.patchValue({ aadhaarIdentifierNumber: this.aadhaarBackDoc.identifierNumber });
       }
     }
 
     if (this.panDoc) {
       this.loadDocumentPreview(this.panDoc, 'pan');
-      // Don't auto-fill identifier number from document - let user enter it
+      // Auto-fill PAN identifier number
+      if (this.panDoc.identifierNumber) {
+        this.form.patchValue({ panIdentifierNumber: this.panDoc.identifierNumber });
+      }
     }
   }
 
@@ -423,6 +435,12 @@ export class KycDetailsComponent implements OnInit {
                               type === 'aadhaarBack' ? 'Aadhaar Back' : 'PAN';
           this.toastService.showSuccess(`${documentName} updated successfully!`);
           this.isEditingDocument = null;
+          // Reset editing states
+          if (type === 'aadhaarFront' || type === 'aadhaarBack') {
+            this.isEditingAadhaarNumber = false;
+          } else {
+            this.isEditingPanNumber = false;
+          }
           this.stepCompleted.emit();
           this.loadExistingDocuments(); // Reload to get updated data
         },
@@ -454,6 +472,12 @@ export class KycDetailsComponent implements OnInit {
                               type === 'aadhaarBack' ? 'Aadhaar Back' : 'PAN';
           this.toastService.showSuccess(`${documentName} uploaded successfully!`);
           this.isEditingDocument = null;
+          // Reset editing states
+          if (type === 'aadhaarFront' || type === 'aadhaarBack') {
+            this.isEditingAadhaarNumber = false;
+          } else {
+            this.isEditingPanNumber = false;
+          }
           this.stepCompleted.emit();
           this.loadExistingDocuments(); // Reload to get new document
         },
@@ -606,5 +630,39 @@ export class KycDetailsComponent implements OnInit {
       return proofType.join(', ');
     }
     return proofType;
+  }
+
+  // Check if Aadhaar documents are saved
+  get isAadhaarSaved(): boolean {
+    return !!(this.aadhaarFrontDoc || this.aadhaarBackDoc);
+  }
+
+  // Check if PAN document is saved
+  get isPanSaved(): boolean {
+    return !!this.panDoc;
+  }
+
+  // Enable Aadhaar number editing
+  enableAadhaarNumberEdit(): void {
+    this.originalAadhaarNumber = this.form.get('aadhaarIdentifierNumber')?.value || '';
+    this.isEditingAadhaarNumber = true;
+  }
+
+  // Cancel Aadhaar number editing
+  cancelAadhaarNumberEdit(): void {
+    this.form.patchValue({ aadhaarIdentifierNumber: this.originalAadhaarNumber });
+    this.isEditingAadhaarNumber = false;
+  }
+
+  // Enable PAN number editing
+  enablePanNumberEdit(): void {
+    this.originalPanNumber = this.form.get('panIdentifierNumber')?.value || '';
+    this.isEditingPanNumber = true;
+  }
+
+  // Cancel PAN number editing
+  cancelPanNumberEdit(): void {
+    this.form.patchValue({ panIdentifierNumber: this.originalPanNumber });
+    this.isEditingPanNumber = false;
   }
 }

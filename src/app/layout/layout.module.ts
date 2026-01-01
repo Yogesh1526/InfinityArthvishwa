@@ -34,6 +34,8 @@ import { GlSchemeSelectionComponent } from './loan-application-wizard/steps/gl-s
 import { TareWeightComponent } from './loan-application-wizard/steps/tare-weight/tare-weight.component';
 import { ExpectedClosureDateComponent } from './loan-application-wizard/steps/expected-closure-date/expected-closure-date.component';
 import { LoanApplicationApprovalComponent } from './loan-application-wizard/steps/loan-application-approval/loan-application-approval.component';
+import { DisbursementDetailsComponent } from './loan-application-wizard/steps/disbursement-details/disbursement-details.component';
+import { LoanAgreementDocumentComponent } from './loan-application-wizard/steps/loan-agreement-document/loan-agreement-document.component';
 import { WebcamComponent } from './loan-application-wizard/steps/webcam/webcam.component';
 import { WebcamModule } from 'ngx-webcam';
 import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
@@ -76,6 +78,8 @@ import { RoleFormComponent } from './roles-permissions/role-form/role-form.compo
     TareWeightComponent,
     ExpectedClosureDateComponent,
     LoanApplicationApprovalComponent,
+    DisbursementDetailsComponent,
+    LoanAgreementDocumentComponent,
     WebcamComponent
   ],
   imports: [

@@ -53,6 +53,8 @@
         <app-tare-weight *ngSwitchCase="15" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(15)"></app-tare-weight>
         <app-expected-closure-date *ngSwitchCase="16" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(16)"></app-expected-closure-date>
         <app-loan-application-approval *ngSwitchCase="17" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(17)"></app-loan-application-approval>
+        <app-disbursement-details *ngSwitchCase="18" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(18)"></app-disbursement-details>
+        <app-loan-agreement-document *ngSwitchCase="19" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(19)"></app-loan-agreement-document>
       </ng-container>
     </div>
 

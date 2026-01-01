@@ -1,0 +1,243 @@
+<div class="disbursement-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">account_balance_wallet</mat-icon>
+      Disbursement Details
+    </h2>
+    <p class="subtitle">Review loan disbursement information and activate account</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading disbursement details...</p>
+  </div>
+
+  <!-- No Data State -->
+  <div *ngIf="!isLoading && !disbursementData" class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <h3>No Disbursement Data Found</h3>
+    <p>Disbursement details will be available once the loan application is approved and processed.</p>
+    <button mat-stroked-button color="primary" (click)="loadDisbursementData()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && disbursementData" class="view-section">
+    <!-- Customer & Loan Details Card -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>person</mat-icon>
+          Customer & Loan Information
+        </h3>
+        <span class="status-badge" [ngClass]="getStatusClass(disbursementData.disbusmentStatus)">
+          <mat-icon class="status-icon">{{ getStatusIcon(disbursementData.disbusmentStatus) }}</mat-icon>
+          {{ disbursementData.disbusmentStatus }}
+        </span>
+      </div>
+      <div class="details-grid">
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>badge</mat-icon>
+            Customer Name
+          </div>
+          <div class="detail-value">{{ disbursementData.customerName }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>tag</mat-icon>
+            Customer ID
+          </div>
+          <div class="detail-value monospace">{{ disbursementData.customerId }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>phone</mat-icon>
+            Mobile Number
+          </div>
+          <div class="detail-value">{{ disbursementData.mobileNumber }}</div>
+        </div>
+        <div class="detail-item highlight">
+          <div class="detail-label">
+            <mat-icon>account_balance</mat-icon>
+            Loan Account Number
+          </div>
+          <div class="detail-value monospace">{{ disbursementData.loanAccountNumber }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>style</mat-icon>
+            Scheme Name
+          </div>
+          <div class="detail-value">{{ disbursementData.schemeName }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>calendar_today</mat-icon>
+            Tenure
+          </div>
+          <div class="detail-value">{{ disbursementData.tenure }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>event_repeat</mat-icon>
+            Total Installments
+          </div>
+          <div class="detail-value">{{ disbursementData.totalInstallments }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>event</mat-icon>
+            Disbursement Date
+          </div>
+          <div class="detail-value">{{ formatDate(disbursementData.disbusmentDate) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Amount Card -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>payments</mat-icon>
+          Loan Amount Details
+        </h3>
+      </div>
+      <div class="amount-display">
+        <div class="amount-label">Sanctioned Loan Amount</div>
+        <div class="amount-value">{{ formatCurrency(disbursementData.loanAmount) }}</div>
+      </div>
+    </div>
+
+    <!-- Fee Breakdown Card -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>receipt_long</mat-icon>
+          Fee Breakdown
+        </h3>
+      </div>
+      <div class="fees-container">
+        <!-- Fee Table -->
+        <div class="fee-table">
+          <div class="fee-table-header">
+            <span class="fee-col-desc">Description</span>
+            <span class="fee-col-amount">Amount</span>
+          </div>
+          
+          <div class="fee-row">
+            <span class="fee-col-desc">Processing Fee</span>
+            <span class="fee-col-amount">{{ formatCurrency(disbursementData.processingFee) }}</span>
+          </div>
+          <div class="fee-row sub">
+            <span class="fee-col-desc">SGST</span>
+            <span class="fee-col-amount">{{ formatCurrency(disbursementData.processingFeeGst) }}</span>
+          </div>
+          <div class="fee-row sub">
+            <span class="fee-col-desc">CGST</span>
+            <span class="fee-col-amount">{{ formatCurrency(disbursementData.processingFeeCgst) }}</span>
+          </div>
+
+          <!-- Totals -->
+          <div class="fee-row total-deduction">
+            <span class="fee-col-desc">Total Deductions</span>
+            <span class="fee-col-amount">- {{ formatCurrency(totalDeductions) }}</span>
+          </div>
+          <div class="fee-row net-disbursement">
+            <span class="fee-col-desc">Net Disbursement Amount</span>
+            <span class="fee-col-amount">{{ formatCurrency(disbursementData.netDisbursmentAmount) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Details Card -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>account_balance</mat-icon>
+          Bank Account Details
+        </h3>
+        <span class="verified-badge">
+          <mat-icon>verified</mat-icon>
+          Verified
+        </span>
+      </div>
+      <div class="details-grid">
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>business</mat-icon>
+            Bank Name
+          </div>
+          <div class="detail-value">{{ disbursementData.bankName }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>pin</mat-icon>
+            IFSC Code
+          </div>
+          <div class="detail-value monospace">{{ disbursementData.ifscCode }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>credit_card</mat-icon>
+            Account Number
+          </div>
+          <div class="detail-value monospace">{{ disbursementData.accountNumber }}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">
+            <mat-icon>person_outline</mat-icon>
+            Account Holder Name
+          </div>
+          <div class="detail-value">{{ disbursementData.accountHolderName }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Section -->
+    <div class="action-section" *ngIf="isActivationAllowed">
+      <div class="action-message">
+        <mat-icon>info</mat-icon>
+        <span>Click the button below to activate the loan account and initiate disbursement.</span>
+      </div>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="activate-button"
+        (click)="activateDisbursement()"
+        [disabled]="isActivating">
+        <mat-spinner *ngIf="isActivating" diameter="20" class="button-spinner"></mat-spinner>
+        <mat-icon *ngIf="!isActivating">check_circle</mat-icon>
+        {{ isActivating ? 'Activating...' : 'Activate Loan Account' }}
+      </button>
+    </div>
+
+    <!-- Success State -->
+    <div class="success-section" *ngIf="disbursementData.disbusmentStatus === 'ACTIVE' || disbursementData.disbusmentStatus === 'DISBURSED'">
+      <div class="success-card">
+        <mat-icon>check_circle</mat-icon>
+        <div class="success-content">
+          <h3>Loan Account Activated Successfully!</h3>
+          <p>The disbursement has been processed. Funds will be transferred to the customer's bank account.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit Trail -->
+    <div class="audit-section" *ngIf="disbursementData.createdBy">
+      <div class="audit-item">
+        <mat-icon>person_add</mat-icon>
+        <span>Created by <strong>{{ disbursementData.createdBy }}</strong> on {{ formatDate(disbursementData.createdDate) }}</span>
+      </div>
+      <div class="audit-item" *ngIf="disbursementData.updatedBy">
+        <mat-icon>edit</mat-icon>
+        <span>Updated by <strong>{{ disbursementData.updatedBy }}</strong> on {{ formatDate(disbursementData.updatedDate!) }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -439,5 +439,26 @@ export class PersonalDetailsService {
   }): Observable<any> {
     return this.http.put(`${this.baseUrl}/expected-closer-details/update`, payload);
   }
+
+  // Loan Agreement Document API
+  generateLoanAgreementDocument(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/generate-loan-agreement-document/${customerId}/${loanAccountNumber}`
+    );
+  }
+
+  // Disbursement Details APIs
+  getDisbursementInfo(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/disbusment-details/getDisbusmentInfo/${customerId}/${loanAccountNumber}`
+    );
+  }
+
+  activateDisbursementLoanAccount(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/disbusment-details/activeDisbusmentLoanAccouunt/${customerId}/${loanAccountNumber}`,
+      {}
+    );
+  }
 }
 

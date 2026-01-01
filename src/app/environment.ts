@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://virtually-invisible-katie-snapshot.trycloudflare.com'
+    apiUrl: 'https://graduated-never-cas-ray.trycloudflare.com'
   };
   
