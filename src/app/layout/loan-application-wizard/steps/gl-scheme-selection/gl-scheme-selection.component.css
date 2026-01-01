@@ -216,6 +216,14 @@
   opacity: 0.7;
 }
 
+.form-field span[matSuffix] {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 8px;
+  padding-right: 4px;
+}
+
 /* Form Actions */
 .form-actions {
   display: flex;
@@ -621,6 +629,15 @@
   flex-wrap: wrap;
 }
 
+.update-section-top {
+  margin-bottom: 24px;
+}
+
+.update-field {
+  flex: 1;
+  min-width: 250px;
+}
+
 .loan-amount-field {
   flex: 1;
   min-width: 250px;
@@ -636,6 +653,53 @@
   margin-right: 8px;
 }
 
+/* Loan Disbursement Section */
+.loan-disbursement-section {
+  margin-bottom: 24px;
+}
+
+.disbursement-amount-display {
+  padding: 20px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+  text-align: center;
+}
+
+.amount-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.amount-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1976d2;
+  line-height: 1.2;
+}
+
+/* Action Section */
+.action-section {
+  margin: 24px 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.action-section button {
+  min-width: 160px;
+  height: 44px;
+  font-weight: 600;
+}
+
+.action-section button mat-icon {
+  margin-right: 6px;
+}
+
 @media (max-width: 768px) {
   .update-section {
     flex-direction: column;
@@ -648,5 +712,13 @@
   .update-button {
     width: 100%;
     margin-top: 0;
+  }
+
+  .action-section {
+    flex-direction: column;
+  }
+
+  .action-section button {
+    width: 100%;
   }
 }

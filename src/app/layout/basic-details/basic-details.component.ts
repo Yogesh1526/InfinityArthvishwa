@@ -18,7 +18,6 @@ export class BasicDetailsComponent implements OnInit {
   loanAccountNo: string | null = null;
   customer: any = null;
 
-
   offices = [
     { value: 'bhosari', viewValue: 'Bhosari' },
   ];
@@ -94,7 +93,20 @@ export class BasicDetailsComponent implements OnInit {
   loadCustomerForEdit(id: string) {
     this.apiService.getById(id).subscribe({
       next: (res) => {
-        const data = res.data;
+        // Handle response where data can be an array or object
+        let data = res.data;
+        
+        // If data is an array, get the first element or find by id
+        if (Array.isArray(data)) {
+          if (data.length > 0) {
+            // Try to find customer by id, otherwise use first element
+            data = data.find((c: any) => c.id === Number(id) || c.customerId === id) || data[0];
+          } else {
+            this.toast.showError('Customer not found');
+            return;
+          }
+        }
+        
         if (data) {
           // Patch form with existing data
           this.customerForm.patchValue({
@@ -121,8 +133,8 @@ export class BasicDetailsComponent implements OnInit {
           this.id = data.id;
           // Store full customer data for update
           this.customer = data;
-          // Store loanAccountNo for navigation
-          this.loanAccountNo = data.loanAccountNo || null;
+          // Store loanAccountNo for navigation (handle both tempLoanAccountNumber and loanAccountNo)
+          this.loanAccountNo = data.tempLoanAccountNumber || data.loanAccountNo || null;
           // Store customerId for update API
           this.customerId = data.customerId || id;
           // Show advanced details if externalId or clientType exists
@@ -135,49 +147,6 @@ export class BasicDetailsComponent implements OnInit {
       }
     });
   }
-  
-  // onSubmit(): void {
-  //   this.customerForm.markAllAsTouched(); // Show all validation messages
-
-  //   if (this.customerForm.valid) {
-  //     const form = this.customerForm.value;
-
-  //     const body = {
-  //       firstName: form.firstName,
-  //       middleName: form.middleName,
-  //       lastName: form.lastName,
-  //       mobileNumber: form.mobileNumber,
-  //       alternateMobileNumber: form.altMobileNumber,
-  //       gender: form.gender,
-  //       email: form.email,
-  //       dateOfBirth: form.dob,
-  //       education: form.education,
-  //       preferredLanguage: form.preferredLanguage,
-  //       religion: form.religion,
-  //       riskCategory: form.riskCategory,
-  //       nationality: form.nationality
-  //     };
-
-  //     this.apiService.create(body).subscribe({
-  //       next: (res) => {
-  //         if (res?.code === 200 || res?.success) {
-  //           this.toast.showSuccess('Customer saved successfully!');
-  //           this.customerForm.reset();
-  //           this.customerForm.patchValue({ submittedDate: new Date() });
-  //         } else {
-  //           this.toast.showError(res?.message || 'Unexpected error occurred.');
-  //         }
-  //       },
-  //       error: (err) => {
-  //         const errorMsg = err?.error?.message || 'Something went wrong while saving the customer.';
-  //         this.toast.showError(errorMsg);
-  //         console.error(err);
-  //       }
-  //     });
-  //   } else {
-  //     this.toast.showWarning('Please fill in all required fields correctly.');
-  //   }
-  // }
 
   onSubmit(): void {
     this.customerForm.markAllAsTouched();
@@ -215,7 +184,9 @@ export class BasicDetailsComponent implements OnInit {
       // Build complete update body with all required fields
       body.id = Number(this.id);
       body.customerId = this.customerId || null;
-      body.loanAccountNo = this.loanAccountNo || null;
+      // Handle both tempLoanAccountNumber and loanAccountNo
+      body.tempLoanAccountNumber = this.customer?.tempLoanAccountNumber || this.loanAccountNo || null;
+      body.loanAccountNo = this.customer?.tempLoanAccountNumber || this.loanAccountNo || null;
       body.occupation = this.customer?.occupation || null;
       body.numbersOfYearsInCurrentJob = this.customer?.numbersOfYearsInCurrentJob || null;
       body.income = this.customer?.income || null;
@@ -271,11 +242,7 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res?.code === 200 || res?.success) {
             this.toast.showSuccess('Customer saved successfully!');
-            // Navigate to customer profile after successful creation
-            // Try multiple possible response structures
             let customerId = null;
-            
-            // Check various possible response structures
             if (res?.data) {
               customerId = res.data.customerId || res.data.id || res.data.customer?.customerId || res.data.customer?.id;
             } else if (res?.customerId) {
@@ -284,13 +251,10 @@ export class BasicDetailsComponent implements OnInit {
               customerId = res.id;
             }
             
-            // If still no customerId, try to fetch it by getting all customers and finding the newly created one
             if (!customerId) {
               console.log('Customer ID not in response, attempting to fetch by mobile number...', res);
-              // Try to get customer by mobile number
               const mobileNumber = body.mobileNumber;
               if (mobileNumber) {
-                // Fetch all customers and find the one with matching mobile number
                 this.apiService.getAllCustomerDetails().subscribe({
                   next: (allCustomersRes: any) => {
                     const customers = allCustomersRes?.data || [];
@@ -317,9 +281,8 @@ export class BasicDetailsComponent implements OnInit {
                 this.router.navigate(['/loan-info-details']);
               }
             } else {
-              // Convert to string if it's a number
               const customerIdStr = String(customerId);
-              this.router.navigate(['/customer-profile', customerIdStr]);
+              this.router.navigate(['/loan-info-details']);
             }
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });
@@ -331,7 +294,6 @@ export class BasicDetailsComponent implements OnInit {
           const errorMsg = err?.error?.message || 'Error saving customer';
           this.toast.showError(errorMsg);
           console.error('Create customer error:', err);
-          // Log full response for debugging
           if (err?.error) {
             console.log('Error response:', err.error);
           }
@@ -340,9 +302,6 @@ export class BasicDetailsComponent implements OnInit {
     }
   }
   
-  
-  
-
   onReset(): void {
     this.customerForm.reset();
     this.showAdvanceDetails = false;

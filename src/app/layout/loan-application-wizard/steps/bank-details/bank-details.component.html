@@ -46,6 +46,14 @@
           <div class="details-grid">
             <div class="detail-item">
               <div class="detail-label">
+                <mat-icon>account_balance</mat-icon>
+                <span>Bank Name</span>
+              </div>
+              <div class="detail-value">{{ form.get('bankName')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
                 <mat-icon>person</mat-icon>
                 <span>Account Holder Name</span>
               </div>
@@ -123,6 +131,15 @@
         </div>
 
         <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Bank Name *</mat-label>
+            <input matInput formControlName="bankName" placeholder="Enter bank name" />
+            <mat-icon matPrefix>account_balance</mat-icon>
+            <mat-error *ngIf="form.get('bankName')?.hasError('required')">
+              Bank name is required
+            </mat-error>
+          </mat-form-field>
+
           <mat-form-field appearance="outline" class="form-field">
             <mat-label>Account Number</mat-label>
             <input matInput formControlName="accountNumber" placeholder="Enter account number" />

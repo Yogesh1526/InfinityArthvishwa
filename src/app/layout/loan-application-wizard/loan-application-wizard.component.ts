@@ -264,7 +264,23 @@ export class LoanApplicationWizardComponent implements OnInit {
         catchError(() => of({ data: [] }))
       ),
       // Step 14: Packet Allotment
-      this.personalService.getPacketAllotment(this.loanApplicationId).pipe(
+      (() => {
+        let accountNumber = null;
+        if (this.customerId) {
+          const stored = localStorage.getItem(`loanAccountNumber_${this.customerId}`);
+          if (stored && (stored.startsWith('AP') || stored.startsWith('GL'))) {
+            accountNumber = stored;
+          }
+        }
+        if (!accountNumber && this.loanApplicationId && 
+            (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL')) && 
+            this.loanApplicationId !== this.customerId) {
+          accountNumber = this.loanApplicationId;
+        }
+        return (this.customerId && accountNumber)
+          ? this.personalService.getPacketAllotmentDetails(this.customerId, accountNumber)
+          : of({ data: [] });
+      })().pipe(
         catchError(() => of({ data: [] }))
       ),
       // Step 15: Tare Weight
@@ -281,10 +297,11 @@ export class LoanApplicationWizardComponent implements OnInit {
             this.loanApplicationId !== this.customerId) {
           accountNumber = this.loanApplicationId;
         }
-        // Assuming API endpoint exists - adjust as needed
-        return of({ data: null });
+        return (this.customerId && accountNumber)
+          ? this.personalService.getTareWeightById(this.customerId, accountNumber)
+          : of({ data: [] });
       })().pipe(
-        catchError(() => of({ data: null }))
+        catchError(() => of({ data: [] }))
       ),
       // Step 16: Expected Closure Date
       (() => {
@@ -300,8 +317,9 @@ export class LoanApplicationWizardComponent implements OnInit {
             this.loanApplicationId !== this.customerId) {
           accountNumber = this.loanApplicationId;
         }
-        // Assuming API endpoint exists - adjust as needed
-        return of({ data: null });
+        return (this.customerId && accountNumber)
+          ? this.personalService.getExpectedClosureDetails(this.customerId, accountNumber)
+          : of({ data: null });
       })().pipe(
         catchError(() => of({ data: null }))
       ),
@@ -320,7 +338,7 @@ export class LoanApplicationWizardComponent implements OnInit {
           accountNumber = this.loanApplicationId;
         }
         return (this.customerId && accountNumber)
-          ? this.personalService.getSchemeSelectionDetails(this.customerId, accountNumber)
+          ? this.personalService.getApprovalFiles(this.customerId, accountNumber)
           : of({ data: null });
       })().pipe(
         catchError(() => of({ data: null }))
@@ -381,9 +399,29 @@ export class LoanApplicationWizardComponent implements OnInit {
         if (index === 11) return false; // Final valuation - check differently
         if (index === 12) return false; // GL Scheme Selection - skip for now
         if (index === 13) return !!(result?.data && result.data.length > 0); // Bank Details
-        if (index === 14) return !!(result?.data && result.data.length > 0); // Packet Allotment
-        if (index === 15) return !!(result?.data?.id); // Tare Weight
-        if (index === 16) return !!(result?.data?.id); // Expected Closure Date
+        if (index === 14) {
+          // Packet Allotment - returns { data: [...] }
+          return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
+        }
+        if (index === 15) {
+          // Tare Weight - returns { data: [...] }
+          return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
+        }
+        if (index === 16) {
+          // Expected Closure Date - returns { id: ... } or { data: { id: ... } }
+          if (result?.data) {
+            return !!(result.data.id || (result.data.id === 0));
+          }
+          return !!(result?.id || (result?.id === 0));
+        }
+        if (index === 17) {
+          // Loan Application Approval - returns { code: 200, data: { 'CAM-Gold-File-Name': ..., 'Credit-Summary-File-Name': ... } }
+          if (result?.code === 200 && result?.data) {
+            const fileData = result.data;
+            return !!(fileData['CAM-Gold-File-Name'] || fileData['Credit-Summary-File-Name']);
+          }
+          return false;
+        }
         // Default: handle both array and object
         if (result?.data) {
           return Array.isArray(result.data) ? result.data.length > 0 : !!result.data.id;

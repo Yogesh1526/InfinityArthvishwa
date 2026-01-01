@@ -25,17 +25,16 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
   schemeData: any = null; // Store the full response data
   repaymentSchedules: any[] = []; // Store repayment schedules array
   loanAmount: number | null = null;
+  processingFees: number | null = null;
   displayedColumns: string[] = [
     'installmentNumber',
     'dueDate',
-    'installmentDate',
     'openingPrincipal',
     'numberOfDays',
     'interestAfterRebate',
     'rebateInterest',
     'dailyInterestAfterRebate',
-    'dailyRebateInterest',
-    'repaymentDates'
+    'dailyRebateInterest'
   ];
 
   tenureOptions = [
@@ -43,9 +42,9 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
   ];
 
   repaymentFrequencyOptions = [
-    '1 MONTHS',
-    '3 MONTHS',
-    '6 MONTHS'
+    '1 MONTH',
+    // '2 MONTH',
+    // '3 MONTH'
   ];
 
   schemeNameOptions = [
@@ -266,13 +265,20 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
     }
 
     this.isUpdating = true;
-    this.personalService.updateGlSchemeSelection(this.customerId, accountNumber, this.loanAmount).subscribe({
+    this.personalService.updateGlSchemeSelection(
+      this.customerId, 
+      accountNumber, 
+      this.loanAmount!,
+      undefined,
+      this.processingFees || undefined
+    ).subscribe({
       next: (res: any) => {
         this.isUpdating = false;
         this.toastService.showSuccess('GL Scheme updated successfully!');
         // Reload the data after updating to get the updated response
         this.loadSchemeDetails();
         this.loanAmount = null;
+        this.processingFees = null;
       },
       error: (err: any) => {
         this.isUpdating = false;

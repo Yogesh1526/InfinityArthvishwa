@@ -18,20 +18,6 @@
   <div *ngIf="formLoaded && !isLoading">
     <!-- Loan Offer Summary Cards (when data is available) -->
     <div class="summary-cards" *ngIf="schemeData">
-      <div class="summary-card">
-        <mat-icon class="card-icon">trending_up</mat-icon>
-        <div class="card-content">
-          <span class="card-label">Max Loan Amount</span>
-          <span class="card-value">{{ formatCurrency(schemeData.maxLoanAmount) }}</span>
-        </div>
-      </div>
-      <div class="summary-card">
-        <mat-icon class="card-icon">account_balance</mat-icon>
-        <div class="card-content">
-          <span class="card-label">Processing Fees</span>
-          <span class="card-value">{{ formatCurrency(schemeData.processingFees) }}</span>
-        </div>
-      </div>
       <div class="summary-card highlight">
         <mat-icon class="card-icon">verified</mat-icon>
         <div class="card-content">
@@ -42,10 +28,41 @@
       <div class="summary-card">
         <mat-icon class="card-icon">percent</mat-icon>
         <div class="card-content">
-          <span class="card-label">Gold Rate</span>
+          <span class="card-label">LTV</span>
           <span class="card-value">₹{{ formatNumber(schemeData.goldRate, 2) }}</span>
         </div>
       </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">trending_up</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Max Loan Amount</span>
+          <span class="card-value">{{ formatCurrency(schemeData.maxLoanAmount) }}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">money</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Sanctioned amount</span>
+          <span class="card-value">{{ formatCurrency(schemeData.loanAmountNeedToBeDisbursed) }}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">account_balance</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Processing Fees</span>
+          <span class="card-value">{{ formatCurrency(schemeData.processingFees) }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <mat-icon class="card-icon">account_balance_wallet</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Loan Disbursement Amount</span>
+          <span class="card-value">{{ formatCurrency(schemeData.loanDisbusrsementAmount || form.get('loanDisbusrsementAmount')?.value || 0) }}</span>
+        </div>
+      </div>
+     
+     
     </div>
 
     <!-- Form Mode -->
@@ -121,6 +138,41 @@
         </button>
       </div>
     </form>
+
+    <!-- Update GL Scheme Section - Before Loan Offer Details -->
+    <mat-card class="details-card update-section-top" *ngIf="schemeData && !isEditMode">
+      <mat-card-header>
+        <mat-card-title>Update GL Scheme</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="update-section">
+          <mat-form-field appearance="outline" class="update-field">
+            <mat-label>Loan Amount (₹)</mat-label>
+            <input matInput type="number" [(ngModel)]="loanAmount" placeholder="Enter loan amount" min="0" />
+            <mat-icon matPrefix>currency_rupee</mat-icon>
+            <mat-hint>Enter the new loan amount to update the scheme</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="update-field">
+            <mat-label>Processing Fees (₹)</mat-label>
+            <input matInput type="number" [(ngModel)]="processingFees" placeholder="Enter processing fees" min="0" step="0.01" />
+            <mat-icon matPrefix>account_balance</mat-icon>
+            <mat-hint>Enter the processing fees amount</mat-hint>
+          </mat-form-field>
+
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="onUpdateLoanAmount()" 
+            [disabled]="!loanAmount || loanAmount <= 0 || isUpdating"
+            class="update-button">
+            <mat-icon *ngIf="!isUpdating">update</mat-icon>
+            <mat-spinner *ngIf="isUpdating" diameter="20" class="button-spinner"></mat-spinner>
+            <span>{{ isUpdating ? 'Updating...' : 'Update GL Scheme' }}</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
     <!-- Loan Offer Details (when data is available) -->
     <div class="loan-offer-section" *ngIf="schemeData && !isEditMode">
@@ -290,10 +342,10 @@
             <div class="details-grid">
               <div class="detail-item">
                 <div class="detail-label">
-                  <mat-icon>currency_rupee</mat-icon>
+                  <mat-icon>percent</mat-icon>
                   <span>Monthly Interest Rate</span>
                 </div>
-                <div class="detail-value">{{ formatCurrency(schemeData.monthlyInterestRate) }}</div>
+                <div class="detail-value">{{ formatPercent(schemeData.monthlyInterestRate) }}</div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">
@@ -384,17 +436,6 @@
                 <td mat-cell *matCellDef="let element">{{ element.dueDate | date:'dd-MMM-yyyy' }}</td>
               </ng-container>
 
-              <!-- Installment Date -->
-              <ng-container matColumnDef="installmentDate">
-                <th mat-header-cell *matHeaderCellDef>
-                  <div class="header-cell">
-                    <mat-icon>calendar_today</mat-icon>
-                    <span>Installment Date</span>
-                  </div>
-                </th>
-                <td mat-cell *matCellDef="let element">{{ element.installmentDate | date:'dd-MMM-yyyy' }}</td>
-              </ng-container>
-
               <!-- Opening Principal -->
               <ng-container matColumnDef="openingPrincipal">
                 <th mat-header-cell *matHeaderCellDef>
@@ -422,7 +463,7 @@
                 <th mat-header-cell *matHeaderCellDef>
                   <div class="header-cell">
                     <mat-icon>trending_up</mat-icon>
-                    <span>Interest (After Rebate)</span>
+                    <span>Interest (P.M)</span>
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element" class="highlight-cell">
@@ -461,28 +502,6 @@
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">{{ formatCurrency(element.dailyRebateInterestAmount) }}</td>
-              </ng-container>
-
-              <!-- Repayment Dates -->
-              <ng-container matColumnDef="repaymentDates">
-                <th mat-header-cell *matHeaderCellDef>
-                  <div class="header-cell">
-                    <mat-icon>event_available</mat-icon>
-                    <span>Repayment Dates</span>
-                  </div>
-                </th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="date-group">
-                    <div class="date-item">
-                      <span class="date-label">Rebate:</span>
-                      <span>{{ element.rebateInterestRepaymentDate | date:'dd-MMM-yyyy' }}</span>
-                    </div>
-                    <div class="date-item">
-                      <span class="date-label">After Rebate:</span>
-                      <span>{{ element.afterRebateInterestRepaymentDate | date:'dd-MMM-yyyy' }}</span>
-                    </div>
-                  </div>
-                </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
@@ -534,33 +553,6 @@
               </div>
               <div class="detail-value">{{ schemeData.updatedDate }}</div>
             </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Update GL Scheme Section -->
-      <mat-card class="details-card">
-        <mat-card-header>
-          <mat-card-title>Update GL Scheme</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="update-section">
-            <mat-form-field appearance="outline" class="loan-amount-field">
-              <mat-label>Loan Amount (₹)</mat-label>
-              <input matInput type="number" [(ngModel)]="loanAmount" placeholder="Enter loan amount" min="0" />
-              <mat-icon matPrefix>currency_rupee</mat-icon>
-              <mat-hint>Enter the new loan amount to update the scheme</mat-hint>
-            </mat-form-field>
-            <button 
-              mat-raised-button 
-              color="primary" 
-              (click)="onUpdateLoanAmount()" 
-              [disabled]="!loanAmount || loanAmount <= 0 || isUpdating"
-              class="update-button">
-              <mat-icon *ngIf="!isUpdating">update</mat-icon>
-              <mat-spinner *ngIf="isUpdating" diameter="20" class="button-spinner"></mat-spinner>
-              <span>{{ isUpdating ? 'Updating...' : 'Update GL Scheme' }}</span>
-            </button>
           </div>
         </mat-card-content>
       </mat-card>

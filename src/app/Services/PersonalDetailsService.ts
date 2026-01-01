@@ -380,11 +380,20 @@ export class PersonalDetailsService {
     return this.http.post(`${this.baseUrl}/loan/gl-scheme-selection/${customerId}/${loanAccountNumber}`, payload);
   }
 
-  updateGlSchemeSelection(customerId: string, loanAccountNumber: string, loanAmount: number): Observable<any> {
-    const params = new HttpParams()
+  updateGlSchemeSelection(customerId: string, loanAccountNumber: string, loanAmount: number, loanAccount?: string, processingFees?: number | null): Observable<any> {
+    let params = new HttpParams()
       .set('customerId', customerId)
       .set('loanAccountNumber', loanAccountNumber)
       .set('loanAmount', loanAmount.toString());
+    
+    if (loanAccount) {
+      params = params.set('loanAccount', loanAccount);
+    }
+    
+    if (processingFees !== null && processingFees !== undefined) {
+      params = params.set('processingFees', processingFees.toString());
+    }
+    
     return this.http.put(`${this.baseUrl}/loan/update-gl-scheme-selection`, null, { params });
   }
 
@@ -401,6 +410,34 @@ export class PersonalDetailsService {
       params,
       responseType: 'blob'
     });
+  }
+
+  // Expected Closure Details APIs
+  saveExpectedClosureDetails(payload: {
+    customerId: string;
+    loanAccountNumber: string;
+    closerReason: string;
+    expectedCloseDate: string;
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/expected-closer-details/save`, payload);
+  }
+
+  getExpectedClosureDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/expected-closer-details/get/${customerId}/${loanAccountNumber}`);
+  }
+
+  updateExpectedClosureDetails(payload: {
+    id: number;
+    customerId: string;
+    loanAccountNumber: string;
+    closerReason: string;
+    expectedCloseDate: string;
+    createdBy?: string;
+    createdDate?: string;
+    updatedBy?: string | null;
+    updatedDate?: string | null;
+  }): Observable<any> {
+    return this.http.put(`${this.baseUrl}/expected-closer-details/update`, payload);
   }
 }
 

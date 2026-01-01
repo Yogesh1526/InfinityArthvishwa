@@ -236,8 +236,9 @@
   letter-spacing: 0.3px;
 }
 
-.add-item-btn {
-  margin-left: auto;
+.items-field {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .items-list {

@@ -43,6 +43,7 @@ export class BankDetailsComponent implements OnInit {
 
   initForm(): void {
     this.form = this.fb.group({
+      bankName: ['', Validators.required],
       accountNumber: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
       accountHolderName: ['', Validators.required],
       accountType: ['', Validators.required],
@@ -80,6 +81,7 @@ export class BankDetailsComponent implements OnInit {
           
           // Load form data
           this.form.patchValue({
+            bankName: data.bankName || '',
             accountNumber: data.accountNumber || '',
             accountHolderName: data.accountHolderName || '',
             accountType: data.accountType || '',
@@ -148,6 +150,7 @@ export class BankDetailsComponent implements OnInit {
     // Build payload according to API requirements
     const payload: any = {
       customerId: this.customerId,
+      bankName: this.form.value.bankName,
       accountNumber: this.form.value.accountNumber,
       accountHolderName: this.form.value.accountHolderName,
       accountType: this.form.value.accountType,

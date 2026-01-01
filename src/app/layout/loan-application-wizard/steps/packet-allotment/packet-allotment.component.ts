@@ -62,28 +62,12 @@ export class PacketAllotmentComponent implements OnInit {
   initForm(): void {
     this.form = this.fb.group({
       packetId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-      items: this.fb.array([this.createItemControl()])
+      items: [[], Validators.required] // Changed to array for multi-select
     });
   }
 
-  createItemControl(): FormGroup {
-    return this.fb.group({
-      item: ['', Validators.required]
-    });
-  }
-
-  get itemsFormArray(): FormArray {
-    return this.form.get('items') as FormArray;
-  }
-
-  addItem(): void {
-    this.itemsFormArray.push(this.createItemControl());
-  }
-
-  removeItem(index: number): void {
-    if (this.itemsFormArray.length > 1) {
-      this.itemsFormArray.removeAt(index);
-    }
+  get selectedItems(): string[] {
+    return this.form.get('items')?.value || [];
   }
 
   loadPacketAllotment(): void {
@@ -112,33 +96,28 @@ export class PacketAllotmentComponent implements OnInit {
 
           // Load items array - use ornamentNames from API response
           if (data.ornamentNames && Array.isArray(data.ornamentNames) && data.ornamentNames.length > 0) {
-            // Clear existing items
-            while (this.itemsFormArray.length > 0) {
-              this.itemsFormArray.removeAt(0);
-            }
-            // Add items from response
-            data.ornamentNames.forEach((item: string) => {
-              this.itemsFormArray.push(this.fb.group({ item: [item, Validators.required] }));
+            this.form.patchValue({
+              items: data.ornamentNames
             });
           } else if (data.items && Array.isArray(data.items) && data.items.length > 0) {
             // Fallback to items if ornamentNames is not available
-            while (this.itemsFormArray.length > 0) {
-              this.itemsFormArray.removeAt(0);
-            }
-            data.items.forEach((item: string) => {
-              this.itemsFormArray.push(this.fb.group({ item: [item, Validators.required] }));
+            this.form.patchValue({
+              items: data.items
             });
           } else if (data.itemList && Array.isArray(data.itemList) && data.itemList.length > 0) {
             // Alternative field name
-            while (this.itemsFormArray.length > 0) {
-              this.itemsFormArray.removeAt(0);
-            }
-            data.itemList.forEach((item: string) => {
-              this.itemsFormArray.push(this.fb.group({ item: [item, Validators.required] }));
+            this.form.patchValue({
+              items: data.itemList
             });
           }
         } else {
           this.isEditMode = true;
+          // When no data exists, select all available ornaments by default
+          if (this.availableOrnaments.length > 0) {
+            this.form.patchValue({
+              items: [...this.availableOrnaments]
+            });
+          }
         }
         this.formLoaded = true;
       },
@@ -146,7 +125,14 @@ export class PacketAllotmentComponent implements OnInit {
         this.isLoading = false;
         this.isEditMode = true;
         this.formLoaded = true;
-        // Silently handle - no data exists yet
+        // When no data exists, select all available ornaments by default
+        setTimeout(() => {
+          if (this.availableOrnaments.length > 0 && this.selectedItems.length === 0) {
+            this.form.patchValue({
+              items: [...this.availableOrnaments]
+            });
+          }
+        }, 100);
       }
     });
   }
@@ -172,12 +158,11 @@ export class PacketAllotmentComponent implements OnInit {
     }
 
     // Extract items array from form and filter to only include valid ornaments
-    const items: string[] = this.itemsFormArray.controls
-      .map(control => control.get('item')?.value)
-      .filter(item => item && item.trim() !== '' && this.availableOrnaments.includes(item.trim()));
+    const items: string[] = (this.form.get('items')?.value || [])
+      .filter((item: string) => item && item.trim() !== '' && this.availableOrnaments.includes(item.trim()));
 
     if (items.length === 0) {
-      this.toastService.showWarning('Please add at least one valid item.');
+      this.toastService.showWarning('Please select at least one valid item.');
       return;
     }
 
@@ -291,6 +276,17 @@ export class PacketAllotmentComponent implements OnInit {
         this.availableOrnaments = Array.from(firstValuationOrnaments).filter(ornament =>
           secondValuationOrnaments.has(ornament)
         ).sort();
+
+        // Select all items by default when ornaments are loaded and form is in edit mode with no existing selection
+        if (this.isEditMode && this.availableOrnaments.length > 0) {
+          const currentItems = this.selectedItems;
+          // Only auto-select if no items are currently selected
+          if (currentItems.length === 0) {
+            this.form.patchValue({
+              items: [...this.availableOrnaments]
+            });
+          }
+        }
       },
       error: (err) => {
         // Silently handle - no ornaments available
