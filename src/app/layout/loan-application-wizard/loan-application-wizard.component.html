@@ -35,7 +35,7 @@
     <!-- Step Content -->
     <div class="wizard-step-content">
       <ng-container [ngSwitch]="activeStep">
-        <app-personal-details *ngSwitchCase="0" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(0)"></app-personal-details>
+        <app-personal-details #personalDetailsRef *ngSwitchCase="0" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(0)" (validationFailed)="onValidationFailed($event)"></app-personal-details>
         <app-family-details *ngSwitchCase="1" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(1)"></app-family-details>
         <app-address-activity *ngSwitchCase="2" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(2)"></app-address-activity>
         <app-work-details *ngSwitchCase="3" [customerId]="customerId" [customerNumericId]="customerNumericId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(3)"></app-work-details>

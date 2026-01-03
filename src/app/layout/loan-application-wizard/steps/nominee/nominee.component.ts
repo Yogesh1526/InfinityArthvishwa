@@ -41,12 +41,38 @@ export class NomineeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Subscribe to DOB changes to auto-calculate age
+    this.form.get('dob')?.valueChanges.subscribe((dob) => {
+      if (dob) {
+        const age = this.calculateAge(dob);
+        this.form.patchValue({ age: age }, { emitEvent: false });
+      }
+    });
+
     if (this.customerId) {
       this.loadNominee();
     } else {
       this.isEditable = true;
       this.formLoaded = true;
     }
+  }
+
+  /**
+   * Calculate age from date of birth
+   */
+  calculateAge(dob: Date | string): number {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    // If birthday hasn't occurred this year, subtract 1
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age > 0 ? age : 0;
   }
 
   loadNominee(): void {

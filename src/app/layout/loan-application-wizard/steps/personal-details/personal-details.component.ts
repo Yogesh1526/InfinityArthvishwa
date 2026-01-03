@@ -13,9 +13,13 @@ import { WebcamComponent } from '../webcam/webcam.component';
 export class PersonalDetailsComponent implements OnInit, OnChanges {
   customer: any;
   profilePreview: string | ArrayBuffer | null = null;
+  isPhotoUploaded = false;
+  showPhotoError = false;
+  
   @Input() customerId!: string;
   @Input() loanApplicationId!: string;
   @Output() stepCompleted = new EventEmitter<void>();
+  @Output() validationFailed = new EventEmitter<string>();
 
   constructor(
     private personalService: PersonalDetailsService,
@@ -58,14 +62,41 @@ export class PersonalDetailsComponent implements OnInit, OnChanges {
         const reader = new FileReader();
         reader.onload = () => {
           this.profilePreview = reader.result as string;
+          this.isPhotoUploaded = true;
+          this.showPhotoError = false;
+          // Emit step completed when photo exists
+          this.stepCompleted.emit();
         };
         reader.readAsDataURL(blob);
       },
       error: err => {
         // Photo may not exist yet, use default
         this.profilePreview = null;
+        this.isPhotoUploaded = false;
       }
     });
+  }
+
+  /**
+   * Validate if the step can be completed
+   * Returns true if valid, false otherwise
+   */
+  validateStep(): boolean {
+    if (!this.isPhotoUploaded) {
+      this.showPhotoError = true;
+      this.toastService.showWarning('Please upload a photo to proceed to the next step');
+      this.validationFailed.emit('Photo is required to proceed');
+      return false;
+    }
+    this.showPhotoError = false;
+    return true;
+  }
+
+  /**
+   * Check if step is valid (for parent component to call)
+   */
+  isStepValid(): boolean {
+    return this.isPhotoUploaded;
   }
 
   onEditClick(): void {
@@ -95,20 +126,30 @@ export class PersonalDetailsComponent implements OnInit, OnChanges {
             this.personalService.updatePhoto(this.customerId, file).subscribe({
               next: (res) => {
                 this.toastService.showSuccess('Photo updated successfully!');
+                this.isPhotoUploaded = true;
+                this.showPhotoError = false;
+                // Emit step completed after successful photo upload
+                this.stepCompleted.emit();
               },
               error: (err) => {
                 const errorMsg = err?.error?.message || 'Failed to update photo. Please try again.';
                 this.toastService.showError(errorMsg);
+                this.isPhotoUploaded = false;
               }
             });
           } else {
             this.personalService.uploadPhoto(this.customerId, file).subscribe({
               next: (res) => {
                 this.toastService.showSuccess('Photo uploaded successfully!');
+                this.isPhotoUploaded = true;
+                this.showPhotoError = false;
+                // Emit step completed after successful photo upload
+                this.stepCompleted.emit();
               },
               error: (err) => {
                 const errorMsg = err?.error?.message || 'Failed to upload photo. Please try again.';
                 this.toastService.showError(errorMsg);
+                this.isPhotoUploaded = false;
               }
             });
           }

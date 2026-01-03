@@ -1,97 +1,142 @@
-<div class="form-container" *ngIf="customer">
-  <h2>
-    <mat-icon color="primary">person</mat-icon>
-    Personal Details
-  </h2>
+<div class="personal-details-container" *ngIf="customer">
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>Personal Details</h2>
+        <p class="header-subtitle">Customer personal information</p>
+      </div>
+    </div>
+    <button mat-stroked-button color="primary" class="edit-btn" (click)="onEditClick()">
+      <mat-icon>edit</mat-icon>
+      Edit Details
+    </button>
+  </div>
 
-  <div class="form-card view-mode">
-    <!-- Profile Header -->
-    <div class="profile-header">
-      <div class="profile-section">
-        <div class="profile-image-container">
-          <img
-            [src]="profilePreview || 'assets/default-profile.png'"
-            alt="Profile Picture"
-            class="profile-image"
-          />
-          <button mat-icon-button class="profile-edit-icon" matTooltip="Change Photo" (click)="openWebcam()">
-            <mat-icon>photo_camera</mat-icon>
-          </button>
-        </div>
-        <div class="profile-info">
-          <h3>{{ customer?.firstName }} {{ customer?.middleName }} {{ customer?.lastName }}</h3>
-          <p class="loan-account">customer No: {{ customer?.customerId }}</p>
+  <!-- Main Content Card -->
+  <div class="content-card">
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="avatar-wrapper" [class.has-error]="showPhotoError">
+        <img
+          [src]="profilePreview || 'assets/default-profile.png'"
+          alt="Profile Picture"
+          class="avatar-img"
+          [class.error-border]="showPhotoError"
+        />
+        <button mat-icon-button class="camera-btn" [class.pulse-animation]="!isPhotoUploaded" matTooltip="Upload Photo (Required)" (click)="openWebcam()">
+          <mat-icon>photo_camera</mat-icon>
+        </button>
+        <div class="photo-status" *ngIf="isPhotoUploaded">
+          <mat-icon>check_circle</mat-icon>
         </div>
       </div>
-      <div class="profile-actions">
-        <button mat-stroked-button color="primary" (click)="onEditClick()">
-          <mat-icon>edit</mat-icon>
-          Edit
-        </button>
+      <div class="profile-info">
+        <h3 class="customer-name">{{ customer?.firstName }} {{ customer?.middleName }} {{ customer?.lastName }}</h3>
+        <p class="customer-id">Customer ID: {{ customer?.customerId }}</p>
+        <span class="status-tag">{{ customer?.applicationStatus || 'N/A' }}</span>
+        
+        <!-- Photo Required Message -->
+        <div class="photo-required-msg" *ngIf="!isPhotoUploaded">
+          <mat-icon>info</mat-icon>
+          <span>Photo upload is required to proceed</span>
+        </div>
+        <div class="photo-error-msg" *ngIf="showPhotoError">
+          <mat-icon>error</mat-icon>
+          <span>Please upload a photo before proceeding to the next step</span>
+        </div>
       </div>
     </div>
 
     <!-- Details Grid -->
-    <div class="detail-grid">
-      <div class="detail-item">
-        <label>Date of Birth</label>
-        <span>{{ customer?.dateOfBirth | date:'dd/MM/yyyy' || 'N/A' }}</span>
+    <div class="details-wrapper">
+      <!-- Basic Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>badge</mat-icon>
+          Basic Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Date of Birth</span>
+            <span class="info-value">{{ customer?.dateOfBirth | date:'dd/MM/yyyy' || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Gender</span>
+            <span class="info-value">{{ customer?.gender || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Marital Status</span>
+            <span class="info-value">{{ customer?.maritalStatus || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Education</span>
+            <span class="info-value">{{ customer?.education || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Religion</span>
+            <span class="info-value">{{ customer?.religion || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Nationality</span>
+            <span class="info-value">{{ customer?.nationality || 'N/A' }}</span>
+          </div>
+        </div>
       </div>
-      <div class="detail-item">
-        <label>Gender</label>
-        <span>{{ customer?.gender || 'N/A' }}</span>
+
+      <!-- Contact Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>contact_phone</mat-icon>
+          Contact Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Mobile Number</span>
+            <span class="info-value">{{ customer?.mobileNumber || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Alternate Mobile</span>
+            <span class="info-value">{{ customer?.alternateMobileNumber || 'N/A' }}</span>
+          </div>
+          <div class="info-item full-width">
+            <span class="info-label">Email Address</span>
+            <span class="info-value">{{ customer?.email || 'N/A' }}</span>
+          </div>
+        </div>
       </div>
-      <div class="detail-item">
-        <label>Marital Status</label>
-        <span>{{ customer?.maritalStatus || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Mobile</label>
-        <span>{{ customer?.mobileNumber || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Alternate Mobile</label>
-        <span>{{ customer?.alternateMobileNumber || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Email</label>
-        <span>{{ customer?.email || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Office</label>
-        <span>{{ customer?.office || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Client Type</label>
-        <span>{{ customer?.clientType || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Education</label>
-        <span>{{ customer?.education || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Preferred Language</label>
-        <span>{{ customer?.preferredLanguage || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Religion</label>
-        <span>{{ customer?.religion || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Risk Category</label>
-        <span>{{ customer?.riskCategory || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Nationality</label>
-        <span>{{ customer?.nationality || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>External ID</label>
-        <span>{{ customer?.externalId || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Application Status</label>
-        <span>{{ customer?.applicationStatus || 'N/A' }}</span>
+
+      <!-- Account Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>account_balance</mat-icon>
+          Account Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Office/Branch</span>
+            <span class="info-value">{{ customer?.office || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Client Type</span>
+            <span class="info-value">{{ customer?.clientType || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Risk Category</span>
+            <span class="info-value">{{ customer?.riskCategory || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Preferred Language</span>
+            <span class="info-value">{{ customer?.preferredLanguage || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">External ID</span>
+            <span class="info-value">{{ customer?.externalId || 'N/A' }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>

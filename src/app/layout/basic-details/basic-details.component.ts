@@ -251,41 +251,10 @@ export class BasicDetailsComponent implements OnInit {
               customerId = res.id;
             }
             
-            if (!customerId) {
-              console.log('Customer ID not in response, attempting to fetch by mobile number...', res);
-              const mobileNumber = body.mobileNumber;
-              if (mobileNumber) {
-                this.apiService.getAllCustomerDetails().subscribe({
-                  next: (allCustomersRes: any) => {
-                    const customers = allCustomersRes?.data || [];
-                    const newCustomer = customers.find((c: any) => 
-                      c.mobileNumber === mobileNumber || 
-                      c.mobileNumber === String(mobileNumber)
-                    );
-                    
-                    if (newCustomer && (newCustomer.customerId || newCustomer.id)) {
-                      const foundId = newCustomer.customerId || newCustomer.id;
-                      this.router.navigate(['/customer-profile', String(foundId)]);
-                    } else {
-                      this.toast.showInfo('Customer created. Please check the customer list.');
-                      this.router.navigate(['/loan-info-details']);
-                    }
-                  },
-                  error: () => {
-                    this.toast.showInfo('Customer created. Please check the customer list.');
-                    this.router.navigate(['/loan-info-details']);
-                  }
-                });
-              } else {
-                this.toast.showInfo('Customer created. Please check the customer list.');
-                this.router.navigate(['/loan-info-details']);
-              }
-            } else {
-              const customerIdStr = String(customerId);
-              this.router.navigate(['/loan-info-details']);
-            }
+            // Reset form and redirect to loan-info-details
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });
+            this.router.navigate(['/loan-info-details']);
           } else {
             this.toast.showError(res?.message || 'Unexpected error occurred.');
           }

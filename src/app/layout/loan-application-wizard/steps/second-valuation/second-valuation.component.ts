@@ -29,6 +29,7 @@ export class SecondValuationComponent implements OnInit {
   form: FormGroup;
   jewelleryItems: JewelleryItem[] = [];
   uploadedImageUrl: string | null = null;
+  isValuationSaved = false;
 
   // Additional totals from API
   totalQuantity = 0;
@@ -223,6 +224,7 @@ export class SecondValuationComponent implements OnInit {
     this.apiService.updateSecondValuation(this.customerId, accountNumber, updatedItems).subscribe({
       next: res => {
         this.toastService.showSuccess('Second valuation updated successfully!');
+        this.isValuationSaved = true;
         this.stepCompleted.emit();
         // Optionally refresh the data or update UI
         this.loadSecondValuation();

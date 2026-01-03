@@ -4,12 +4,16 @@
     <app-data-not-found 
       [message]="errorMessage || 'No customer data found'"
       icon="error_outline"
-      [showAction]="true"
-      actionLabel="Retry"
+      [showAction]="false"
+      actionLabel=""
       [actionRoute]="''">
     </app-data-not-found>
-    <div class="retry-button-container">
-      <button mat-raised-button color="primary" (click)="retryLoad()">
+    <div class="empty-state-actions">
+      <button mat-raised-button color="primary" class="new-lead-btn-primary" (click)="addNewLoan()">
+        <mat-icon>add</mat-icon>
+        Create New Lead
+      </button>
+      <button mat-stroked-button color="primary" (click)="retryLoad()">
         <mat-icon>refresh</mat-icon>
         Retry
       </button>
