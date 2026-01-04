@@ -1,0 +1,119 @@
+<mat-card class="role-list-card">
+  <div class="header-section">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Go Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2><mat-icon color="primary">admin_panel_settings</mat-icon> Roles & Permissions</h2>
+    <button mat-raised-button color="primary" (click)="createRole()" class="create-button">
+      <mat-icon>add</mat-icon>
+      Create New Role
+    </button>
+  </div>
+
+  <!-- Summary Info -->
+  <div class="summary-section" *ngIf="!isLoading">
+    <div class="summary-item">
+      <mat-icon>people</mat-icon>
+      <div>
+        <div class="summary-label">Total Roles</div>
+        <div class="summary-value">{{ totalElements }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading && !loaderService.isLoading()">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading roles...</p>
+  </div>
+
+  <!-- Roles Table -->
+  <div class="table-wrapper" *ngIf="!isLoading && roles.length > 0">
+    <div class="table-container">
+      <table mat-table [dataSource]="roles" class="roles-table">
+        <!-- Role Name Column -->
+        <ng-container matColumnDef="roleName">
+          <th mat-header-cell *matHeaderCellDef>Role Name</th>
+          <td mat-cell *matCellDef="let role">
+            <div class="role-name-cell">
+              <mat-icon class="role-icon">badge</mat-icon>
+              <span class="role-name">{{ role.roleName }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let role">
+            <span class="status-badge" [ngClass]="getStatusClass(role.status)">
+              {{ role.status }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Is Default Column -->
+        <ng-container matColumnDef="isDefault">
+          <th mat-header-cell *matHeaderCellDef>Default</th>
+          <td mat-cell *matCellDef="let role">
+            <span class="default-badge" [ngClass]="getDefaultClass(role.isDefault)">
+              <mat-icon>{{ role.isDefault === 'Y' ? 'check_circle' : 'cancel' }}</mat-icon>
+              {{ role.isDefault === 'Y' ? 'Yes' : 'No' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Permissions Column -->
+        <ng-container matColumnDef="permissions">
+          <th mat-header-cell *matHeaderCellDef>Permissions</th>
+          <td mat-cell *matCellDef="let role">
+            <div class="permissions-info">
+              <mat-icon>security</mat-icon>
+              <span>{{ getPermissionCount(role) }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+          <td mat-cell *matCellDef="let role" class="actions-cell">
+            <button mat-icon-button color="primary" (click)="viewRole(role)" matTooltip="View">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" (click)="editRole(role)" matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteRole(role)" matTooltip="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <mat-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="pageSizeOptions"
+      [showFirstLastButtons]="true"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && roles.length === 0">
+    <mat-icon>admin_panel_settings</mat-icon>
+    <h3>No Roles Found</h3>
+    <p>Get started by creating your first role</p>
+    <button mat-raised-button color="primary" (click)="createRole()">
+      <mat-icon>add</mat-icon>
+      Create First Role
+    </button>
+  </div>
+</mat-card>

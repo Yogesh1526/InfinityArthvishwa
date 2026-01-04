@@ -1,0 +1,95 @@
+<div class="closure-date-container">
+  <h2>
+    <mat-icon color="primary">event</mat-icon>
+    Expected Closure Date
+  </h2>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading closure details...</p>
+  </div>
+
+  <!-- View Mode -->
+  <div *ngIf="formLoaded && !isLoading && isDataAvailable && !isEditMode" class="detail-view">
+    <div class="closure-section">
+      <h3>
+        <mat-icon>info</mat-icon>
+        Closure Details
+      </h3>
+      
+      <div class="closure-card">
+        <div class="form-field-view">
+          <label>Closure Reason:</label>
+          <div class="value-display">
+            <span>{{ form.get('closureReason')?.value || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <div class="form-field-view">
+          <label>Closure Date:</label>
+          <div class="value-display">
+            <span>{{ form.get('closureDate')?.value | date:'dd-MMM-yyyy' || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Button -->
+      <div class="action-row">
+        <button mat-stroked-button color="primary" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Mode -->
+  <form *ngIf="formLoaded && !isLoading && isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="closure-form">
+    <div class="closure-section">
+      <h3>
+        <mat-icon>add_circle_outline</mat-icon>
+        Add Details
+      </h3>
+
+      <div class="closure-card">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Closure Reason *</mat-label>
+          <mat-select formControlName="closureReason" placeholder="Select closure reason">
+            <mat-option *ngFor="let reason of closureReasonOptions" [value]="reason">
+              {{ reason }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>list</mat-icon>
+          <mat-error *ngIf="form.get('closureReason')?.hasError('required')">
+            Closure Reason is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Closure Date *</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="closureDate" placeholder="Select closure date" />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-icon matPrefix>calendar_today</mat-icon>
+          <mat-error *ngIf="form.get('closureDate')?.hasError('required')">
+            Closure Date is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving" *ngIf="isDataAvailable">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isSaving" class="save-button">
+          <mat-icon *ngIf="!isSaving">{{ isDataAvailable ? 'update' : 'save' }}</mat-icon>
+          <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+          <span>{{ isSaving ? 'Saving...' : (isDataAvailable ? 'Update' : 'Save') }}</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+

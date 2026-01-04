@@ -1,0 +1,19 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+dist
+.angular
+out-tsc
+
+# Coverage
+coverage
+
+# IDE
+.vscode
+.idea
+
+# Logs
+*.log
+

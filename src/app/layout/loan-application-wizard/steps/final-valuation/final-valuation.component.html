@@ -1,71 +1,262 @@
-<div class="final-valuation-wrapper">
-
-    <!-- Final Valuation Summary Card -->
-    <mat-card class="valuation-card final-card">
-      <mat-card-header>
-        <mat-card-title>Final Valuation Summary</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="valuation-grid">
-          <div><label>Loan No:</label> <span>{{ finalValuation.loanAccountNo }}</span></div>
-          <div><label>Total Quantity:</label> <span>{{ finalValuation.totalQuantity }}</span></div>
-          <div><label>Gross Weight:</label> <span>{{ finalValuation.totalGrossWeight }}</span></div>
-          <div><label>Stone Weight:</label> <span>{{ finalValuation.totalStoneWeight }}</span></div>
-          <div><label>Net Weight:</label> <span>{{ finalValuation.totalNetWeight }}</span></div>
-          <div><label>Net Purity Wt:</label> <span>{{ finalValuation.totalNetPurityWeight }}</span></div>
-          <div><label>Valuation By:</label> <span>{{ finalValuation.valuationBy }}</span></div>
-          <div><label>Created By:</label> <span>{{ finalValuation.createdBy || '—' }}</span></div>
-          <div><label>Created Date:</label> <span>{{ finalValuation.createdDate || '—' }}</span></div>
-          <div><label>Updated By:</label> <span>{{ finalValuation.updatedBy || '—' }}</span></div>
-          <div><label>Updated Date:</label> <span>{{ finalValuation.updatedDate || '—' }}</span></div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  
-    <!-- First & Second Valuations Comparison -->
-    <div class="comparison-row">
-  
-      <!-- First Valuation Card -->
-      <mat-card class="valuation-card">
-        <mat-card-header>
-          <mat-card-title>First Valuation</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <!-- <div *ngIf="firstValuationImageUrl" class="image-wrapper">
-            <img [src]="firstValuationImageUrl" alt="First Valuation Image">
-          </div> -->
-          <div class="valuation-grid small">
-            <div><label>Quantity:</label> <span>{{ firstValuation.totalQuantity }}</span></div>
-            <div><label>Gross Weight:</label> <span>{{ firstValuation.totalGrossWeight }}</span></div>
-            <div><label>Stone Weight:</label> <span>{{ firstValuation.totalStoneWeight }}</span></div>
-            <div><label>Net Weight:</label> <span>{{ firstValuation.totalNetWeight }}</span></div>
-            <div><label>Net Purity Wt:</label> <span>{{ firstValuation.totalNetPurityWeight }}</span></div>
-            <!-- <div><label>Valuation By:</label> <span>{{ firstValuation.firstValuationBy || '—' }}</span></div> -->
-          </div>
-        </mat-card-content>
-      </mat-card>
-  
-      <!-- Second Valuation Card -->
-      <mat-card class="valuation-card">
-        <mat-card-header>
-          <mat-card-title>Second Valuation</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <!-- <div *ngIf="secondValuationImageUrl" class="image-wrapper">
-            <img [src]="secondValuationImageUrl" alt="Second Valuation Image">
-          </div> -->
-          <div class="valuation-grid small">
-            <div><label>Quantity:</label> <span>{{ secondValuation.totalQuantity }}</span></div>
-            <div><label>Gross Weight:</label> <span>{{ secondValuation.totalGrossWeight }}</span></div>
-            <div><label>Stone Weight:</label> <span>{{ secondValuation.totalStoneWeight }}</span></div>
-            <div><label>Net Weight:</label> <span>{{ secondValuation.totalNetWeight }}</span></div>
-            <div><label>Net Purity Wt:</label> <span>{{ secondValuation.totalNetPurityWeight }}</span></div>
-            <!-- <div><label>Valuation By:</label> <span>{{ secondValuation.secondValuationBy || '—' }}</span></div> -->
-          </div>
-        </mat-card-content>
-      </mat-card>
-  
-    </div>
-  
+<div class="final-valuation-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">assessment</mat-icon>
+      Final Valuation
+    </h2>
+    <p class="subtitle">Complete valuation summary combining first and second valuations</p>
   </div>
-  
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Generating final valuation...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading">
+    <!-- Summary Cards -->
+    <div class="summary-cards" *ngIf="finalValuation">
+      <div class="summary-card">
+        <mat-icon class="card-icon">inventory_2</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Total Items</span>
+          <span class="card-value">{{ finalValuation.totalQuantity }}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">scale</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Gross Weight</span>
+          <span class="card-value">{{ finalValuation.totalGrossWeight | number:'1.2-2' }} g</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">brightness_1</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Stone Weight</span>
+          <span class="card-value">{{ finalValuation.totalStoneWeight | number:'1.2-2' }} g</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">straighten</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Net Weight</span>
+          <span class="card-value">{{ finalValuation.totalNetWeight | number:'1.2-2' }} g</span>
+        </div>
+      </div>
+      <div class="summary-card highlight">
+        <mat-icon class="card-icon">verified</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Net Purity Weight</span>
+          <span class="card-value">{{ finalValuation.totalNetPurityWeight | number:'1.2-2' }} g</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final Valuation Details Card -->
+    <div class="details-section" *ngIf="finalValuation">
+      <div class="section-header">
+        <h3>
+          <mat-icon>info</mat-icon>
+          Final Valuation Details
+        </h3>
+      </div>
+      
+      <mat-card class="details-card">
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>account_circle</mat-icon>
+                <span>Loan Account Number</span>
+              </div>
+              <div class="detail-value">{{ loanApplicationId }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>person</mat-icon>
+                <span>Valuation By</span>
+              </div>
+              <div class="detail-value">{{ finalValuation.valuationBy || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>create</mat-icon>
+                <span>Created By</span>
+              </div>
+              <div class="detail-value">{{ finalValuation.createdBy || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Created Date</span>
+              </div>
+              <div class="detail-value">{{ finalValuation.createdDate || '—' }}</div>
+            </div>
+            
+            <div class="detail-item" *ngIf="finalValuation.updatedBy">
+              <div class="detail-label">
+                <mat-icon>edit</mat-icon>
+                <span>Updated By</span>
+              </div>
+              <div class="detail-value">{{ finalValuation.updatedBy }}</div>
+            </div>
+            
+            <div class="detail-item" *ngIf="finalValuation.updatedDate">
+              <div class="detail-label">
+                <mat-icon>update</mat-icon>
+                <span>Updated Date</span>
+              </div>
+              <div class="detail-value">{{ finalValuation.updatedDate }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Comparison Section -->
+    <div class="comparison-section" *ngIf="firstValuation && secondValuation">
+      <div class="section-header">
+        <h3>
+          <mat-icon>compare_arrows</mat-icon>
+          Valuation Comparison
+        </h3>
+        <p class="section-description">Comparison between first and second valuations</p>
+      </div>
+      
+      <div class="comparison-cards">
+        <!-- First Valuation Card -->
+        <mat-card class="comparison-card first-valuation">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="header-icon">diamond</mat-icon>
+              <mat-card-title>First Valuation</mat-card-title>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="comparison-grid">
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>confirmation_number</mat-icon>
+                  <span>Quantity</span>
+                </div>
+                <div class="comparison-value">{{ firstValuation.totalQuantity }}</div>
+              </div>
+              
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>scale</mat-icon>
+                  <span>Gross Weight</span>
+                </div>
+                <div class="comparison-value">{{ firstValuation.totalGrossWeight | number:'1.2-2' }} g</div>
+              </div>
+              
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>brightness_1</mat-icon>
+                  <span>Stone Weight</span>
+                </div>
+                <div class="comparison-value">{{ firstValuation.totalStoneWeight | number:'1.2-2' }} g</div>
+              </div>
+              
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>straighten</mat-icon>
+                  <span>Net Weight</span>
+                </div>
+                <div class="comparison-value">{{ firstValuation.totalNetWeight | number:'1.2-2' }} g</div>
+              </div>
+              
+              <div class="comparison-item highlight">
+                <div class="comparison-label">
+                  <mat-icon>verified</mat-icon>
+                  <span>Net Purity Weight</span>
+                </div>
+                <div class="comparison-value">{{ firstValuation.totalNetPurityWeight | number:'1.2-2' }} g</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Second Valuation Card -->
+        <mat-card class="comparison-card second-valuation">
+          <mat-card-header>
+            <div class="card-header-content">
+              <mat-icon class="header-icon">verified</mat-icon>
+              <mat-card-title>Second Valuation</mat-card-title>
+            </div>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="comparison-grid">
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>confirmation_number</mat-icon>
+                  <span>Quantity</span>
+                </div>
+                <div class="comparison-value">{{ secondValuation.totalQuantity }}</div>
+              </div>
+              
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>scale</mat-icon>
+                  <span>Gross Weight</span>
+                </div>
+                <div class="comparison-value">{{ secondValuation.totalGrossWeight | number:'1.2-2' }} g</div>
+              </div>
+              
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>brightness_1</mat-icon>
+                  <span>Stone Weight</span>
+                </div>
+                <div class="comparison-value">{{ secondValuation.totalStoneWeight | number:'1.2-2' }} g</div>
+              </div>
+              
+              <div class="comparison-item">
+                <div class="comparison-label">
+                  <mat-icon>straighten</mat-icon>
+                  <span>Net Weight</span>
+                </div>
+                <div class="comparison-value">{{ secondValuation.totalNetWeight | number:'1.2-2' }} g</div>
+              </div>
+              
+              <div class="comparison-item highlight">
+                <div class="comparison-label">
+                  <mat-icon>verified</mat-icon>
+                  <span>Net Purity Weight</span>
+                </div>
+                <div class="comparison-value">{{ secondValuation.totalNetPurityWeight | number:'1.2-2' }} g</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!finalValuation && !isLoading">
+      <mat-icon class="empty-icon">assessment</mat-icon>
+      <h3>No Final Valuation Found</h3>
+      <p>Click the button below to generate the final valuation from first and second valuations</p>
+    </div>
+
+    <!-- Action Button -->
+    <div class="action-section">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="saveFinalValuation()" 
+        [disabled]="isSaving"
+        class="save-button">
+        <mat-icon *ngIf="!isSaving">{{ finalValuation ? 'update' : 'add_circle' }}</mat-icon>
+        <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+        <span>{{ isSaving ? 'Generating...' : (finalValuation ? 'Update Final Valuation' : 'Generate Final Valuation') }}</span>
+      </button>
+    </div>
+  </div>
+</div>

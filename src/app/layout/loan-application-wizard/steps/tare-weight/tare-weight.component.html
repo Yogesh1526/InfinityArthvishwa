@@ -1,0 +1,94 @@
+<div class="tare-weight-container">
+  <h2>
+    <mat-icon color="primary">scale</mat-icon>
+    Tare Weight
+  </h2>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading tare weight...</p>
+  </div>
+
+  <!-- View Mode -->
+  <div *ngIf="formLoaded && !isLoading && isDataAvailable && !isEditMode" class="detail-view">
+    <div class="tare-weight-section">
+      <h3>
+        <mat-icon>info</mat-icon>
+        Tare Weight Details
+      </h3>
+      
+      <div class="tare-weight-card">
+        <div class="form-field-view">
+          <label>Packet Number:</label>
+          <div class="value-display">
+            <span class="packet-number">{{ packetNumber || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <div class="form-field-view">
+          <label>Tare Weight:</label>
+          <div class="value-display">
+            <span>{{ form.get('tareWeight')?.value || 'N/A' }} g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Button -->
+      <div class="action-row">
+        <button mat-stroked-button color="primary" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Mode -->
+  <form *ngIf="formLoaded && !isLoading && isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="tare-weight-form">
+    <div class="tare-weight-section">
+      <h3>
+        <mat-icon>add_circle_outline</mat-icon>
+        Add Tare Weight
+      </h3>
+
+      <div class="tare-weight-card">
+        <div class="form-field-view">
+          <label>Packet Number:</label>
+          <div class="value-display">
+            <span class="packet-number">{{ packetNumber || 'N/A' }}</span>
+          </div>
+          <p class="packet-hint" *ngIf="!packetNumber">
+            Please complete Packet Allotment first to get the packet number.
+          </p>
+        </div>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Tare Weight *</mat-label>
+          <input matInput type="number" formControlName="tareWeight" placeholder="Enter tare weight" min="0" step="0.01" />
+          <mat-icon matPrefix>scale</mat-icon>
+          <span matSuffix>g</span>
+          <mat-error *ngIf="form.get('tareWeight')?.hasError('required')">
+            Tare weight is required
+          </mat-error>
+          <mat-error *ngIf="form.get('tareWeight')?.hasError('min')">
+            Tare weight must be greater than or equal to 0
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving" *ngIf="isDataAvailable">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isSaving || !packetNumber" class="update-button">
+          <mat-icon *ngIf="!isSaving">{{ isDataAvailable ? 'update' : 'save' }}</mat-icon>
+          <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+          <span>{{ isSaving ? 'Saving...' : (isDataAvailable ? 'Update' : 'Save') }}</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+

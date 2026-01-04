@@ -1,25 +1,76 @@
 <header class="header">
     <div class="header-left">
-      <mat-icon class="menu-icon">menu</mat-icon>
+      <mat-icon class="menu-icon" (click)="toggleSidebar.emit()">menu</mat-icon>
       <span class="header-title">Dhanprerana</span>
     </div>
   
     <nav class="header-nav">
-        <a (click)="navigateTo('dashboard')">Dashboard</a>
-        <a (click)="navigateTo('worklist')">Task</a>
-        <a (click)="navigateTo('loan-info-details')">Loan Application</a>
-        <a (click)="navigateTo('loan-info')">Collection</a>
-        <a (click)="navigateTo('loan-wizard')">Customer</a>
-        <a (click)="navigateTo('reports')">Reports</a>
+        <a (click)="navigateTo('dashboard')" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <mat-icon>dashboard</mat-icon>
+          <span>Dashboard</span>
+        </a>
+        <a (click)="navigateTo('worklist')" routerLinkActive="active">
+          <mat-icon>assignment</mat-icon>
+          <span>Task</span>
+        </a>
+        <a (click)="navigateTo('loan-info-details')" routerLinkActive="active">
+          <mat-icon>description</mat-icon>
+          <span>Loan Application</span>
+        </a>
+        <a (click)="navigateTo('loan-info')" routerLinkActive="active">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span>Collection</span>
+        </a>
+        <a (click)="navigateTo('loan-wizard')" routerLinkActive="active">
+          <mat-icon>people</mat-icon>
+          <span>Customer</span>
+        </a>
+        <a *ngIf="isAdmin" (click)="navigateTo('roles')" routerLinkActive="active" class="admin-link">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Roles & Permissions</span>
+        </a>
     </nav>
       
   
     <div class="header-right">
-      <mat-icon class="header-icon">search</mat-icon>
-      <mat-icon class="header-icon">notifications</mat-icon>
-      <div class="profile">
-        <mat-icon class="profile-icon">account_circle</mat-icon>
-        <span>John</span>
+      <mat-icon class="header-icon" matTooltip="Search" (click)="navigateTo('dashboard')">search</mat-icon>
+      <mat-icon class="header-icon" matTooltip="Notifications" (click)="navigateTo('dashboard')">notifications</mat-icon>
+      
+      <!-- User Profile Menu -->
+      <div class="profile-container" (click)="toggleUserMenu()">
+        <div class="profile">
+          <mat-icon class="profile-icon">account_circle</mat-icon>
+          <span class="profile-name">{{ username }}</span>
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </div>
+        
+        <!-- Dropdown Menu -->
+        <div class="user-menu" *ngIf="showUserMenu">
+          <div class="user-menu-header">
+            <mat-icon>account_circle</mat-icon>
+            <div class="user-info">
+              <div class="user-name">{{ username }}</div>
+              <div class="user-email" *ngIf="hasUserEmail()">{{ getUserEmail() }}</div>
+              <div class="user-role" *ngIf="hasUserRoles()">
+                {{ getUserRole() }}
+              </div>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="user-menu-item" (click)="viewProfile()">
+            <mat-icon>person</mat-icon>
+            <span>Profile</span>
+          </div>
+          <div class="user-menu-item" (click)="navigateTo('dashboard')">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="user-menu-item logout-item" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </div>
+        </div>
       </div>
     </div>
   </header>

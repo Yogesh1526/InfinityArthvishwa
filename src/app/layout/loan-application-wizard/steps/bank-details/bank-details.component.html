@@ -1,0 +1,223 @@
+<div class="bank-details-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">account_balance</mat-icon>
+      Bank Details
+    </h2>
+    <p class="subtitle">Manage bank account information for loan disbursement</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="!formLoaded" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading bank details...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="formLoaded">
+    <!-- View Mode -->
+    <div *ngIf="isDataAvailable && !isEditMode" class="view-section">
+      <!-- Account Summary Card -->
+      <mat-card class="summary-card">
+        <mat-card-header>
+          <div class="card-header-content">
+            <mat-icon class="header-icon">account_balance</mat-icon>
+            <mat-card-title>Account Summary</mat-card-title>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="account-number-display">
+            <div class="account-number-label">
+              <mat-icon>credit_card</mat-icon>
+              <span>Account Number</span>
+            </div>
+            <div class="account-number-value">{{ form.get('accountNumber')?.value }}</div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Account Details Card -->
+      <mat-card class="details-card">
+        <mat-card-header>
+          <mat-card-title>Account Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>account_balance</mat-icon>
+                <span>Bank Name</span>
+              </div>
+              <div class="detail-value">{{ form.get('bankName')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>person</mat-icon>
+                <span>Account Holder Name</span>
+              </div>
+              <div class="detail-value">{{ form.get('accountHolderName')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>account_box</mat-icon>
+                <span>Account Type</span>
+              </div>
+              <div class="detail-value">{{ form.get('accountType')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>location_on</mat-icon>
+                <span>IFSC Code</span>
+              </div>
+              <div class="detail-value ifsc-code">{{ form.get('ifsc')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>business</mat-icon>
+                <span>Branch</span>
+              </div>
+              <div class="detail-value">{{ form.get('branch')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>payment</mat-icon>
+                <span>Account Purpose</span>
+              </div>
+              <div class="detail-value">{{ form.get('accountPurpose')?.value || '—' }}</div>
+            </div>
+            
+            <div class="detail-item highlight">
+              <div class="detail-label">
+                <mat-icon [color]="getPennyDropStatusColor()">{{ getPennyDropStatusIcon() }}</mat-icon>
+                <span>Penny Drop Status</span>
+              </div>
+              <div class="detail-value">
+                <span class="status-badge" [ngClass]="'status-' + (pennyDropStatus || 'pending')">
+                  {{ form.get('pennyDropVerificationStatus')?.value || getPennyDropStatusText() }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Action Buttons -->
+      <div class="action-section">
+        <button mat-raised-button color="primary" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit Bank Details
+        </button>
+        <button mat-stroked-button color="warn" (click)="onDelete()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <!-- Form Mode -->
+    <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="bank-form">
+      <div class="form-section">
+        <div class="section-header">
+          <h3>
+            <mat-icon>edit</mat-icon>
+            {{ bankDetailsId ? 'Update' : 'Add' }} Bank Details
+          </h3>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Bank Name *</mat-label>
+            <input matInput formControlName="bankName" placeholder="Enter bank name" />
+            <mat-icon matPrefix>account_balance</mat-icon>
+            <mat-error *ngIf="form.get('bankName')?.hasError('required')">
+              Bank name is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Account Number</mat-label>
+            <input matInput formControlName="accountNumber" placeholder="Enter account number" />
+            <mat-icon matPrefix>credit_card</mat-icon>
+            <mat-error *ngIf="form.get('accountNumber')?.hasError('required')">
+              Account number is required
+            </mat-error>
+            <mat-error *ngIf="form.get('accountNumber')?.hasError('pattern')">
+              Account number must contain only digits
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Account Holder Name</mat-label>
+            <input matInput formControlName="accountHolderName" placeholder="Enter account holder name" />
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error *ngIf="form.get('accountHolderName')?.hasError('required')">
+              Account holder name is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Account Type</mat-label>
+            <mat-select formControlName="accountType">
+              <mat-option *ngFor="let type of accountTypeOptions" [value]="type">
+                {{ type }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>account_box</mat-icon>
+            <mat-error *ngIf="form.get('accountType')?.hasError('required')">
+              Account type is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>IFSC Code</mat-label>
+            <input matInput formControlName="ifsc" placeholder="e.g., ICIC0000074" maxlength="11" />
+            <mat-icon matPrefix>location_on</mat-icon>
+            <mat-hint>Format: AAAA0XXXXX (e.g., ICIC0000074)</mat-hint>
+            <mat-error *ngIf="form.get('ifsc')?.hasError('required')">
+              IFSC code is required
+            </mat-error>
+            <mat-error *ngIf="form.get('ifsc')?.hasError('pattern')">
+              Invalid IFSC format
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Branch</mat-label>
+            <input matInput formControlName="branch" placeholder="Enter branch name (optional)" />
+            <mat-icon matPrefix>business</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Account Purpose</mat-label>
+            <mat-select formControlName="accountPurpose">
+              <mat-option *ngFor="let purpose of accountPurposeOptions" [value]="purpose">
+                {{ purpose }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>payment</mat-icon>
+            <mat-error *ngIf="form.get('accountPurpose')?.hasError('required')">
+              Account purpose is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          <mat-icon>save</mat-icon>
+          {{ bankDetailsId ? 'Update' : 'Save' }} Bank Details
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

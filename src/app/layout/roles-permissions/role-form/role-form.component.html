@@ -1,0 +1,107 @@
+<mat-card class="role-form-card">
+  <div class="header-section">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Go Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2><mat-icon color="primary">{{ isEditMode ? 'edit' : 'add_circle' }}</mat-icon> {{ isEditMode ? 'Edit Role' : 'Create Role' }}</h2>
+  </div>
+
+  <form [formGroup]="roleForm" (ngSubmit)="onSubmit()" novalidate>
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Role Name</mat-label>
+          <input matInput formControlName="roleName" placeholder="Enter role name" />
+          <mat-error *ngIf="roleForm.get('roleName')?.hasError('required')">
+            Role name is required
+          </mat-error>
+          <mat-error *ngIf="roleForm.get('roleName')?.hasError('minlength')">
+            Role name must be at least 2 characters
+          </mat-error>
+          <mat-error *ngIf="roleForm.get('roleName')?.hasError('maxlength')">
+            Role name cannot exceed 50 characters
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="Active">Active</mat-option>
+            <mat-option value="Inactive">Inactive</mat-option>
+          </mat-select>
+          <mat-error *ngIf="roleForm.get('status')?.hasError('required')">
+            Status is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Is Default</mat-label>
+          <mat-select formControlName="isDefault">
+            <mat-option value="Y">Yes</mat-option>
+            <mat-option value="N">No</mat-option>
+          </mat-select>
+          <mat-error *ngIf="roleForm.get('isDefault')?.hasError('required')">
+            Default setting is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Permissions Section -->
+    <div class="form-section permissions-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>security</mat-icon>
+          Permissions
+          <span class="badge">{{ getSelectedPermissionsCount() }}</span>
+        </h3>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Permissions</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput (input)="onSearchChange($event)" placeholder="Search..." />
+        </mat-form-field>
+      </div>
+
+      <div class="permissions-wrapper" *ngIf="!isLoading">
+        <div class="permissions-grid">
+          <div class="permission-item"
+               *ngFor="let permission of filteredPermissions"
+               [class.selected]="isPermissionSelected(permission.permissionId)"
+               (click)="togglePermission(permission.permissionId)">
+            <mat-checkbox
+              [checked]="isPermissionSelected(permission.permissionId)"
+              (click)="$event.stopPropagation()"
+              (change)="togglePermission(permission.permissionId)">
+            </mat-checkbox>
+            <div class="permission-content">
+              <div class="permission-name">{{ permission.permissionName || 'Permission ' + permission.permissionId }}</div>
+              <div class="permission-meta" *ngIf="permission.module">{{ permission.module }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="loading-state" *ngIf="isLoading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading permissions...</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading && filteredPermissions.length === 0">
+        <mat-icon>info_outline</mat-icon>
+        <p>No permissions found</p>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-row form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="roleForm.invalid || isSaving">
+        <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+        {{ isSaving ? 'Saving...' : (isEditMode ? 'Update Role' : 'Submit') }}
+      </button>
+      <button mat-stroked-button type="button" (click)="goBack()" [disabled]="isSaving">
+        Cancel
+      </button>
+    </div>
+  </form>
+</mat-card>

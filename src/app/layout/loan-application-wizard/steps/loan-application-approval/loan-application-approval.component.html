@@ -1,0 +1,91 @@
+<div class="loan-approval-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">check_circle</mat-icon>
+      Loan Application Approval
+    </h2>
+    <p class="subtitle">Review reports, notes, and approval status</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading approval data...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading">
+    <!-- Reports Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>description</mat-icon>
+          Reports
+        </h3>
+      </div>
+      
+      <div class="reports-list" *ngIf="reports.length > 0">
+        <div class="report-item" *ngFor="let report of reports">
+          <div class="report-info">
+            <div class="report-number">{{ report.id }}.</div>
+            <div class="report-details">
+              <div class="report-name">{{ report.name }}</div>
+              <div class="report-status" [ngClass]="'status-' + report.status.toLowerCase()">
+                <mat-icon class="status-icon">{{ report.status === 'SUCCESS' ? 'check_circle' : 'pending' }}</mat-icon>
+                <span>{{ report.status }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="report-actions">
+            <button mat-stroked-button color="primary" (click)="viewReport(report)" class="view-button">
+              <mat-icon>open_in_new</mat-icon>
+              View
+            </button>
+            <button mat-icon-button [matMenuTriggerFor]="reportMenu" class="menu-button">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #reportMenu="matMenu">
+              <button mat-menu-item (click)="viewReport(report)">
+                <mat-icon>visibility</mat-icon>
+                <span>View</span>
+              </button>
+              <button mat-menu-item (click)="downloadReport(report)">
+                <mat-icon>download</mat-icon>
+                <span>Download</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+      </div>
+      
+      <div class="empty-state-small" *ngIf="reports.length === 0">
+        <mat-icon>description</mat-icon>
+        <p>No reports available</p>
+      </div>
+    </div>
+
+    <!-- Approval Status Section -->
+    <!-- <div class="section-card approval-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>gavel</mat-icon>
+          Loan Application Approval
+        </h3>
+      </div>
+      
+      <div class="approval-status" [ngClass]="{ 'approved': isApproved, 'pending': !isApproved }">
+        <div class="approval-icon">
+          <mat-icon *ngIf="isApproved">check_circle</mat-icon>
+          <mat-icon *ngIf="!isApproved">pending</mat-icon>
+        </div>
+        <div class="approval-message">
+          <p *ngIf="isApproved" class="approved-text">** Loan Application is Approved **</p>
+          <p *ngIf="!isApproved" class="pending-text">** Loan Application is Pending Approval **</p>
+        </div>
+      </div>
+    </div> -->
+  </div>
+</div>
+

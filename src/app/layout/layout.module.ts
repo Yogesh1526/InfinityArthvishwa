@@ -28,8 +28,19 @@ import { FirstValuationComponent } from './loan-application-wizard/steps/first-v
 import { AddJewelleryDialogComponent } from './loan-application-wizard/steps/add-jewellery-dialog/add-jewellery-dialog.component';
 import { SecondValuationComponent } from './loan-application-wizard/steps/second-valuation/second-valuation.component';
 import { FinalValuationComponent } from './loan-application-wizard/steps/final-valuation/final-valuation.component';
+import { BankDetailsComponent } from './loan-application-wizard/steps/bank-details/bank-details.component';
+import { PacketAllotmentComponent } from './loan-application-wizard/steps/packet-allotment/packet-allotment.component';
+import { GlSchemeSelectionComponent } from './loan-application-wizard/steps/gl-scheme-selection/gl-scheme-selection.component';
+import { TareWeightComponent } from './loan-application-wizard/steps/tare-weight/tare-weight.component';
+import { ExpectedClosureDateComponent } from './loan-application-wizard/steps/expected-closure-date/expected-closure-date.component';
+import { LoanApplicationApprovalComponent } from './loan-application-wizard/steps/loan-application-approval/loan-application-approval.component';
+import { DisbursementDetailsComponent } from './loan-application-wizard/steps/disbursement-details/disbursement-details.component';
+import { LoanAgreementDocumentComponent } from './loan-application-wizard/steps/loan-agreement-document/loan-agreement-document.component';
 import { WebcamComponent } from './loan-application-wizard/steps/webcam/webcam.component';
 import { WebcamModule } from 'ngx-webcam';
+import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
+import { RoleListComponent } from './roles-permissions/role-list/role-list.component';
+import { RoleFormComponent } from './roles-permissions/role-form/role-form.component';
 
 
 
@@ -44,6 +55,9 @@ import { WebcamModule } from 'ngx-webcam';
     BasicDetailsComponent,
     LoanInfoComponent,
     LoanApplicationWizardComponent,
+    CustomerProfileComponent,
+    RoleListComponent,
+    RoleFormComponent,
     PersonalDetailsComponent,
     FamilyDetailsComponent,
     AddressActivityComponent,
@@ -58,6 +72,14 @@ import { WebcamModule } from 'ngx-webcam';
     AddJewelleryDialogComponent,
     SecondValuationComponent,
     FinalValuationComponent,
+    BankDetailsComponent,
+    PacketAllotmentComponent,
+    GlSchemeSelectionComponent,
+    TareWeightComponent,
+    ExpectedClosureDateComponent,
+    LoanApplicationApprovalComponent,
+    DisbursementDetailsComponent,
+    LoanAgreementDocumentComponent,
     WebcamComponent
   ],
   imports: [

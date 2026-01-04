@@ -1,52 +1,130 @@
-<div class="gold-ownership-form-card">
-  <h2>
-    <mat-icon color="primary">diamond</mat-icon>
-    Gold Ownership Details
-  </h2>
+<div class="gold-ownership-container" *ngIf="formLoaded">
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>diamond</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>Gold Ownership Details</h2>
+        <p class="header-subtitle">Jewellery source and purchase information</p>
+      </div>
+    </div>
+    <button *ngIf="!isEditable && isDataAvailable" mat-stroked-button color="primary" class="edit-btn" (click)="onEdit()">
+      <mat-icon>edit</mat-icon>
+      Edit Details
+    </button>
+  </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Source of Jewellery</mat-label>
-        <mat-select formControlName="sourceOfJewellery">
-          <mat-option value="Self Purchase">Self Purchase</mat-option>
-          <mat-option value="Gift">Gift</mat-option>
-          <mat-option value="Inheritance">Inheritance</mat-option>
-          <mat-option value="Purchased">Purchased</mat-option>
-          <mat-option value="Others">Others</mat-option>
-        </mat-select>
-      </mat-form-field>
+  <!-- View Mode -->
+  <div *ngIf="!isEditable && isDataAvailable && goldOwnershipData" class="content-card">
+    <div class="details-wrapper">
+      <!-- Jewellery Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>sell</mat-icon>
+          Jewellery Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Source of Jewellery</span>
+            <span class="info-value">{{ goldOwnershipData.sourceOfJewellery || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Year of Purchase</span>
+            <span class="info-value">{{ goldOwnershipData.yearOfPurchase ? (goldOwnershipData.yearOfPurchase | date: 'dd/MM/yyyy') : '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Store Name & Location</span>
+            <span class="info-value">{{ goldOwnershipData.storeNameAndLocation || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Purpose of Purchasing</span>
+            <span class="info-value">{{ goldOwnershipData.purposeOfPurchasing || '—' }}</span>
+          </div>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Year of Purchase</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="yearOfPurchase" />
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker startView="multi-year"></mat-datepicker>
-      </mat-form-field>
-      
+      <!-- Loan Information -->
+      <div class="info-group" *ngIf="loanAccountNumber">
+        <h4 class="group-title">
+          <mat-icon>account_balance</mat-icon>
+          Loan Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Loan Account Number</span>
+            <span class="info-value">{{ loanAccountNumber }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Store Name & Location</mat-label>
-        <input matInput formControlName="storeNameAndLocation" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Purpose of Purchasing</mat-label>
-        <mat-select formControlName="purposeOfPurchasing">
-          <mat-option value="Marriage">Marriage</mat-option>
-          <mat-option value="Investment">Investment</mat-option>
-          <mat-option value="Wedding">Wedding</mat-option>
-          <mat-option value="Gift">Gift</mat-option>
-          <mat-option value="Other">Other</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
+    <!-- View Mode Actions -->
     <div class="form-actions">
-      <button mat-flat-button color="primary" type="submit">
-        {{ isEditMode ? 'Update' : 'Submit' }}
+      <button mat-stroked-button color="warn" type="button" (click)="onDelete()">
+        <mat-icon>delete</mat-icon>
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Mode -->
+  <form *ngIf="isEditable" [formGroup]="form" (ngSubmit)="onSubmit()" class="content-card">
+    <div class="details-wrapper">
+      <!-- Jewellery Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>sell</mat-icon>
+          Jewellery Information
+        </h4>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Source of Jewellery</mat-label>
+            <mat-select formControlName="sourceOfJewellery">
+              <mat-option value="Self Purchase">Self Purchase</mat-option>
+              <mat-option value="Gift">Gift</mat-option>
+              <mat-option value="Inheritance">Inheritance</mat-option>
+              <mat-option value="Purchased">Purchased</mat-option>
+              <mat-option value="Others">Others</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Year of Purchase</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="yearOfPurchase" placeholder="Select date" />
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker startView="multi-year"></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Store Name & Location</mat-label>
+            <input matInput formControlName="storeNameAndLocation" placeholder="Enter store name and location" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Purpose of Purchasing</mat-label>
+            <mat-select formControlName="purposeOfPurchasing">
+              <mat-option value="Marriage">Marriage</mat-option>
+              <mat-option value="Investment">Investment</mat-option>
+              <mat-option value="Wedding">Wedding</mat-option>
+              <mat-option value="Gift">Gift</mat-option>
+              <mat-option value="Self">Self</mat-option>
+              <mat-option value="Other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button mat-stroked-button type="button" (click)="onCancel()">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" type="submit">
+        <mat-icon>save</mat-icon>
+        {{ goldOwnershipId ? 'Update Details' : 'Save Details' }}
       </button>
     </div>
   </form>

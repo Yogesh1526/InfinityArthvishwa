@@ -1,79 +1,201 @@
 <div class="loan-dashboard">
-    <!-- Status Cards -->
-    <div class="status-cards">
-      <div class="status-card loan" (click)="changeStatusFilter('All')">
-        <div class="status-title">All Applications</div>
-        <div class="status-count">{{ loanCount }}</div>
-      </div>
-      <div class="status-card approved" (click)="changeStatusFilter('Approved')">
-        <div class="status-title">Approved</div>
-        <div class="status-count">{{ approvedCount }}</div>
-      </div>
-      <div class="status-card rejected" (click)="changeStatusFilter('Rejected')">
-        <div class="status-title">Rejected</div>
-        <div class="status-count">{{ rejectedCount }}</div>
-      </div>
-      <div class="status-card disbursed" (click)="changeStatusFilter('Disbursed')">
-        <div class="status-title">Disbursed</div>
-        <div class="status-count">{{ disbursedCount }}</div>
-      </div>
-      <div class="status-card abandoned" (click)="changeStatusFilter('Abandoned')">
-        <div class="status-title">Abandoned</div>
-        <div class="status-count">{{ abandonedCount }}</div>
-      </div>
-    </div>
-  
-    <!-- Filter Row -->
-    <div class="filter-row">
-      <button class="new-lead-btn" (click)="addNewLoan()">+ New Lead</button>
-      <input type="text" [(ngModel)]="filterText" placeholder="Search by name or ID..." />
-    </div>
-  
-    <!-- Table -->
-    <table class="loan-table">
-      <thead>
-        <tr>
-          <th>Loan App No</th>
-          <th>Customer ID</th>
-          <th>Name</th>
-          <th>Lead Product</th>
-          <th>Amount Requested</th>
-          <th>Workflow Stage</th>
-          <th>Sourcing Channel</th>
-          <th>Anchor</th>
-          <th>Office</th>
-          <th>Loan Product</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let loan of pagedLoans">
-          <td>{{ loan.loanAppNo }}</td>
-          <td>{{ loan.id }}</td>
-          <td>{{ loan.name }}</td>
-          <td>{{ loan.leadProduct }}</td>
-          <td>{{ loan.amountRequested | currency }}</td>
-          <td>{{ loan.workflowStage }}</td>
-          <td>{{ loan.sourcingChannel }}</td>
-          <td>{{ loan.anchor }}</td>
-          <td>{{ loan.office }}</td>
-          <td>{{ loan.loanProduct }}</td>
-          <td>{{ loan.status }}</td>
-          <td>
-            <button (click)="editLoan(loan)">Edit</button>
-            <button (click)="deleteLoan(loan.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-      
-    </table>
-  
-    <!-- Pagination -->
-    <div class="pagination-controls" *ngIf="totalPages > 1">
-      <button (click)="prevPage()" [disabled]="currentPage === 1">« Prev</button>
-      <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next »</button>
+  <!-- Error or No Data State -->
+  <div *ngIf="hasError || !hasData" class="error-container">
+    <app-data-not-found 
+      [message]="errorMessage || 'No customer data found'"
+      icon="error_outline"
+      [showAction]="false"
+      actionLabel=""
+      [actionRoute]="''">
+    </app-data-not-found>
+    <div class="empty-state-actions">
+      <button mat-raised-button color="primary" class="new-lead-btn-primary" (click)="addNewLoan()">
+        <mat-icon>add</mat-icon>
+        Create New Lead
+      </button>
+      <button mat-stroked-button color="primary" (click)="retryLoad()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
     </div>
   </div>
-  
+
+  <!-- Data Display -->
+  <div *ngIf="hasData && !hasError" class="dashboard-content">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+      <div class="header-left">
+        <h1 class="page-title">Loan Applications</h1>
+        <p class="page-subtitle">Manage and track all loan applications</p>
+      </div>
+      <button class="new-lead-btn" (click)="addNewLoan()">
+        <mat-icon>add</mat-icon>
+        New Lead
+      </button>
+    </div>
+
+    <!-- Status Summary Cards -->
+    <div class="status-cards">
+      <div class="status-card" [class.active]="selectedStatus === 'All'" (click)="changeStatusFilter('All')">
+        <div class="card-icon all">
+          <mat-icon>folder_open</mat-icon>
+        </div>
+        <div class="card-content">
+          <span class="card-count">{{ loanCount }}</span>
+          <span class="card-label">All Applications</span>
+        </div>
+      </div>
+      <div class="status-card" [class.active]="selectedStatus === 'Approved'" (click)="changeStatusFilter('Approved')">
+        <div class="card-icon approved">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="card-content">
+          <span class="card-count">{{ approvedCount }}</span>
+          <span class="card-label">Approved</span>
+        </div>
+      </div>
+      <div class="status-card" [class.active]="selectedStatus === 'Rejected'" (click)="changeStatusFilter('Rejected')">
+        <div class="card-icon rejected">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="card-content">
+          <span class="card-count">{{ rejectedCount }}</span>
+          <span class="card-label">Rejected</span>
+        </div>
+      </div>
+      <div class="status-card" [class.active]="selectedStatus === 'Disbursed'" (click)="changeStatusFilter('Disbursed')">
+        <div class="card-icon disbursed">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="card-content">
+          <span class="card-count">{{ disbursedCount }}</span>
+          <span class="card-label">Disbursed</span>
+        </div>
+      </div>
+      <div class="status-card" [class.active]="selectedStatus === 'Pending'" (click)="changeStatusFilter('Pending')">
+        <div class="card-icon pending">
+          <mat-icon>hourglass_empty</mat-icon>
+        </div>
+        <div class="card-content">
+          <span class="card-count">{{ pendingCount }}</span>
+          <span class="card-label">Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filter Section -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-box">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="filterText" 
+            placeholder="Search by name, customer ID, or mobile number..." 
+          />
+          <button *ngIf="filterText" class="clear-btn" (click)="filterText = ''">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="table-info">
+          <span class="results-count">{{ filteredLoans.length }} results</span>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="filteredLoans.length > 0; else noFilteredResults" class="table-wrapper">
+        <table class="loan-table">
+          <thead>
+            <tr>
+              <th>Customer ID</th>
+              <th>Loan Account No.</th>
+              <th>Full Name</th>
+              <th>Mobile Number</th>
+              <th>Occupation</th>
+              <th>Loan Purpose</th>
+              <th>Lead By</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let loan of pagedLoans" (click)="editLoan(loan)" class="table-row">
+              <td>
+                <span class="customer-id">{{ loan.customerId }}</span>
+              </td>
+              <td>
+                <span class="loan-account">{{ loan.tempLoanAccountNumber }}</span>
+              </td>
+              <td>
+                <div class="name-cell">
+                  <div class="avatar">{{ getInitials(loan.name) }}</div>
+                  <span class="name-text">{{ loan.name }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="mobile-number">{{ loan.mobileNumber }}</span>
+              </td>
+              <td>{{ loan.occupation }}</td>
+              <td>{{ loan.loanPurpose }}</td>
+              <td>
+                <span class="lead-name">{{ loan.createdBy }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="loan.status.toLowerCase()">
+                  {{ loan.status }}
+                </span>
+              </td>
+              <td class="actions-cell" (click)="$event.stopPropagation()">
+                <button class="action-btn edit" matTooltip="Edit" (click)="editLoan(loan)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button class="action-btn delete" matTooltip="Delete" (click)="deleteLoan(loan.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination-controls" *ngIf="totalPages > 1">
+          <div class="pagination-info">
+            Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredLoans.length) }} of {{ filteredLoans.length }}
+          </div>
+          <div class="pagination-buttons">
+            <button class="page-btn" (click)="goToPage(1)" [disabled]="currentPage === 1" matTooltip="First Page">
+              <mat-icon>first_page</mat-icon>
+            </button>
+            <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1" matTooltip="Previous">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <span class="page-numbers">
+              <button 
+                *ngFor="let page of getPageNumbers()" 
+                class="page-num" 
+                [class.active]="page === currentPage"
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+            </span>
+            <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages" matTooltip="Next">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+            <button class="page-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" matTooltip="Last Page">
+              <mat-icon>last_page</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Filtered Results -->
+      <ng-template #noFilteredResults>
+        <div class="no-results">
+          <mat-icon>search_off</mat-icon>
+          <h3>No results found</h3>
+          <p>Try adjusting your search or filter criteria</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

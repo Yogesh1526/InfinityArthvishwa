@@ -1,142 +1,623 @@
 .loan-dashboard {
-    padding: 1.5rem;
-    font-family: 'Segoe UI', sans-serif;
-  }
-  
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 24px 32px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-content {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Header Section */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.new-lead-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.new-lead-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+.new-lead-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Status Cards */
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.status-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.status-card.active {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.card-icon.all {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.card-icon.approved {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.card-icon.rejected {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.card-icon.disbursed {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.card-icon.pending {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.card-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Table Container */
+.table-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  width: 100%;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 16px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px;
+  flex: 1;
+  max-width: 400px;
+  transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon {
+  color: #94a3b8;
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #1a1a2e;
+  outline: none;
+}
+
+.search-box input::placeholder {
+  color: #94a3b8;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+.clear-btn:hover {
+  color: #64748b;
+}
+
+.clear-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.results-count {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.loan-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.loan-table th {
+  background: #f8fafc;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.loan-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.table-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.table-row:hover {
+  background: #f8fafc;
+}
+
+/* Cell Styles */
+.customer-id {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.loan-account {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.name-text {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.mobile-number {
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+}
+
+.lead-name {
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-badge.approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.disbursed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.abandoned {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Actions */
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.action-btn.edit {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.action-btn.edit:hover {
+  background: #0284c7;
+  color: white;
+}
+
+.action-btn.delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-btn.delete:hover {
+  background: #dc2626;
+  color: white;
+}
+
+/* Pagination */
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not([disabled]) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.page-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+  margin: 0 8px;
+}
+
+.page-num {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.page-num:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.page-num.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.no-results mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.no-results h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 8px 0;
+}
+
+.no-results p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.new-lead-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.new-lead-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+.new-lead-btn-primary mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.retry-button-container {
+  margin-top: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
   .status-cards {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(5, 1fr);
   }
-  
-  .status-card {
-    flex: 1 1 180px;
-    padding: 1rem;
-    border-radius: 10px;
-    text-align: center;
-    color: #fff;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1200px) {
+  .status-cards {
+    grid-template-columns: repeat(3, 1fr);
   }
-  
-  .status-card:hover {
-    transform: translateY(-4px);
+}
+
+@media (max-width: 768px) {
+  .loan-dashboard {
+    padding: 16px;
   }
-  
-  .status-card.loan {
-    background-color: #6c757d;
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
-  .status-card.approved {
-    background-color: #28a745;
-  }
-  .status-card.rejected {
-    background-color: #dc3545;
-  }
-  .status-card.disbursed {
-    background-color: #007bff;
-  }
-  .status-card.abandoned {
-    background-color: #ffc107;
-    color: #000;
-  }
-  
-  .status-title {
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  .status-count {
-    font-size: 1.4rem;
-    font-weight: bold;
-  }
-  
-  .filter-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  
+
   .new-lead-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
+    width: 100%;
+    justify-content: center;
   }
-  .new-lead-btn:hover {
-    background-color: #218838;
+
+  .status-cards {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .filter-row input {
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    flex: 1 1 300px;
+
+  .table-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
     max-width: 100%;
   }
-  
-  .loan-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-  }
-  
-  .loan-table th,
-  .loan-table td {
-    padding: 0.75rem;
-    border: 1px solid #e0e0e0;
-    text-align: left;
-  }
-  
-  .loan-table th {
-    background-color: #f8f9fa;
-    font-weight: bold;
-  }
-  
-  .loan-table tr:hover {
-    background-color: #f1f1f1;
-  }
-  
-  .loan-table button {
-    margin-right: 0.5rem;
-    padding: 4px 8px;
-    border: none;
-    border-radius: 4px;
-    background-color: #17a2b8;
-    color: white;
-    cursor: pointer;
-  }
-  .loan-table button:last-child {
-    background-color: #dc3545;
-  }
-  .loan-table button:hover {
-    opacity: 0.9;
-  }
-  
+
   .pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
+    flex-direction: column;
+    gap: 16px;
   }
-  
-  .pagination-controls button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .status-cards {
+    grid-template-columns: 1fr;
   }
-  .pagination-controls button[disabled] {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
+}

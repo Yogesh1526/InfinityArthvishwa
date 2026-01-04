@@ -1,54 +1,199 @@
-<mat-card class="main-card">
-  <h2>Dashboard</h2>
-  <p>Welcome to the dashboard!</p>
-
-  <!-- Summary Cards Row -->
-  <div class="summary-cards">
-    <mat-card class="summary-card" *ngFor="let card of summaryCards">
-      <!-- <mat-icon>{{ card.icon }}</mat-icon> -->
-      <div class="card-info">
-        <h3>{{ card.title }}</h3>
-        <p>{{ card.value }}</p>
+<div class="dashboard-wrapper">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Dashboard</h1>
+        <p class="header-subtitle">Welcome back! Here's what's happening with your banking operations today.</p>
       </div>
-    </mat-card>
+      <div class="header-actions">
+        <button mat-stroked-button>
+          <mat-icon>date_range</mat-icon>
+          <span>Date Range</span>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- Charts Grid -->
-  <div class="grid-container">
-    <!-- Donut Chart -->
-    <mat-card class="chart-card">
-      <div class="chart-header">
-        <span>Revenue Distribution</span>
-        <mat-icon class="expand-icon" (click)="openChartDialog('donut')">open_in_full</mat-icon>
+  <!-- Summary Cards Grid -->
+  <div class="summary-cards-grid">
+    <div class="summary-card" *ngFor="let card of summaryCards">
+      <div class="card-icon-wrapper" [ngClass]="card.colorClass">
+        <mat-icon>{{ card.icon }}</mat-icon>
       </div>
-      <echarts [options]="donutChart" class="chart"></echarts>
-    </mat-card>
-
-    <!-- Bar Chart -->
-    <mat-card class="chart-card">
-      <div class="chart-header">
-        <span>Business Performance</span>
-        <mat-icon class="expand-icon" (click)="openChartDialog('bar')">open_in_full</mat-icon>
+      <div class="card-content">
+        <div class="card-label">{{ card.title }}</div>
+        <div class="card-value">{{ card.value }}</div>
+        <div class="card-change" *ngIf="card.change">
+          <mat-icon [ngClass]="card.change.positive ? 'positive' : 'negative'">
+            {{ card.change.positive ? 'trending_up' : 'trending_down' }}
+          </mat-icon>
+          <span [ngClass]="card.change.positive ? 'positive' : 'negative'">
+            {{ card.change.positive ? '+' : '' }}{{ card.change.percentage }}%
+          </span>
+          <span class="change-period">{{ card.change.period }}</span>
+        </div>
       </div>
-      <echarts [options]="barChart" class="chart"></echarts>
-    </mat-card>
-
-    <!-- Line Chart -->
-    <mat-card class="chart-card">
-      <div class="chart-header">
-        <span>Sales Trends</span>
-        <mat-icon class="expand-icon" (click)="openChartDialog('line')">open_in_full</mat-icon>
-      </div>
-      <echarts [options]="lineChart" class="chart"></echarts>
-    </mat-card>
-
-    <!-- Pie Chart -->
-    <mat-card class="chart-card">
-      <div class="chart-header">
-        <span>Customer Segmentation</span>
-        <mat-icon class="expand-icon" (click)="openChartDialog('pie')">open_in_full</mat-icon>
-      </div>
-      <echarts [options]="pieChart" class="chart"></echarts>
-    </mat-card>
+    </div>
   </div>
-</mat-card>
+
+  <!-- Charts and Additional Content Section -->
+  <div class="content-section">
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <!-- Main Charts Row -->
+      <div class="charts-row">
+        <!-- Revenue Distribution Chart -->
+        <mat-card class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">
+              <mat-icon>pie_chart</mat-icon>
+              <span>Revenue Distribution</span>
+            </div>
+            <button mat-icon-button (click)="openChartDialog('donut')" matTooltip="Expand Chart">
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+          <div class="chart-container">
+            <echarts [options]="donutChart" class="chart"></echarts>
+          </div>
+        </mat-card>
+
+        <!-- Business Performance Chart -->
+        <mat-card class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">
+              <mat-icon>bar_chart</mat-icon>
+              <span>Business Performance</span>
+            </div>
+            <button mat-icon-button (click)="openChartDialog('bar')" matTooltip="Expand Chart">
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+          <div class="chart-container">
+            <echarts [options]="barChart" class="chart"></echarts>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Secondary Charts Row -->
+      <div class="charts-row">
+        <!-- Sales Trends Chart -->
+        <mat-card class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">
+              <mat-icon>show_chart</mat-icon>
+              <span>Sales Trends</span>
+            </div>
+            <button mat-icon-button (click)="openChartDialog('line')" matTooltip="Expand Chart">
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+          <div class="chart-container">
+            <echarts [options]="lineChart" class="chart"></echarts>
+          </div>
+        </mat-card>
+
+        <!-- Customer Segmentation Chart -->
+        <mat-card class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">
+              <mat-icon>people</mat-icon>
+              <span>Customer Segmentation</span>
+            </div>
+            <button mat-icon-button (click)="openChartDialog('pie')" matTooltip="Expand Chart">
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+          <div class="chart-container">
+            <echarts [options]="pieChart" class="chart"></echarts>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Sidebar Section -->
+    <div class="sidebar-section">
+      <!-- Quick Actions -->
+      <mat-card class="sidebar-card quick-actions-card">
+        <div class="sidebar-card-header">
+          <mat-icon>flash_on</mat-icon>
+          <span>Quick Actions</span>
+        </div>
+        <div class="quick-actions-list">
+          <button mat-stroked-button class="action-button" *ngFor="let action of quickActions">
+            <mat-icon>{{ action.icon }}</mat-icon>
+            <span>{{ action.label }}</span>
+          </button>
+        </div>
+      </mat-card>
+
+      <!-- Recent Activities -->
+      <mat-card class="sidebar-card activities-card">
+        <div class="sidebar-card-header">
+          <mat-icon>history</mat-icon>
+          <span>Recent Activities</span>
+        </div>
+        <div class="activities-list">
+          <div class="activity-item" *ngFor="let activity of recentActivities">
+            <div class="activity-icon" [ngClass]="activity.type">
+              <mat-icon>{{ activity.icon }}</mat-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">{{ activity.title }}</div>
+              <div class="activity-time">{{ activity.time }}</div>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Recent Applications Table -->
+  <mat-card class="table-card">
+    <div class="table-card-header">
+      <div class="table-title">
+        <mat-icon>receipt_long</mat-icon>
+        <span>Recent Loan Applications</span>
+      </div>
+      <button mat-button color="primary">View All</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="applications-table">
+        <thead>
+          <tr>
+            <th>Application ID</th>
+            <th>Customer Name</th>
+            <th>Loan Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let application of recentApplications">
+            <td class="app-id">{{ application.id }}</td>
+            <td class="customer-name">
+              <div class="name-cell">
+                <mat-icon>person</mat-icon>
+                <span>{{ application.customerName }}</span>
+              </div>
+            </td>
+            <td class="amount">₹{{ application.amount | number }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(application.status)">
+                {{ application.status }}
+              </span>
+            </td>
+            <td class="date">{{ application.date }}</td>
+            <td>
+              <button mat-icon-button matTooltip="View Details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

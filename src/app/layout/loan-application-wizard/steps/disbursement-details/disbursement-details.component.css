@@ -1,0 +1,612 @@
+.disbursement-container {
+  padding: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header Section */
+.header-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.header-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1976d2;
+  margin: 0 0 8px 0;
+}
+
+.header-section .subtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 20px;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #bdbdbd;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.empty-state p {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 24px 0;
+  max-width: 400px;
+}
+
+/* View Section */
+.view-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge .status-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.status-badge.status-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.status-badge.status-pending {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ff9800;
+}
+
+.status-badge.status-failed {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #f44336;
+}
+
+/* Section Card */
+.section-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.section-header mat-icon {
+  color: #3f51b5;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+/* Details Grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #3f51b5;
+  transition: all 0.2s ease;
+}
+
+.detail-item:hover {
+  background: #f0f0f0;
+  transform: translateX(4px);
+}
+
+.detail-item.highlight {
+  border-left-color: #1976d2;
+  background: #e3f2fd;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-label mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #3f51b5;
+}
+
+.detail-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  padding-left: 26px;
+}
+
+.detail-value.monospace {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+/* Amount Display */
+.amount-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+  border-radius: 8px;
+  border: 1px solid #c8e6c9;
+}
+
+.amount-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2e7d32;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.amount-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2e7d32;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Fee Table */
+.fees-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.fee-table {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fee-table-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #f5f5f5;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fee-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3f51b5;
+}
+
+.fee-section-title mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  transition: background 0.2s ease;
+}
+
+.fee-row:hover {
+  background: #fafafa;
+}
+
+.fee-row.sub {
+  padding-left: 48px;
+  background: #fcfcfc;
+}
+
+.fee-row.sub .fee-col-desc {
+  color: #888;
+  font-size: 13px;
+}
+
+.fee-col-desc {
+  font-size: 14px;
+  color: #555;
+}
+
+.fee-col-amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Courier New', monospace;
+  text-align: right;
+  min-width: 120px;
+}
+
+.fee-row.total-deduction {
+  background: #fff8f8;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: 4px;
+}
+
+.fee-row.total-deduction .fee-col-desc {
+  font-weight: 600;
+  color: #c62828;
+}
+
+.fee-row.total-deduction .fee-col-amount {
+  color: #c62828;
+  font-weight: 700;
+}
+
+.fee-row.net-disbursement {
+  background: #f1f8e9;
+  border-bottom: none;
+  padding: 16px 20px;
+}
+
+.fee-row.net-disbursement .fee-col-desc {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.fee-row.net-disbursement .fee-col-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+/* Verified Badge */
+.verified-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: #e8f5e9;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.verified-badge mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #4caf50 !important;
+}
+
+/* Action Section */
+.action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: #fff3e0;
+  border-radius: 12px;
+  border: 1px solid #ffcc80;
+}
+
+.action-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #e65100;
+}
+
+.action-message mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.activate-button {
+  min-width: 200px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activate-button mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Success Section */
+.success-section {
+  margin-top: 8px;
+}
+
+.success-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 2px solid #4caf50;
+}
+
+.success-card > mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #4caf50;
+}
+
+.success-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2e7d32;
+  margin: 0 0 4px 0;
+}
+
+.success-content p {
+  font-size: 14px;
+  color: #388e3c;
+  margin: 0;
+}
+
+/* Audit Section */
+.audit-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #e0e0e0;
+}
+
+.audit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.audit-item mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #9e9e9e;
+}
+
+.audit-item strong {
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .disbursement-container {
+    padding: 12px;
+  }
+
+  .header-section h2 {
+    font-size: 24px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-card {
+    padding: 20px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .amount-value {
+    font-size: 28px;
+  }
+
+  .success-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .action-section {
+    padding: 20px;
+  }
+
+  .activate-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .disbursement-container {
+    padding: 8px;
+  }
+
+  .header-section h2 {
+    font-size: 20px;
+  }
+
+  .section-card {
+    padding: 16px;
+  }
+
+  .detail-item {
+    padding: 12px;
+  }
+
+  .amount-value {
+    font-size: 24px;
+  }
+
+  .fee-table-header,
+  .fee-row,
+  .fee-section-title {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .fee-row.sub {
+    padding-left: 28px;
+  }
+
+  .fee-col-amount {
+    min-width: 90px;
+    font-size: 13px;
+  }
+
+  .fee-row.net-disbursement .fee-col-amount {
+    font-size: 16px;
+  }
+
+  .success-card > mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.view-section {
+  animation: fadeIn 0.5s ease-in;
+}
+
+.section-card {
+  animation: fadeIn 0.4s ease-in;
+}

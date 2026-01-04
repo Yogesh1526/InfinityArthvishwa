@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, Output, EventEmitter } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 
 @Component({
@@ -9,6 +9,7 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 export class AdditionalDocumentsComponent {
   form: FormGroup;
   documentPreviews: { [key: string]: string | ArrayBuffer | null } = {};
+  @Output() stepCompleted = new EventEmitter<void>();
 
   @ViewChild('incomeProof') incomeProofInput!: ElementRef<HTMLInputElement>;
   @ViewChild('addressProof') addressProofInput!: ElementRef<HTMLInputElement>;
@@ -37,8 +38,28 @@ export class AdditionalDocumentsComponent {
       reader.onload = () => {
         this.documentPreviews[controlName] = reader.result;
         this.form.patchValue({ [controlName]: file });
+        this.stepCompleted.emit();
       };
-      reader.readAsDataURL(file);
+      if (file.type.startsWith('image')) {
+        reader.readAsDataURL(file);
+      } else {
+        this.documentPreviews[controlName] = 'pdf';
+        this.form.patchValue({ [controlName]: file });
+        this.stepCompleted.emit();
+      }
+    }
+  }
+
+  clearDocument(controlName: string): void {
+    this.documentPreviews[controlName] = null;
+    this.form.patchValue({ [controlName]: null });
+    // Reset file input
+    if (controlName === 'incomeProof') {
+      this.incomeProofInput.nativeElement.value = '';
+    } else if (controlName === 'addressProof') {
+      this.addressProofInput.nativeElement.value = '';
+    } else if (controlName === 'otherDocument') {
+      this.otherDocumentInput.nativeElement.value = '';
     }
   }
 }

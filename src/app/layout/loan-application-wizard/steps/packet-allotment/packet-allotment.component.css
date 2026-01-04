@@ -1,0 +1,366 @@
+.packet-allotment-container {
+  padding: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.packet-allotment-container h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 24px 0;
+}
+
+.packet-allotment-container h2 mat-icon {
+  color: #2196f3;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+/* View Mode Styles */
+.detail-view {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.allotted-list-section {
+  width: 100%;
+}
+
+.allotted-list-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 20px 0;
+}
+
+.allotted-list-section h3 mat-icon {
+  color: #2196f3;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.allotted-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-field-view {
+  margin-bottom: 20px;
+}
+
+.form-field-view:last-child {
+  margin-bottom: 0;
+}
+
+.form-field-view label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6c757d;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.value-display {
+  font-size: 15px;
+  color: #212529;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e9ecef;
+}
+
+.packet-number {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2196f3;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Form Mode Styles */
+.packet-form {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.packet-form .allotted-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+
+.form-field {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.packet-id-field {
+  position: relative;
+  width: 100%;
+}
+
+.spinner-controls {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  z-index: 1;
+  background: #ffffff;
+  border-left: 1px solid #e0e0e0;
+  border-radius: 0 4px 4px 0;
+}
+
+.spinner-controls button {
+  width: 32px;
+  height: 24px;
+  line-height: 24px;
+  min-width: 32px;
+  padding: 0;
+  border-radius: 0;
+  color: #666;
+}
+
+.spinner-controls button:hover:not([disabled]) {
+  background: #f5f5f5;
+}
+
+.spinner-controls button:first-child {
+  border-top-right-radius: 4px;
+}
+
+.spinner-controls button:last-child {
+  border-bottom-right-radius: 4px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.spinner-controls mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.form-field mat-icon[matPrefix] {
+  margin-right: 8px;
+  color: #999;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+}
+
+.form-actions button {
+  min-width: 100px;
+}
+
+.update-button {
+  min-width: 120px;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Items Section */
+.items-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.items-header label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.items-field {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.item-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.remove-item-btn {
+  margin-top: 8px;
+  color: #dc3545;
+}
+
+.item-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 4px 4px 4px 0;
+  background: #e3f2fd;
+  color: #1565c0;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+}
+
+.items-list .value-display {
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .packet-allotment-container {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .packet-allotment-container {
+    padding: 16px;
+  }
+
+  .packet-allotment-container h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .detail-view,
+  .packet-form {
+    padding: 16px;
+  }
+
+  .allotted-card {
+    padding: 16px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-actions button {
+    width: 100%;
+    margin: 0;
+  }
+
+  .spinner-controls {
+    right: 4px;
+  }
+
+  .item-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .remove-item-btn {
+    align-self: flex-end;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .packet-allotment-container {
+    padding: 12px;
+  }
+
+  .packet-allotment-container h2 {
+    font-size: 18px;
+  }
+
+  .detail-view,
+  .packet-form {
+    padding: 12px;
+  }
+
+  .allotted-card {
+    padding: 12px;
+  }
+
+  .form-field-view label {
+    font-size: 11px;
+  }
+
+  .value-display {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

@@ -1,70 +1,126 @@
 <div class="reference-container" *ngIf="!isLoading">
-  <div class="reference-header">
-    <mat-icon color="primary">contacts</mat-icon>
-    <h2>Reference Details</h2>
-  </div>
-
-  <!-- Existing References List -->
-  <div class="reference-list" *ngIf="referenceList.length > 0">
-    <div class="reference-item" *ngFor="let ref of referenceList; let i = index">
-      <div class="reference-info">
-        <span><strong>Name:</strong> {{ ref.name }}</span>
-        <span><strong>Mobile:</strong> {{ ref.mobileNumber }}</span>
-        <span><strong>Relationship:</strong> {{ ref.relationshipWithApplicant }}</span>
-        <span><strong>Gender:</strong> {{ ref.gender }}</span>
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>contacts</mat-icon>
       </div>
-      <div class="reference-buttons">
-        <button mat-stroked-button color="accent" (click)="editReference(ref, i)">
-          <mat-icon>edit</mat-icon>&nbsp;Edit
-        </button>
+      <div class="header-text">
+        <h2>Reference Details</h2>
+        <p class="header-subtitle">Add up to 2 references for the loan application</p>
       </div>
     </div>
-  </div>
-
-  <!-- Add Reference Button -->
-  <div *ngIf="!showForm && referenceList.length < 2" class="add-btn-wrap">
-    <button mat-flat-button color="primary" (click)="showForm = true">
-      <mat-icon>add</mat-icon> Add Reference
+    <button *ngIf="!showForm && referenceList.length < 2" mat-stroked-button color="primary" class="add-btn" (click)="showForm = true">
+      <mat-icon>add</mat-icon>
+      Add Reference
     </button>
   </div>
 
-  <!-- Reference Form -->
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="showForm" novalidate class="reference-form">
-    <div class="form-grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Name</mat-label>
-        <input matInput formControlName="name" />
-      </mat-form-field>
+  <!-- References List (View Mode) -->
+  <div *ngIf="referenceList.length > 0 && !showForm" class="content-card">
+    <div class="details-wrapper">
+      <div *ngFor="let ref of referenceList; let i = index" class="reference-block">
+        <div class="info-group">
+          <h4 class="group-title">
+            <mat-icon>person</mat-icon>
+            Reference {{ i + 1 }}
+          </h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Name</span>
+              <span class="info-value">{{ ref.name || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Mobile Number</span>
+              <span class="info-value">{{ ref.mobileNumber || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Relationship</span>
+              <span class="info-value">{{ ref.relationshipWithApplicant || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Gender</span>
+              <span class="info-value">{{ ref.gender || '—' }}</span>
+            </div>
+          </div>
+          <div class="reference-actions">
+            <button mat-stroked-button color="primary" (click)="editReference(ref, i)">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button mat-stroked-button color="warn" (click)="deleteReference(ref, i)">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Mobile Number</mat-label>
-        <input matInput formControlName="mobileNumber" maxlength="10" />
-      </mat-form-field>
+  <!-- Empty State -->
+  <div *ngIf="referenceList.length === 0 && !showForm" class="empty-state">
+    <mat-icon>person_add</mat-icon>
+    <h3>No References Added</h3>
+    <p>Add at least one reference for the loan application</p>
+    <button mat-raised-button color="primary" (click)="showForm = true">
+      <mat-icon>add</mat-icon>
+      Add First Reference
+    </button>
+  </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Relationship</mat-label>
-        <mat-select formControlName="relationship">
-          <mat-option *ngFor="let relation of relationshipOptions" [value]="relation">
-            {{ relation }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+  <!-- Form Mode -->
+  <form *ngIf="showForm" [formGroup]="form" (ngSubmit)="onSubmit()" class="content-card">
+    <div class="details-wrapper">
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>person_add</mat-icon>
+          {{ isEditMode ? 'Edit Reference' : 'Add New Reference' }}
+        </h4>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" placeholder="Enter full name" />
+            <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
+          </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Gender</mat-label>
-        <mat-select formControlName="gender">
-          <mat-option value="Male">Male</mat-option>
-          <mat-option value="Female">Female</mat-option>
-          <mat-option value="Other">Other</mat-option>
-        </mat-select>
-      </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Mobile Number</mat-label>
+            <input matInput formControlName="mobileNumber" maxlength="10" placeholder="Enter 10-digit mobile" />
+            <mat-error *ngIf="form.get('mobileNumber')?.hasError('required')">Mobile number is required</mat-error>
+            <mat-error *ngIf="form.get('mobileNumber')?.hasError('pattern')">Enter valid 10-digit number</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Relationship</mat-label>
+            <mat-select formControlName="relationship">
+              <mat-option *ngFor="let relation of relationshipOptions" [value]="relation">{{ relation }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('relationship')?.hasError('required')">Relationship is required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Gender</mat-label>
+            <mat-select formControlName="gender">
+              <mat-option value="Male">Male</mat-option>
+              <mat-option value="Female">Female</mat-option>
+              <mat-option value="Other">Other</mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('gender')?.hasError('required')">Gender is required</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
     </div>
 
+    <!-- Form Actions -->
     <div class="form-actions">
-      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-        {{ isEditMode ? 'Update' : 'Submit' }}
+      <button mat-stroked-button type="button" (click)="cancelForm()">
+        Cancel
       </button>
-      <button mat-stroked-button type="button" (click)="cancelForm()">Cancel</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+        <mat-icon>{{ isEditMode ? 'update' : 'save' }}</mat-icon>
+        {{ isEditMode ? 'Update Details' : 'Save Details' }}
+      </button>
     </div>
   </form>
 </div>

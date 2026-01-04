@@ -1,0 +1,11 @@
+/* Ensure only one loader instance */
+app-loader {
+  display: block;
+  position: relative;
+}
+
+/* Prevent duplicate loaders */
+app-loader:not(:first-of-type) {
+  display: none !important;
+}
+

@@ -1,36 +1,88 @@
+/* Import common styles */
+@import './styles/common.css';
+
 html, body {
-    height: 100%;
-  }
-  
-  body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
-  }
-  
-  /* Move snackbar down */
-  .cdk-global-overlay-wrapper {
-    align-items: flex-start !important;
-    padding-top: 60px !important;
-  }
-  
-  /* Custom toast colors */
-  .mat-snack-bar-container.toast-success {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .mat-snack-bar-container.toast-error {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .mat-snack-bar-container.toast-info {
-    background-color: #2196f3;
-    color: white;
-  }
-  
-  .mat-snack-bar-container.toast-warning {
-    background-color: #ff9800;
-    color: white;
-  }
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  position: relative;
+}
+
+/* Move snackbar down */
+.cdk-global-overlay-wrapper {
+  align-items: flex-start !important;
+  padding-top: 60px !important;
+}
+
+/* Custom toast colors and styles */
+.mat-snack-bar-container.toast-success {
+  background-color: var(--success-color, #4caf50) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+}
+
+.mat-snack-bar-container.toast-error {
+  background-color: var(--error-color, #f44336) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3) !important;
+}
+
+.mat-snack-bar-container.toast-info {
+  background-color: var(--info-color, #2196f3) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3) !important;
+}
+
+.mat-snack-bar-container.toast-warning {
+  background-color: var(--warning-color, #ff9800) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3) !important;
+}
+
+/* Enhanced toast animations */
+.mat-snack-bar-container {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  min-width: 300px !important;
+  max-width: 500px !important;
+}
+
+/* Security: Prevent text selection on sensitive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary-color, #1976d2);
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent drag and drop on sensitive areas */
+.no-drag {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
   

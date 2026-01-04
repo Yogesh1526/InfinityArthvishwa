@@ -1,0 +1,562 @@
+<div class="gl-scheme-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">account_balance_wallet</mat-icon>
+      GL Scheme Selection
+    </h2>
+    <p class="subtitle">Select loan scheme and view loan offer details</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading scheme details...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="formLoaded && !isLoading">
+    <!-- Loan Offer Summary Cards (when data is available) -->
+    <div class="summary-cards" *ngIf="schemeData">
+      <div class="summary-card highlight">
+        <mat-icon class="card-icon">verified</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Net Weight</span>
+          <span class="card-value">{{ formatNumber(schemeData.netWeight, 2) }} g</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">percent</mat-icon>
+        <div class="card-content">
+          <span class="card-label">LTV</span>
+          <span class="card-value">₹{{ formatNumber(schemeData.goldRate, 2) }}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">trending_up</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Max Loan Amount</span>
+          <span class="card-value">{{ formatCurrency(schemeData.maxLoanAmount) }}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">money</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Sanctioned amount</span>
+          <span class="card-value">{{ formatCurrency(schemeData.loanAmountNeedToBeDisbursed) }}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <mat-icon class="card-icon">account_balance</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Processing Fees</span>
+          <span class="card-value">{{ formatCurrency(schemeData.processingFees) }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <mat-icon class="card-icon">account_balance_wallet</mat-icon>
+        <div class="card-content">
+          <span class="card-label">Loan Disbursement Amount</span>
+          <span class="card-value">{{ formatCurrency(schemeData.loanDisbusrsementAmount || form.get('loanDisbusrsementAmount')?.value || 0) }}</span>
+        </div>
+      </div>
+     
+     
+    </div>
+
+    <!-- Form Mode -->
+    <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="scheme-form">
+      <div class="form-section">
+        <div class="section-header">
+          <h3>
+            <mat-icon>edit</mat-icon>
+            Scheme Selection Form
+          </h3>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Scheme Name</mat-label>
+            <mat-select formControlName="schemeName">
+              <mat-option *ngFor="let scheme of schemeNameOptions" [value]="scheme">
+                {{ scheme }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>label</mat-icon>
+            <mat-error *ngIf="form.get('schemeName')?.hasError('required')">
+              Scheme name is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Tenure</mat-label>
+            <mat-select formControlName="tenure">
+              <mat-option *ngFor="let tenure of tenureOptions" [value]="tenure">
+                {{ tenure }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>schedule</mat-icon>
+            <mat-error *ngIf="form.get('tenure')?.hasError('required')">
+              Tenure is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Repayment Frequency</mat-label>
+            <mat-select formControlName="repaymentFrequency">
+              <mat-option *ngFor="let frequency of repaymentFrequencyOptions" [value]="frequency">
+                {{ frequency }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>calendar_today</mat-icon>
+            <mat-error *ngIf="form.get('repaymentFrequency')?.hasError('required')">
+              Repayment frequency is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Loan Purpose</mat-label>
+            <textarea matInput formControlName="loanPurpose" placeholder="Enter loan purpose" rows="3"></textarea>
+            <mat-icon matPrefix>description</mat-icon>
+            <mat-error *ngIf="form.get('loanPurpose')?.hasError('required')">
+              Loan purpose is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSaving">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isSaving">
+          <mat-icon *ngIf="!isSaving">save</mat-icon>
+          <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+          <span>{{ isSaving ? 'Saving...' : (isDataAvailable ? 'Update' : 'Generate Loan Offer') }}</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Update GL Scheme Section - Before Loan Offer Details -->
+    <mat-card class="details-card update-section-top" *ngIf="schemeData && !isEditMode">
+      <mat-card-header>
+        <mat-card-title>Update GL Scheme</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="update-section">
+          <mat-form-field appearance="outline" class="update-field">
+            <mat-label>Loan Amount (₹)</mat-label>
+            <input matInput type="number" [(ngModel)]="loanAmount" placeholder="Enter loan amount" min="0" />
+            <mat-icon matPrefix>currency_rupee</mat-icon>
+            <mat-hint>Enter the new loan amount to update the scheme</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="update-field">
+            <mat-label>Processing Fees (₹)</mat-label>
+            <input matInput type="number" [(ngModel)]="processingFees" placeholder="Enter processing fees" min="0" step="0.01" />
+            <mat-icon matPrefix>account_balance</mat-icon>
+            <mat-hint>Enter the processing fees amount</mat-hint>
+          </mat-form-field>
+
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="onUpdateLoanAmount()" 
+            [disabled]="!loanAmount || loanAmount <= 0 || isUpdating"
+            class="update-button">
+            <mat-icon *ngIf="!isUpdating">update</mat-icon>
+            <mat-spinner *ngIf="isUpdating" diameter="20" class="button-spinner"></mat-spinner>
+            <span>{{ isUpdating ? 'Updating...' : 'Update GL Scheme' }}</span>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Loan Offer Details (when data is available) -->
+    <div class="loan-offer-section" *ngIf="schemeData && !isEditMode">
+      <div class="section-header">
+        <h3>
+          <mat-icon>receipt_long</mat-icon>
+          Loan Offer Details
+        </h3>
+        <p class="section-description">Complete loan offer breakdown and calculations</p>
+      </div>
+
+      <!-- Basic Details -->
+      <mat-card class="details-card">
+        <mat-card-header>
+          <mat-card-title>Basic Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>account_circle</mat-icon>
+                <span>Loan Account Number</span>
+              </div>
+              <div class="detail-value">{{ schemeData.loanAccountNumber || loanApplicationId }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>badge</mat-icon>
+                <span>Gold Loan Account Number</span>
+              </div>
+              <div class="detail-value">{{ schemeData.goldLoanAccountNumber || '—' }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>label</mat-icon>
+                <span>Scheme Name</span>
+              </div>
+              <div class="detail-value">{{ schemeData.schemeName }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>schedule</mat-icon>
+                <span>Tenure</span>
+              </div>
+              <div class="detail-value">{{ schemeData.tenureMonths || schemeData.tenure }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Repayment Frequency</span>
+              </div>
+              <div class="detail-value">{{ schemeData.repaymentFrequency }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>lock</mat-icon>
+                <span>Lock In Period</span>
+              </div>
+              <div class="detail-value">{{ schemeData.lockInPeriod || 'N/A' }}</div>
+            </div>
+            <div class="detail-item full-width">
+              <div class="detail-label">
+                <mat-icon>description</mat-icon>
+                <span>Loan Purpose</span>
+              </div>
+              <div class="detail-value">{{ schemeData.endUse || schemeData.loanPurpose || '—' }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Amount Details -->
+      <mat-card class="details-card">
+        <mat-card-header>
+          <mat-card-title>Amount Details</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>trending_up</mat-icon>
+                <span>Max Loan Amount</span>
+              </div>
+              <div class="detail-value">{{ formatCurrency(schemeData.maxLoanAmount) }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>account_balance</mat-icon>
+                <span>Processing Fees</span>
+              </div>
+              <div class="detail-value">{{ formatCurrency(schemeData.processingFees) }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Gold & Weight Details -->
+      <mat-card class="details-card">
+        <mat-card-header>
+          <mat-card-title>Gold & Weight Details</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item highlight">
+              <div class="detail-label">
+                <mat-icon>straighten</mat-icon>
+                <span>Net Weight</span>
+              </div>
+              <div class="detail-value">{{ formatNumber(schemeData.netWeight, 2) }} g</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <mat-icon>percent</mat-icon>
+                <span>Gold Rate</span>
+              </div>
+              <div class="detail-value">₹{{ formatNumber(schemeData.goldRate, 2) }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Interest & Rebate Details -->
+      <div class="interest-rebate-section">
+        <mat-card class="details-card">
+          <mat-card-header>
+            <mat-card-title>Annual Rates & Amounts</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="details-grid">
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>percent</mat-icon>
+                  <span>Annual Interest Rate</span>
+                </div>
+                <div class="detail-value">{{ formatPercent(schemeData.annualInterestRate) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>currency_rupee</mat-icon>
+                  <span>Annual Interest Amount</span>
+                </div>
+                <div class="detail-value">{{ formatCurrency(schemeData.annualInterestAmt) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>percent</mat-icon>
+                  <span>Annual Rebate Percent</span>
+                </div>
+                <div class="detail-value">{{ formatPercent(schemeData.annualRebatePercent) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>currency_rupee</mat-icon>
+                  <span>Annual Rebate Amount</span>
+                </div>
+                <div class="detail-value">{{ formatCurrency(schemeData.annualRebateAmt) }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="details-card">
+          <mat-card-header>
+            <mat-card-title>Monthly Rates & Amounts</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="details-grid">
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>percent</mat-icon>
+                  <span>Monthly Interest Rate</span>
+                </div>
+                <div class="detail-value">{{ formatPercent(schemeData.monthlyInterestRate) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>currency_rupee</mat-icon>
+                  <span>Monthly Interest Amount</span>
+                </div>
+                <div class="detail-value">{{ formatCurrency(schemeData.monthlyInterestAmt) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>currency_rupee</mat-icon>
+                  <span>Monthly Rebate Amount</span>
+                </div>
+                <div class="detail-value">{{ formatCurrency(schemeData.monthlyRebateAmt) }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="details-card">
+          <mat-card-header>
+            <mat-card-title>Daily Rates & Amounts</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="details-grid">
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>percent</mat-icon>
+                  <span>Daily Interest Rate</span>
+                </div>
+                <div class="detail-value">{{ formatPercent(schemeData.dailyInterestRate) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>currency_rupee</mat-icon>
+                  <span>Daily Interest Amount</span>
+                </div>
+                <div class="detail-value">{{ formatCurrency(schemeData.dailyInterestAmt) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>percent</mat-icon>
+                  <span>Daily Rebate Interest Rate</span>
+                </div>
+                <div class="detail-value">{{ formatPercent(schemeData.dailyRebateInterestRate) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">
+                  <mat-icon>currency_rupee</mat-icon>
+                  <span>Daily Rebate Interest Amount</span>
+                </div>
+                <div class="detail-value">{{ formatCurrency(schemeData.dailyRebateIntAmt) }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+
+      <!-- Repayment Schedules Table -->
+      <mat-card class="details-card" *ngIf="repaymentSchedules && repaymentSchedules.length > 0">
+        <mat-card-header>
+          <mat-card-title>Repayment Schedules</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="repaymentSchedules" class="repayment-table mat-elevation-z2">
+              
+              <!-- Installment Number -->
+              <ng-container matColumnDef="installmentNumber">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>confirmation_number</mat-icon>
+                    <span>#</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+              </ng-container>
+
+              <!-- Due Date -->
+              <ng-container matColumnDef="dueDate">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>event</mat-icon>
+                    <span>Due Date</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element">{{ element.dueDate | date:'dd-MMM-yyyy' }}</td>
+              </ng-container>
+
+              <!-- Opening Principal -->
+              <ng-container matColumnDef="openingPrincipal">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>account_balance</mat-icon>
+                    <span>Opening Principal</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element">{{ formatCurrency(element.openingPrincipalAmount) }}</td>
+              </ng-container>
+
+              <!-- Number of Days -->
+              <ng-container matColumnDef="numberOfDays">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>schedule</mat-icon>
+                    <span>Days</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element">{{ element.numberOfDays }}</td>
+              </ng-container>
+
+              <!-- Interest After Rebate -->
+              <ng-container matColumnDef="interestAfterRebate">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>trending_up</mat-icon>
+                    <span>Interest (P.M)</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element" class="highlight-cell">
+                  {{ formatCurrency(element.interestAmountAfterRebate) }}
+                </td>
+              </ng-container>
+
+              <!-- Rebate Interest -->
+              <ng-container matColumnDef="rebateInterest">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>percent</mat-icon>
+                    <span>Rebate Interest</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element">{{ formatCurrency(element.rebateInterestAmount) }}</td>
+              </ng-container>
+
+              <!-- Daily Interest After Rebate -->
+              <ng-container matColumnDef="dailyInterestAfterRebate">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>today</mat-icon>
+                    <span>Daily Interest (After Rebate)</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element">{{ formatCurrency(element.dailyAfterRebateInterestAmount) }}</td>
+              </ng-container>
+
+              <!-- Daily Rebate Interest -->
+              <ng-container matColumnDef="dailyRebateInterest">
+                <th mat-header-cell *matHeaderCellDef>
+                  <div class="header-cell">
+                    <mat-icon>today</mat-icon>
+                    <span>Daily Rebate Interest</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let element">{{ formatCurrency(element.dailyRebateInterestAmount) }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-data-row"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Metadata -->
+      <mat-card class="details-card" *ngIf="schemeData.createdBy || schemeData.createdDate">
+        <mat-card-header>
+          <mat-card-title>Additional Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="details-grid">
+            <div class="detail-item" *ngIf="schemeData.loanDisbursmentDate">
+              <div class="detail-label">
+                <mat-icon>event</mat-icon>
+                <span>Loan Disbursement Date</span>
+              </div>
+              <div class="detail-value">{{ schemeData.loanDisbursmentDate | date:'medium' }}</div>
+            </div>
+            <div class="detail-item" *ngIf="schemeData.createdBy">
+              <div class="detail-label">
+                <mat-icon>person</mat-icon>
+                <span>Created By</span>
+              </div>
+              <div class="detail-value">{{ schemeData.createdBy }}</div>
+            </div>
+            <div class="detail-item" *ngIf="schemeData.createdDate">
+              <div class="detail-label">
+                <mat-icon>calendar_today</mat-icon>
+                <span>Created Date</span>
+              </div>
+              <div class="detail-value">{{ schemeData.createdDate }}</div>
+            </div>
+            <div class="detail-item" *ngIf="schemeData.updatedBy">
+              <div class="detail-label">
+                <mat-icon>edit</mat-icon>
+                <span>Updated By</span>
+              </div>
+              <div class="detail-value">{{ schemeData.updatedBy }}</div>
+            </div>
+            <div class="detail-item" *ngIf="schemeData.updatedDate">
+              <div class="detail-label">
+                <mat-icon>update</mat-icon>
+                <span>Updated Date</span>
+              </div>
+              <div class="detail-value">{{ schemeData.updatedDate }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+  </div>
+</div>

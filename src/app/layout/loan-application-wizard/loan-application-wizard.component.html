@@ -7,10 +7,10 @@
         *ngFor="let step of steps; let i = index"
         (click)="goToStep(i)"
         [class.active]="i === activeStep"
-        [class.completed]="i < activeStep"
+        [class.completed]="isStepCompleted(i)"
       >
         <mat-icon matListIcon>
-          {{ i < activeStep ? 'check_circle' : (i === activeStep ? 'radio_button_checked' : 'radio_button_unchecked') }}
+          {{ isStepCompleted(i) ? 'check_circle' : (i === activeStep ? 'radio_button_checked' : 'radio_button_unchecked') }}
         </mat-icon>
         <span class="step-label">{{ step.label }}</span>
       </mat-list-item>
@@ -28,27 +28,33 @@
     </div> -->
 
     <!-- Step Header -->
-    <div class="wizard-step-header">
+    <!-- <div class="wizard-step-header">
       <h3>{{ steps[activeStep].label }}</h3>
-    </div>
+    </div> -->
 
     <!-- Step Content -->
     <div class="wizard-step-content">
       <ng-container [ngSwitch]="activeStep">
-        <app-personal-details *ngSwitchCase="0"  [loanApplicationId]="loanApplicationId"></app-personal-details>
-        <app-family-details *ngSwitchCase="1"  [loanApplicationId]="loanApplicationId"></app-family-details>
-        <app-address-activity *ngSwitchCase="2" [loanApplicationId]="loanApplicationId"></app-address-activity>
-        <app-work-details *ngSwitchCase="3" [loanApplicationId]="loanApplicationId"></app-work-details>
-        <app-kyc-details *ngSwitchCase="4" [loanApplicationId]="loanApplicationId"></app-kyc-details>
-        <app-additional-documents *ngSwitchCase="5"></app-additional-documents>
-        <!-- <app-client-documents *ngSwitchCase="6"></app-client-documents> -->
-        <app-nominee *ngSwitchCase="6" [loanApplicationId]="loanApplicationId"></app-nominee>
-        <app-reference-details *ngSwitchCase="7" [loanApplicationId]="loanApplicationId"></app-reference-details>
-        <app-gold-ownership-details *ngSwitchCase="8" [loanApplicationId]="loanApplicationId"></app-gold-ownership-details>
-        <app-first-valuation *ngSwitchCase="9" [loanApplicationId]="loanApplicationId"></app-first-valuation>
-        <app-second-valuation *ngSwitchCase="10" [loanApplicationId]="loanApplicationId"></app-second-valuation>
-        <app-final-valuation *ngSwitchCase="11" [loanApplicationId]="loanApplicationId"></app-final-valuation>
-
+        <app-personal-details #personalDetailsRef *ngSwitchCase="0" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(0)" (validationFailed)="onValidationFailed($event)"></app-personal-details>
+        <app-family-details *ngSwitchCase="1" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(1)"></app-family-details>
+        <app-address-activity *ngSwitchCase="2" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(2)"></app-address-activity>
+        <app-work-details *ngSwitchCase="3" [customerId]="customerId" [customerNumericId]="customerNumericId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(3)"></app-work-details>
+        <app-kyc-details *ngSwitchCase="4" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(4)"></app-kyc-details>
+        <app-additional-documents *ngSwitchCase="5" (stepCompleted)="markStepCompleted(5)"></app-additional-documents>
+        <app-nominee *ngSwitchCase="6" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(6)"></app-nominee>
+        <app-reference-details *ngSwitchCase="7" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(7)"></app-reference-details>
+        <app-gold-ownership-details *ngSwitchCase="8" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(8)" (loanAccountNumberUpdated)="onLoanAccountNumberUpdated($event)"></app-gold-ownership-details>
+        <app-first-valuation *ngSwitchCase="9" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(9)"></app-first-valuation>
+        <app-second-valuation *ngSwitchCase="10" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(10)"></app-second-valuation>
+        <app-final-valuation *ngSwitchCase="11" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(11)"></app-final-valuation>
+        <app-gl-scheme-selection *ngSwitchCase="12" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(12)"></app-gl-scheme-selection>
+        <app-bank-details *ngSwitchCase="13" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(13)"></app-bank-details>
+        <app-packet-allotment *ngSwitchCase="14" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(14)"></app-packet-allotment>
+        <app-tare-weight *ngSwitchCase="15" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(15)"></app-tare-weight>
+        <app-expected-closure-date *ngSwitchCase="16" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(16)"></app-expected-closure-date>
+        <app-loan-application-approval *ngSwitchCase="17" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(17)"></app-loan-application-approval>
+        <app-loan-agreement-document *ngSwitchCase="18" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(18)"></app-loan-agreement-document>
+        <app-disbursement-details *ngSwitchCase="19" [customerId]="customerId" [loanApplicationId]="loanApplicationId" (stepCompleted)="markStepCompleted(19)"></app-disbursement-details>
       </ng-container>
     </div>
 

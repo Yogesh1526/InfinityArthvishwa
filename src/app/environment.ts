@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://array-startup-wheels-establish.trycloudflare.com'
+    apiUrl: 'https://quarterly-quality-ddr-motors.trycloudflare.com'
   };
   

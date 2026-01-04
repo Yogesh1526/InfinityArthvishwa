@@ -1,37 +1,118 @@
 <div class="work-details-container" *ngIf="formLoaded">
-  <h2>
-    <mat-icon color="primary">work</mat-icon>
-    Work Details
-  </h2>
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>work</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>Work Details</h2>
+        <p class="header-subtitle">Employment and income information</p>
+      </div>
+    </div>
+    <button *ngIf="!isEditable && isDataAvailable" mat-stroked-button color="primary" class="edit-btn" (click)="onEdit()">
+      <mat-icon>edit</mat-icon>
+      Edit Details
+    </button>
+  </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Customer Segment</mat-label>
-        <input matInput formControlName="customerSegment" [readonly]="!isEditable" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Occupation</mat-label>
-        <input matInput formControlName="occupation" [readonly]="!isEditable" />
-      </mat-form-field>
+  <!-- View Mode -->
+  <div *ngIf="!isEditable && isDataAvailable" class="content-card">
+    <div class="details-wrapper">
+      <!-- Employment Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>business_center</mat-icon>
+          Employment Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Customer Segment</span>
+            <span class="info-value">{{ form.get('customerSegment')?.value || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Occupation</span>
+            <span class="info-value">{{ form.get('occupation')?.value || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Experience in Current Job</span>
+            <span class="info-value">{{ form.get('experienceInCurrentJob')?.value || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Annual Income</span>
+            <span class="info-value">{{ form.get('annualIncome')?.value || '—' }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Experience in Current Job (Years)</mat-label>
-        <input matInput type="number" formControlName="experienceInCurrentJob" [readonly]="!isEditable" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Annual Income</mat-label>
-        <input matInput formControlName="annualIncome" [readonly]="!isEditable" />
-      </mat-form-field>
-    </div>
-
+    <!-- View Mode Actions -->
     <div class="form-actions">
-      <button *ngIf="isEditable" mat-flat-button color="primary" type="submit">Save</button>
-      <button *ngIf="!isEditable && isDataAvailable" mat-stroked-button color="accent" type="button" (click)="onEdit()">Edit</button>
+      <button mat-stroked-button color="warn" type="button" (click)="onDelete()">
+        <mat-icon>delete</mat-icon>
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Mode -->
+  <form *ngIf="isEditable" [formGroup]="form" (ngSubmit)="onSubmit()" class="content-card">
+    <div class="details-wrapper">
+      <!-- Employment Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>business_center</mat-icon>
+          Employment Information
+        </h4>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Customer Segment</mat-label>
+            <mat-select formControlName="customerSegment">
+              <mat-option *ngFor="let segment of customerSegmentOptions" [value]="segment">
+                {{ segment }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Occupation</mat-label>
+            <mat-select formControlName="occupation">
+              <mat-option *ngFor="let occupation of occupationOptions" [value]="occupation">
+                {{ occupation }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Experience in Current Job</mat-label>
+            <mat-select formControlName="experienceInCurrentJob">
+              <mat-option *ngFor="let experience of experienceOptions" [value]="experience">
+                {{ experience }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Annual Income</mat-label>
+            <mat-select formControlName="annualIncome">
+              <mat-option *ngFor="let income of annualIncomeOptions" [value]="income">
+                {{ income }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button *ngIf="isDataAvailable" mat-stroked-button type="button" (click)="onCancel()">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" type="submit">
+        <mat-icon>save</mat-icon>
+        {{ workDetailsId ? 'Update Details' : 'Save Details' }}
+      </button>
     </div>
   </form>
 </div>

@@ -1,0 +1,15 @@
+<div class="data-not-found-container">
+  <div class="data-not-found-content">
+    <mat-icon class="not-found-icon">{{ icon }}</mat-icon>
+    <h2 class="not-found-title">{{ message }}</h2>
+    <p class="not-found-description">
+      We couldn't find what you're looking for. Please try again or go back to the previous page.
+    </p>
+    <div *ngIf="showAction" class="action-buttons">
+      <button mat-raised-button color="primary" routerLink="{{ actionRoute }}">
+        {{ actionLabel }}
+      </button>
+    </div>
+  </div>
+</div>
+

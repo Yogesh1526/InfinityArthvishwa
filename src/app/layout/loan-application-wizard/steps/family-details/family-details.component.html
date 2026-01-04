@@ -1,83 +1,147 @@
-<div class="family-form-card">
-
-  <h2><mat-icon color="primary">groups</mat-icon> Family Details</h2>
-
-  <!-- View Mode -->
-  <div *ngIf="familyDetails && !isEditMode" class="detail-view">
-    <div class="detail-grid">
-      <div class="detail-item">
-        <label>Spouse First Name:</label>
-        <span>{{ familyDetails.spouseFirstName || 'N/A' }}</span>
+<div class="family-details-container">
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <mat-icon>family_restroom</mat-icon>
       </div>
-      <div class="detail-item">
-        <label>Spouse Last Name:</label>
-        <span>{{ familyDetails.spouseLastName || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Father First Name:</label>
-        <span>{{ familyDetails.fatherFirstName || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Father Last Name:</label>
-        <span>{{ familyDetails.fatherLastName || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Mother First Name:</label>
-        <span>{{ familyDetails.motherFirstName || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <label>Mother Last Name:</label>
-        <span>{{ familyDetails.motherLastName || 'N/A' }}</span>
+      <div class="header-text">
+        <h2>Family Details</h2>
+        <p class="header-subtitle">Spouse and parents information</p>
       </div>
     </div>
+    <button *ngIf="familyDetails && !isEditMode" mat-stroked-button color="primary" class="edit-btn" (click)="editDetails()">
+      <mat-icon>edit</mat-icon>
+      Edit Details
+    </button>
+  </div>
 
-    <div class="action-row">
-      <button mat-stroked-button color="primary" (click)="editDetails()">
-        <mat-icon>edit</mat-icon> Edit
-      </button>
+  <!-- View Mode -->
+  <div *ngIf="familyDetails && !isEditMode" class="content-card">
+    <div class="details-wrapper">
+      <!-- Spouse Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>favorite</mat-icon>
+          Spouse Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">First Name</span>
+            <span class="info-value">{{ familyDetails.spouseFirstName || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Name</span>
+            <span class="info-value">{{ familyDetails.spouseLastName || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Father Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>person</mat-icon>
+          Father Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">First Name</span>
+            <span class="info-value">{{ familyDetails.fatherFirstName || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Name</span>
+            <span class="info-value">{{ familyDetails.fatherLastName || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mother Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>person</mat-icon>
+          Mother Information
+        </h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">First Name</span>
+            <span class="info-value">{{ familyDetails.motherFirstName || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Name</span>
+            <span class="info-value">{{ familyDetails.motherLastName || '—' }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Form Mode -->
-  <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Spouse First Name</mat-label>
-        <input matInput formControlName="spouseFirstName" />
-      </mat-form-field>
+  <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="content-card">
+    <div class="details-wrapper">
+      <!-- Spouse Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>favorite</mat-icon>
+          Spouse Information
+        </h4>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="spouseFirstName" placeholder="Enter first name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="spouseLastName" placeholder="Enter last name" />
+          </mat-form-field>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Spouse Last Name</mat-label>
-        <input matInput formControlName="spouseLastName" />
-      </mat-form-field>
+      <!-- Father Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>person</mat-icon>
+          Father Information
+        </h4>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="fatherFirstName" placeholder="Enter first name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="fatherLastName" placeholder="Enter last name" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Mother Information -->
+      <div class="info-group">
+        <h4 class="group-title">
+          <mat-icon>person</mat-icon>
+          Mother Information
+        </h4>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="motherFirstName" placeholder="Enter first name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="motherLastName" placeholder="Enter last name" />
+          </mat-form-field>
+        </div>
+      </div>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Father's First Name</mat-label>
-        <input matInput formControlName="fatherFirstName" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Father's Last Name</mat-label>
-        <input matInput formControlName="fatherLastName" />
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Mother's First Name</mat-label>
-        <input matInput formControlName="motherFirstName" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Mother's Last Name</mat-label>
-        <input matInput formControlName="motherLastName" />
-      </mat-form-field>
-    </div>
-
-    <div class="submit-row">
-      <button mat-raised-button color="primary" type="submit">Submit</button>
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button *ngIf="familyDetails" mat-stroked-button type="button" (click)="isEditMode = false">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" type="submit">
+        <mat-icon>save</mat-icon>
+        Save Details
+      </button>
     </div>
   </form>
 </div>

@@ -1,128 +1,404 @@
-<div class="jewellery-wrapper">
-  <!-- Form Section -->
-  <form class="jewellery-form" [formGroup]="jewelleryForm">
-    <div class="form-grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Name</mat-label>
-        <input matInput formControlName="jewelleryName" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Quantity</mat-label>
-        <input matInput type="number" formControlName="quantity" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Gross Weight</mat-label>
-        <input matInput type="number" formControlName="grossWeight" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Stone Weight</mat-label>
-        <input matInput type="number" formControlName="stoneWeight" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Net Weight</mat-label>
-        <input matInput type="number" formControlName="netWeight" readonly />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Karat</mat-label>
-        <mat-select formControlName="karat">
-          <mat-option *ngFor="let k of karatOptions" [value]="k.value">
-            {{ k.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Purity (%)</mat-label>
-        <input matInput type="number" formControlName="purity" />
-        <mat-error *ngIf="purityError">{{ purityError }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Net Purity Weight</mat-label>
-        <input matInput type="number" formControlName="netPurityWeight" readonly />
-      </mat-form-field>
+<div class="first-valuation-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon>diamond</mat-icon>
+      </div>
+      <div class="header-text">
+        <h2>First Valuation</h2>
+        <p class="subtitle">Add jewellery items and upload consolidated image for first valuation</p>
+      </div>
     </div>
-
-    <!-- Action Buttons -->
-    <div class="button-row">
-      <button mat-flat-button color="primary" (click)="addJewellery()">+ Add Jewellery</button>
-      <input type="file" hidden #imageInput (change)="uploadImage($event)" accept="image/*" />
-      <button mat-stroked-button color="accent" (click)="imageInput.click()">Upload Consolidated Image</button>
+    <div class="status-badge" [ngClass]="{'submitted': isValuationSaved, 'pending': !isValuationSaved}">
+      <mat-icon>{{ isValuationSaved ? 'check_circle' : 'pending' }}</mat-icon>
+      <span>{{ isValuationSaved ? 'Submitted' : 'Pending' }}</span>
     </div>
-  </form>
-
-  <!-- Jewellery Table -->
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z4 full-width-table">
-    <ng-container matColumnDef="jewelleryName">
-      <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let element">{{ element.jewelleryName }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="quantity">
-      <th mat-header-cell *matHeaderCellDef>Qty</th>
-      <td mat-cell *matCellDef="let element">{{ element.quantity }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="grossWeight">
-      <th mat-header-cell *matHeaderCellDef>Gross Wt</th>
-      <td mat-cell *matCellDef="let element">{{ element.grossWeight }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="stoneWeight">
-      <th mat-header-cell *matHeaderCellDef>Stone Wt</th>
-      <td mat-cell *matCellDef="let element">{{ element.stoneWeight }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="netWeight">
-      <th mat-header-cell *matHeaderCellDef>Net Wt</th>
-      <td mat-cell *matCellDef="let element">{{ element.netWeight }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="karat">
-      <th mat-header-cell *matHeaderCellDef>Karat</th>
-      <td mat-cell *matCellDef="let element">{{ element.karat }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="purity">
-      <th mat-header-cell *matHeaderCellDef>Purity %</th>
-      <td mat-cell *matCellDef="let element">{{ element.purity }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="netPurityWeight">
-      <th mat-header-cell *matHeaderCellDef>Net Purity Wt</th>
-      <td mat-cell *matCellDef="let element">{{ element.netPurityWeight }}</td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-    <!-- Total Row -->
-    <tr class="total-row" *ngIf="jewelleryList.length > 0">
-      <td colspan="2">Total:</td>
-      <td>{{ getTotal('grossWeight') }}</td>
-      <td>{{ getTotal('stoneWeight') }}</td>
-      <td>{{ getTotal('netWeight') }}</td>
-      <td></td>
-      <td>{{ getTotal('purity') }}</td>
-      <td>{{ getTotal('netPurityWeight') }}</td>
-    </tr>
-  </table>
-
-  <!-- Image Preview -->
-  <div *ngIf="uploadedImageUrl" class="image-preview">
-    <h4>Uploaded Image Preview:</h4>
-    <img [src]="uploadedImageUrl" alt="Consolidated Image" />
   </div>
 
-  <!-- Final Submit -->
-  <div class="button-row">
-    <button mat-raised-button color="accent" (click)="submitAll()" [disabled]="jewelleryList.length === 0">
-      🚀 Submit All
+  <!-- Summary Cards -->
+  <div class="summary-cards" *ngIf="jewelleryList.length > 0">
+    <div class="summary-card items-card">
+      <div class="card-icon-wrapper">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Total Items</span>
+        <span class="card-value">{{ jewelleryList.length }}</span>
+      </div>
+    </div>
+    <div class="summary-card gross-card">
+      <div class="card-icon-wrapper">
+        <mat-icon>scale</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Gross Weight</span>
+        <span class="card-value">{{ getTotal('grossWeight') | number:'1.2-2' }} <small>g</small></span>
+      </div>
+    </div>
+    <div class="summary-card net-card">
+      <div class="card-icon-wrapper">
+        <mat-icon>straighten</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Net Weight</span>
+        <span class="card-value">{{ getTotal('netWeight') | number:'1.2-2' }} <small>g</small></span>
+      </div>
+    </div>
+    <div class="summary-card purity-card">
+      <div class="card-icon-wrapper">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div class="card-content">
+        <span class="card-label">Net Purity Weight</span>
+        <span class="card-value">{{ getTotal('netPurityWeight') | number:'1.2-2' }} <small>g</small></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Section - Hidden after submission -->
+  <div class="form-section" *ngIf="!isValuationSaved">
+    <div class="section-header">
+      <div class="section-title">
+        <mat-icon>add_circle_outline</mat-icon>
+        <h3>Add Jewellery Item</h3>
+      </div>
+      <p class="section-description">Enter details for each jewellery item to be valued</p>
+    </div>
+    
+    <form class="jewellery-form" [formGroup]="jewelleryForm">
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Jewellery Name</mat-label>
+          <input matInput formControlName="jewelleryName" placeholder="e.g., Gold Chain, Ring" />
+          <mat-icon matPrefix>label</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Quantity</mat-label>
+          <input matInput type="number" formControlName="quantity" min="1" />
+          <mat-icon matPrefix>confirmation_number</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Gross Weight (g)</mat-label>
+          <input matInput type="number" formControlName="grossWeight" step="0.01" min="0" />
+          <mat-icon matPrefix>scale</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Stone Weight (g)</mat-label>
+          <input matInput type="number" formControlName="stoneWeight" step="0.01" min="0" />
+          <mat-icon matPrefix>brightness_1</mat-icon>
+          <mat-hint *ngIf="grossWeightValue > 0">Max: less than {{ maxStoneWeightHint | number:'1.2-2' }}g</mat-hint>
+          <mat-error *ngIf="stoneWeightError">{{ stoneWeightError }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field readonly-field">
+          <mat-label>Net Weight (g)</mat-label>
+          <input matInput type="number" formControlName="netWeight" readonly />
+          <mat-icon matPrefix>calculate</mat-icon>
+          <mat-hint>Auto-calculated</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Karat</mat-label>
+          <mat-select formControlName="karat">
+            <mat-option *ngFor="let k of karatOptions" [value]="k.value">
+              {{ k.label }} ({{ k.min }}% - {{ k.max }}%)
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>category</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Purity (%)</mat-label>
+          <input matInput type="number" formControlName="purity" step="0.01" min="0" max="100" />
+          <mat-icon matPrefix>percent</mat-icon>
+          <mat-hint *ngIf="purityRange.min > 0">Range: {{ purityRange.min }}% - {{ purityRange.max }}%</mat-hint>
+          <mat-error *ngIf="purityError">{{ purityError }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field readonly-field">
+          <mat-label>Net Purity Weight (g)</mat-label>
+          <input matInput type="number" formControlName="netPurityWeight" readonly />
+          <mat-icon matPrefix>verified</mat-icon>
+          <mat-hint>Auto-calculated</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button mat-flat-button color="primary" (click)="addJewellery()" [disabled]="!jewelleryForm.valid" class="add-btn">
+          <mat-icon>add</mat-icon>
+          Add Jewellery Item
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Submitted State Banner -->
+  <div class="submitted-banner" *ngIf="isValuationSaved && !uploadedImageUrl">
+    <mat-icon color="primary">info</mat-icon>
+    <div class="banner-content">
+      <strong>First Valuation Submitted Successfully!</strong>
+      <p>Please upload the consolidated jewellery image to complete this step.</p>
+    </div>
+    <input type="file" hidden #imageInputBanner (change)="uploadImage($event)" accept="image/*" />
+    <button mat-raised-button color="warn" (click)="imageInputBanner.click()" class="upload-banner-btn">
+      <mat-icon>upload</mat-icon>
+      Upload Image
     </button>
+  </div>
+
+  <!-- Jewellery Table Section -->
+  <div class="table-section" *ngIf="jewelleryList.length > 0">
+    <div class="section-header">
+      <div class="section-title">
+        <mat-icon>list_alt</mat-icon>
+        <h3>Jewellery Items</h3>
+        <span class="item-count">{{ jewelleryList.length }} {{ jewelleryList.length === 1 ? 'item' : 'items' }}</span>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" class="jewellery-table">
+        
+        <!-- Jewellery Name Column -->
+        <ng-container matColumnDef="jewelleryName">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>label</mat-icon>
+              <span>Name</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <div class="cell-content">
+              <span class="item-name">{{ element.jewelleryName || 'N/A' }}</span>
+            </div>
+          </td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell footer-label">
+            <strong>TOTAL</strong>
+          </td>
+        </ng-container>
+
+        <!-- Quantity Column -->
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>confirmation_number</mat-icon>
+              <span>Qty</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.quantity || 0 }}</td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell">
+            <strong>{{ getTotal('quantity') }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Gross Weight Column -->
+        <ng-container matColumnDef="grossWeight">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>scale</mat-icon>
+              <span>Gross Wt (g)</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.grossWeight | number:'1.2-2' }}</td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell">
+            <strong>{{ getTotal('grossWeight') | number:'1.2-2' }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Stone Weight Column -->
+        <ng-container matColumnDef="stoneWeight">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>brightness_1</mat-icon>
+              <span>Stone Wt (g)</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.stoneWeight | number:'1.2-2' }}</td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell">
+            <strong>{{ getTotal('stoneWeight') | number:'1.2-2' }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Net Weight Column -->
+        <ng-container matColumnDef="netWeight">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>straighten</mat-icon>
+              <span>Net Wt (g)</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.netWeight | number:'1.2-2' }}</td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell">
+            <strong>{{ getTotal('netWeight') | number:'1.2-2' }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Karat Column -->
+        <ng-container matColumnDef="karat">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>category</mat-icon>
+              <span>Karat</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="karat-badge">{{ element.karat || 'N/A' }}</span>
+          </td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
+        </ng-container>
+
+        <!-- Purity Column -->
+        <ng-container matColumnDef="purity">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>percent</mat-icon>
+              <span>Purity %</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">{{ element.purity | number:'1.2-2' }}</td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
+        </ng-container>
+
+        <!-- Net Purity Weight Column -->
+        <ng-container matColumnDef="netPurityWeight">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>verified</mat-icon>
+              <span>Net Purity Wt (g)</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="highlight-value">{{ element.netPurityWeight | number:'1.2-2' }}</span>
+          </td>
+          <td mat-footer-cell *matFooterCellDef class="footer-cell footer-highlight">
+            <strong>{{ getTotal('netPurityWeight') | number:'1.2-2' }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Header Row -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
+        
+        <!-- Data Rows -->
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-data-row"></tr>
+        
+        <!-- Footer Row -->
+        <tr mat-footer-row *matFooterRowDef="displayedColumns" class="table-footer-row"></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Image Section -->
+  <div class="image-section" *ngIf="isValuationSaved">
+    <div class="section-header">
+      <div class="section-title">
+        <mat-icon>image</mat-icon>
+        <h3>Consolidated Image</h3>
+        <span class="required-badge" *ngIf="!uploadedImageUrl">Required</span>
+        <span class="completed-badge" *ngIf="uploadedImageUrl">
+          <mat-icon>check</mat-icon> Uploaded
+        </span>
+      </div>
+    </div>
+    
+    <div class="image-content">
+      <!-- Image Preview -->
+      <div class="image-preview-container" *ngIf="uploadedImageUrl">
+        <img [src]="uploadedImageUrl" alt="Consolidated Jewellery Image" />
+        <div class="image-overlay">
+          <input type="file" hidden #imageInputEdit (change)="uploadImage($event)" accept="image/*" />
+          <button mat-mini-fab color="primary" (click)="imageInputEdit.click()" matTooltip="Change Image">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Upload Placeholder -->
+      <div class="upload-placeholder" *ngIf="!uploadedImageUrl">
+        <input type="file" hidden #imageInputPlaceholder (change)="uploadImage($event)" accept="image/*" />
+        <div class="placeholder-content" (click)="imageInputPlaceholder.click()">
+          <div class="upload-icon-wrapper">
+            <mat-icon>cloud_upload</mat-icon>
+          </div>
+          <h4>Upload Consolidated Image</h4>
+          <p>Click to upload a single image containing all jewellery items</p>
+          <span class="file-hint">Supports: JPG, PNG, WEBP (Max 10MB)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Selection Section - Show before submission -->
+  <div class="image-selection-section" *ngIf="jewelleryList.length > 0 && !isValuationSaved">
+    <div class="section-header">
+      <div class="section-title">
+        <mat-icon>add_photo_alternate</mat-icon>
+        <h3>Add Consolidated Image</h3>
+        <span class="optional-badge">Optional</span>
+      </div>
+      <p class="section-description">Upload a single image containing all jewellery items (can be added later)</p>
+    </div>
+    
+    <div class="image-selection-content">
+      <!-- Image Preview -->
+      <div class="selected-image-preview" *ngIf="selectedImagePreview">
+        <img [src]="selectedImagePreview" alt="Selected Image Preview" />
+        <div class="image-actions">
+          <button mat-mini-fab color="warn" (click)="removeSelectedImage()" matTooltip="Remove Image">
+            <mat-icon>delete</mat-icon>
+          </button>
+          <input type="file" hidden #imageInputChange (change)="selectImage($event)" accept="image/*" />
+          <button mat-mini-fab color="primary" (click)="imageInputChange.click()" matTooltip="Change Image">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Upload Placeholder -->
+      <div class="image-select-placeholder" *ngIf="!selectedImagePreview">
+        <input type="file" hidden #imageInputSelect (change)="selectImage($event)" accept="image/*" />
+        <div class="placeholder-inner" (click)="imageInputSelect.click()">
+          <div class="upload-icon-wrapper">
+            <mat-icon>add_photo_alternate</mat-icon>
+          </div>
+          <h4>Select Image</h4>
+          <p>Click to select an image of all jewellery items</p>
+          <span class="file-hint">Supports: JPG, PNG, WEBP (Max 10MB)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Section - Only show before submission -->
+  <div class="submit-section" *ngIf="jewelleryList.length > 0 && !isValuationSaved">
+    <div class="submit-info">
+      <mat-icon>info</mat-icon>
+      <span>Please review all items before submitting. {{ selectedImageFile ? 'Image will be uploaded with the valuation.' : 'You can upload the image later if needed.' }}</span>
+    </div>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="submitAll()" 
+      [disabled]="jewelleryList.length === 0 || isValuationSaved" 
+      class="submit-button">
+      <mat-icon>check_circle</mat-icon>
+      Submit First Valuation {{ selectedImageFile ? 'with Image' : '' }}
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="jewelleryList.length === 0 && !isValuationSaved">
+    <div class="empty-icon-wrapper">
+      <mat-icon>inventory_2</mat-icon>
+    </div>
+    <h3>No Jewellery Items Added</h3>
+    <p>Start by adding your first jewellery item using the form above</p>
+    <div class="empty-arrow">
+      <mat-icon>arrow_upward</mat-icon>
+    </div>
   </div>
 </div>
