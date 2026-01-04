@@ -15,6 +15,12 @@ interface JewelleryItem {
   netPurityWeight: number;
 }
 
+interface OriginalValues {
+  stoneWeight: number;
+  karat: string;
+  purity: number;
+}
+
 @Component({
   selector: 'app-second-valuation',
   templateUrl: './second-valuation.component.html',
@@ -30,6 +36,22 @@ export class SecondValuationComponent implements OnInit {
   jewelleryItems: JewelleryItem[] = [];
   uploadedImageUrl: string | null = null;
   isValuationSaved = false;
+
+  // Track original values to detect changes
+  originalValues: OriginalValues[] = [];
+  hasChanges = false;
+
+  // Karat options same as first valuation
+  karatOptions = [
+    { value: '22HM', label: '22HM', min: 98, max: 100 },
+    { value: '22', label: '22', min: 95, max: 97 },
+    { value: '21', label: '21', min: 88, max: 94 },
+    { value: '20', label: '20', min: 81, max: 87 },
+    { value: '18', label: '18', min: 75, max: 80 }
+  ];
+
+  // Validation errors per item
+  itemErrors: { stoneWeight: string; purity: string }[] = [];
 
   // Additional totals from API
   totalQuantity = 0;
@@ -119,11 +141,15 @@ export class SecondValuationComponent implements OnInit {
 
         this.itemsFormArray.clear();
         this.jewelleryItems = [];
+        this.originalValues = [];
+        this.itemErrors = [];
+        this.hasChanges = false;
 
         apiItems.forEach((item: any) => {
           const gross = Number(item.grossWeight) || 0;
           const stone = Number(item.stoneWeight) || 0;
           const purity = Number(item.purity) || 0;
+          const karat = item.karat || '';
           const netWeight = gross - stone;
           const netPurityWeight = (netWeight * purity) / 100;
 
@@ -134,35 +160,60 @@ export class SecondValuationComponent implements OnInit {
             grossWeight: gross,
             stoneWeight: stone,
             netWeight,
-            karat: item.karat,
+            karat,
             purity,
             netPurityWeight
           });
 
+          // Store original values to track changes
+          this.originalValues.push({
+            stoneWeight: stone,
+            karat,
+            purity
+          });
+
+          // Initialize error object for this item
+          this.itemErrors.push({ stoneWeight: '', purity: '' });
+
           const fg = this.fb.group({
             stoneWeight: [stone, Validators.required],
+            karat: [karat, Validators.required],
             purity: [purity, Validators.required]
           });
 
+          const idx = this.jewelleryItems.length - 1;
+
+          // Listen for karat changes to update purity range validation
+          fg.get('karat')?.valueChanges.subscribe(newKarat => {
+            this.onKaratChange(idx, newKarat);
+          });
+
           fg.valueChanges.subscribe(val => {
-            const idx = this.itemsFormArray.controls.indexOf(fg);
-            if (idx >= 0) {
-              const current = this.jewelleryItems[idx];
+            const formIdx = this.itemsFormArray.controls.indexOf(fg);
+            if (formIdx >= 0) {
+              const current = this.jewelleryItems[formIdx];
               const newStone = Number(val.stoneWeight) || 0;
+              const newKarat = val.karat || '';
               const newPurity = Number(val.purity) || 0;
               const newNetWeight = current.grossWeight - newStone;
               const newNetPurityWeight = (newNetWeight * newPurity) / 100;
 
-              this.jewelleryItems[idx] = {
+              this.jewelleryItems[formIdx] = {
                 ...current,
                 stoneWeight: newStone,
+                karat: newKarat,
                 purity: newPurity,
                 netWeight: newNetWeight,
                 netPurityWeight: newNetPurityWeight
               };
+
+              // Validate stone weight and purity
+              this.validateStoneWeight(formIdx);
+              this.validatePurity(formIdx);
               
-              // Recalculate totals
+              // Recalculate totals and check for changes
               this.recalculateTotals();
+              this.checkForChanges();
             }
           });
 
@@ -194,8 +245,13 @@ export class SecondValuationComponent implements OnInit {
   }
 
   submitAll() {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.hasValidationErrors()) {
       this.toastService.showWarning('Please correct the form fields before submitting.');
+      return;
+    }
+
+    if (!this.hasChanges) {
+      this.toastService.showWarning('Please make changes to at least one field before updating.');
       return;
     }
 
@@ -216,7 +272,7 @@ export class SecondValuationComponent implements OnInit {
         grossWeight: item.grossWeight,
         stoneWeight: Number(formVal.stoneWeight),
         netWeight: item.grossWeight - Number(formVal.stoneWeight),
-        karat: item.karat,
+        karat: formVal.karat,
         purity: Number(formVal.purity)
       };
     });
@@ -225,6 +281,7 @@ export class SecondValuationComponent implements OnInit {
       next: res => {
         this.toastService.showSuccess('Second valuation updated successfully!');
         this.isValuationSaved = true;
+        this.hasChanges = false;
         this.stepCompleted.emit();
         // Optionally refresh the data or update UI
         this.loadSecondValuation();
@@ -250,5 +307,111 @@ export class SecondValuationComponent implements OnInit {
     this.totalStoneWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.stoneWeight || 0), 0);
     this.totalNetWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.netWeight || 0), 0);
     this.totalNetPurityWeight = this.jewelleryItems.reduce((sum, item) => sum + (item.netPurityWeight || 0), 0);
+  }
+
+  /**
+   * Check if any field has changed from original values
+   */
+  checkForChanges(): void {
+    this.hasChanges = this.jewelleryItems.some((item, idx) => {
+      const original = this.originalValues[idx];
+      if (!original) return false;
+      
+      return item.stoneWeight !== original.stoneWeight ||
+             item.karat !== original.karat ||
+             item.purity !== original.purity;
+    });
+  }
+
+  /**
+   * Handle karat change to validate purity range
+   */
+  onKaratChange(index: number, karat: string): void {
+    // Revalidate purity when karat changes
+    this.validatePurity(index);
+  }
+
+  /**
+   * Get purity range for a given karat
+   */
+  getPurityRange(karat: string): { min: number; max: number } {
+    const selected = this.karatOptions.find(k => k.value === karat);
+    return selected ? { min: selected.min, max: selected.max } : { min: 0, max: 100 };
+  }
+
+  /**
+   * Validate stone weight - must be less than 50% of gross weight
+   */
+  validateStoneWeight(index: number): void {
+    const item = this.jewelleryItems[index];
+    const fg = this.itemsFormArray.at(index) as FormGroup;
+    
+    if (!item || !fg) return;
+
+    const grossWeight = item.grossWeight || 0;
+    const stoneWeight = Number(fg.get('stoneWeight')?.value) || 0;
+    const maxStoneWeight = grossWeight * 0.5;
+
+    if (stoneWeight > 0 && grossWeight > 0) {
+      if (stoneWeight >= maxStoneWeight) {
+        this.itemErrors[index].stoneWeight = `Must be less than 50% of Gross Weight (max: ${(maxStoneWeight - 0.01).toFixed(2)}g)`;
+        fg.get('stoneWeight')?.setErrors({ exceedsLimit: true });
+      } else {
+        this.itemErrors[index].stoneWeight = '';
+        fg.get('stoneWeight')?.setErrors(null);
+      }
+    } else {
+      this.itemErrors[index].stoneWeight = '';
+      fg.get('stoneWeight')?.setErrors(null);
+    }
+  }
+
+  /**
+   * Validate purity - must be within range for selected karat
+   */
+  validatePurity(index: number): void {
+    const item = this.jewelleryItems[index];
+    const fg = this.itemsFormArray.at(index) as FormGroup;
+    
+    if (!item || !fg) return;
+
+    const karat = fg.get('karat')?.value || '';
+    const purity = Number(fg.get('purity')?.value) || 0;
+    const { min, max } = this.getPurityRange(karat);
+
+    if (purity > 0 && karat) {
+      if (purity < min || purity > max) {
+        this.itemErrors[index].purity = `Purity must be between ${min}% and ${max}% for ${karat} karat`;
+        fg.get('purity')?.setErrors({ outOfRange: true });
+      } else {
+        this.itemErrors[index].purity = '';
+        fg.get('purity')?.setErrors(null);
+      }
+    } else {
+      this.itemErrors[index].purity = '';
+      fg.get('purity')?.setErrors(null);
+    }
+  }
+
+  /**
+   * Get max stone weight for display hint
+   */
+  getMaxStoneWeight(index: number): number {
+    const item = this.jewelleryItems[index];
+    return item ? item.grossWeight * 0.5 : 0;
+  }
+
+  /**
+   * Check if form has any validation errors
+   */
+  hasValidationErrors(): boolean {
+    return this.itemErrors.some(err => err.stoneWeight !== '' || err.purity !== '');
+  }
+
+  /**
+   * Check if update button should be disabled
+   */
+  isUpdateDisabled(): boolean {
+    return !this.hasChanges || this.form.invalid || this.hasValidationErrors() || this.isValuationSaved;
   }
 }

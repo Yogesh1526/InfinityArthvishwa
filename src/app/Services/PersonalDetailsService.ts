@@ -144,8 +144,13 @@ export class PersonalDetailsService {
     return this.http.delete(`${this.baseUrl}/gold-ownership/deleteGoldOwnershipDetail/${loanAccountNo}/${id}`);
   }
 
-  saveFirstValuationDetails(customerId: string, payload: any[]) {
-    return this.http.post(`${this.baseUrl}/firstValuation/save/${customerId}`, payload);
+  saveFirstValuationDetails(customerId: string, items: any[], image?: File) {
+    const formData = new FormData();
+    formData.append('items', JSON.stringify(items));
+    if (image) {
+      formData.append('image', image);
+    }
+    return this.http.post(`${this.baseUrl}/firstValuation/save/${customerId}`, formData);
   }
 
   uploadFirstValuationImage(customerId: string, loanAccountNumber: string, file: File) {

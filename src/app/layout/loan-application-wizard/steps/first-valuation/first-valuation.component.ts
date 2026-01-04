@@ -27,6 +27,15 @@ export class FirstValuationComponent implements OnInit {
   
   purityRange = { min: 0, max: 0 };
   purityError = '';
+  stoneWeightError = '';
+
+  get grossWeightValue(): number {
+    return Number(this.jewelleryForm.get('grossWeight')?.value) || 0;
+  }
+
+  get maxStoneWeightHint(): number {
+    return this.grossWeightValue * 0.5;
+  }
 
   displayedColumns: string[] = [
     'jewelleryName',
@@ -54,6 +63,10 @@ export class FirstValuationComponent implements OnInit {
   dataSource = new MatTableDataSource<any>(this.jewelleryList);
   isValuationSaved = false;
   showImageUploadPrompt = false;
+
+  // Image properties for submission
+  selectedImageFile: File | null = null;
+  selectedImagePreview: string | null = null;
 
   @Output() stepCompleted = new EventEmitter<void>();
 
@@ -98,8 +111,14 @@ export class FirstValuationComponent implements OnInit {
   
     this.jewelleryForm.get('purity')?.valueChanges.subscribe(() => this.validatePurity());
   
-    this.jewelleryForm.get('grossWeight')?.valueChanges.subscribe(() => this.calculateDerivedFields());
-    this.jewelleryForm.get('stoneWeight')?.valueChanges.subscribe(() => this.calculateDerivedFields());
+    this.jewelleryForm.get('grossWeight')?.valueChanges.subscribe(() => {
+      this.validateStoneWeight();
+      this.calculateDerivedFields();
+    });
+    this.jewelleryForm.get('stoneWeight')?.valueChanges.subscribe(() => {
+      this.validateStoneWeight();
+      this.calculateDerivedFields();
+    });
     this.jewelleryForm.get('netWeight')?.valueChanges.subscribe(() => this.calculateNetPurityWeight());
     this.jewelleryForm.get('purity')?.valueChanges.subscribe(() => this.calculateNetPurityWeight());
   }
@@ -119,6 +138,25 @@ export class FirstValuationComponent implements OnInit {
     } else {
       this.purityError = '';
       this.jewelleryForm.get('purity')?.setErrors(null);
+    }
+  }
+
+  validateStoneWeight() {
+    const grossWeight = this.jewelleryForm.get('grossWeight')?.value as number || 0;
+    const stoneWeight = this.jewelleryForm.get('stoneWeight')?.value as number || 0;
+    const maxStoneWeight = grossWeight * 0.5; // 50% of gross weight
+
+    if (stoneWeight > 0 && grossWeight > 0) {
+      if (stoneWeight >= maxStoneWeight) {
+        this.stoneWeightError = `Stone Weight must be less than 50% of Gross Weight (max: ${(maxStoneWeight - 0.01).toFixed(2)}g)`;
+        this.jewelleryForm.get('stoneWeight')?.setErrors({ exceedsLimit: true });
+      } else {
+        this.stoneWeightError = '';
+        this.jewelleryForm.get('stoneWeight')?.setErrors(null);
+      }
+    } else {
+      this.stoneWeightError = '';
+      this.jewelleryForm.get('stoneWeight')?.setErrors(null);
     }
   }
   
@@ -161,7 +199,20 @@ export class FirstValuationComponent implements OnInit {
     ).subscribe({
       next: (valuation: any) => {
         if (valuation?.data?.jewelleryItems?.length > 0) {
-          this.jewelleryList = valuation.data.jewelleryItems;
+          // Calculate netPurityWeight for each item since API doesn't return it per item
+          this.jewelleryList = valuation.data.jewelleryItems.map((item: any) => {
+            const grossWeight = Number(item.grossWeight) || 0;
+            const stoneWeight = Number(item.stoneWeight) || 0;
+            const purity = Number(item.purity) || 0;
+            const netWeight = Number(item.netWeight) || (grossWeight - stoneWeight);
+            const netPurityWeight = (netWeight * purity) / 100;
+            
+            return {
+              ...item,
+              netWeight,
+              netPurityWeight
+            };
+          });
           this.dataSource.data = [...this.jewelleryList];
           this.isValuationSaved = true;
           
@@ -223,6 +274,47 @@ export class FirstValuationComponent implements OnInit {
     }
   }
 
+  /**
+   * Select image before submission
+   */
+  selectImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.toastService.showWarning('Please select a valid image file.');
+      input.value = '';
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.toastService.showWarning('Image size should not exceed 10MB.');
+      input.value = '';
+      return;
+    }
+
+    this.selectedImageFile = file;
+    
+    // Preview the selected image
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedImagePreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Remove selected image
+   */
+  removeSelectedImage(): void {
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+  }
+
   submitAll() {
     if (this.jewelleryList.length === 0) {
       this.toastService.showWarning('Please add at least one jewellery item before submitting.');
@@ -235,7 +327,7 @@ export class FirstValuationComponent implements OnInit {
     }
   
     // Prepare payload in correct format
-    const payload = this.jewelleryList.map((item) => ({
+    const items = this.jewelleryList.map((item) => ({
       jewelleryName: item.jewelleryName,
       quantity: item.quantity,
       grossWeight: item.grossWeight,
@@ -244,7 +336,8 @@ export class FirstValuationComponent implements OnInit {
       purity: item.purity
     }));
   
-    this.apiService.saveFirstValuationDetails(this.customerId, payload).subscribe({
+    // Send items and image together in one API call
+    this.apiService.saveFirstValuationDetails(this.customerId, items, this.selectedImageFile || undefined).subscribe({
       next: (response: any) => {
         // Extract loan account number from response if available
         if (response && response.data && response.data.loanAccountNumber) {
@@ -253,12 +346,22 @@ export class FirstValuationComponent implements OnInit {
             localStorage.setItem(`loanAccountNumber_${this.customerId}`, this.loanAccountNumber);
           }
         }
-        this.toastService.showSuccess('First valuation submitted successfully! Please upload the consolidated image.');
+        
+        if (this.selectedImageFile) {
+          this.toastService.showSuccess('First valuation with image submitted successfully!');
+          this.uploadedImageUrl = this.selectedImagePreview;
+          this.showImageUploadPrompt = false;
+        } else {
+          this.toastService.showSuccess('First valuation submitted successfully! You can upload the image later.');
+          this.showImageUploadPrompt = true;
+        }
+        
         this.isValuationSaved = true;
-        this.showImageUploadPrompt = true; // Highlight image upload button
         this.stepCompleted.emit();
-        // Load image if it exists, otherwise show prompt
-        this.loadValuationImage();
+        
+        // Clear selected image after successful submission
+        this.selectedImageFile = null;
+        this.selectedImagePreview = null;
       },
       error: (err) => {
         const errorMsg = err?.error?.message || 'Failed to submit first valuation. Please try again.';

@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PersonalDetailsComponent } from './steps/personal-details/personal-details.component';
 
@@ -43,8 +43,8 @@ export class LoanApplicationWizardComponent implements OnInit {
     { label: 'Tare Weight', key: 'tareWeight' },
     { label: 'Expected Closure Date', key: 'expectedClosureDate' },
     { label: 'Loan Application Approval', key: 'loanApplicationApproval' },
-    { label: 'Disbursement', key: 'disbursement' },
-    { label: 'Loan Agreement Document', key: 'loanAgreementDocument' }
+    { label: 'Loan Agreement Document', key: 'loanAgreementDocument' },
+    { label: 'Disbursement', key: 'disbursement' }
   ];
 
   constructor(
@@ -105,15 +105,139 @@ export class LoanApplicationWizardComponent implements OnInit {
           this.loanApplicationId = this.customerId;
           this.customerNumericId = 0;
         }
-        // Check only the first step on initial load
-        this.checkSingleStepCompletion(0);
+        // Check ALL steps on initial load to show correct status in sidebar
+        this.checkAllStepsCompletion();
       },
       error: (err) => {
         console.error('Error fetching customer details:', err);
         // Fallback to customerId if API fails
         this.loanApplicationId = this.customerId;
         this.customerNumericId = 0;
+        // Still try to check steps
+        this.checkAllStepsCompletion();
       }
+    });
+  }
+
+ 
+  checkAllStepsCompletion(): void {
+    const accountNumber = this.getValidLoanAccountNumber();
+    const apiCalls: { [key: number]: any } = {};
+    
+    // Step 0: Personal Details
+    apiCalls[0] = this.personalService.getById(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of(null))
+    );
+    
+    // Step 1: Family Details
+    apiCalls[1] = this.personalService.getFamilyDetailsById(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of({ data: [] }))
+    );
+    
+    // Step 2: Address
+    apiCalls[2] = this.personalService.getAddressDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of({ data: [] }))
+    );
+    
+    // Step 3: Work Details
+    apiCalls[3] = this.personalService.getWorkDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of({ data: [] }))
+    );
+    
+    // Step 4: KYC
+    if (this.customerId) {
+      apiCalls[4] = this.personalService.getAllKycDocuments(this.customerId).pipe(
+        catchError(() => of({ data: [] }))
+      );
+    }
+    
+    // Step 5: Additional Documents - no API call, completion handled by component
+    // Step completion is handled by the component itself via stepCompleted event
+    
+    // Step 6: Nominee (was step 5)
+    apiCalls[6] = this.personalService.getNomineeByCustomerId(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of({ data: [] }))
+    );
+    
+    // Step 7: Reference (was step 6)
+    apiCalls[7] = this.personalService.getReferenceDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of({ data: [] }))
+    );
+    
+    // Step 13: Bank Details (was step 12)
+    apiCalls[13] = this.personalService.getBankDetails(this.customerId || this.loanApplicationId).pipe(
+      catchError(() => of({ data: [] }))
+    );
+    
+    // Steps that require accountNumber
+    if (accountNumber) {
+      // Step 8: Gold Ownership (was step 7)
+      apiCalls[8] = this.personalService.getGoldOwnershipDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: [] }))
+      );
+      
+      // Step 9: First Valuation (was step 8)
+      apiCalls[9] = this.personalService.getFirstValuationDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+      
+      // Step 10: Second Valuation (was step 9)
+      apiCalls[10] = this.personalService.getSecondValuationDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+      
+      // Step 11: Final Valuation (was step 10)
+      apiCalls[11] = this.personalService.getFinalValuationById(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+      
+      // Step 12: GL Scheme Selection (was step 11)
+      apiCalls[12] = this.personalService.getSchemeSelectionDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+      
+      // Step 14: Packet Allotment (was step 13)
+      apiCalls[14] = this.personalService.getPacketAllotmentDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: [] }))
+      );
+      
+      // Step 15: Tare Weight (was step 14)
+      apiCalls[15] = this.personalService.getTareWeightById(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: [] }))
+      );
+      
+      // Step 16: Expected Closure Date (was step 15)
+      apiCalls[16] = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+      
+      // Step 17: Loan Application Approval (was step 16)
+      apiCalls[17] = this.personalService.getApprovalFiles(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+    }
+    
+    // Step 18: Loan Agreement Document - check localStorage
+    const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
+    this.stepCompletionStatus[18] = !!docGenerated;
+    this.checkedSteps.add(18);
+    
+    // Step 19: Disbursement - requires accountNumber
+    if (accountNumber) {
+      apiCalls[19] = this.personalService.getDisbursementInfo(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: null }))
+      );
+    }
+    
+    // Execute all API calls
+    Object.keys(apiCalls).forEach(stepIndexStr => {
+      const stepIndex = parseInt(stepIndexStr, 10);
+      apiCalls[stepIndex].subscribe((result: any) => {
+        this.stepCompletionStatus[stepIndex] = this.evaluateStepCompletion(stepIndex, result);
+        this.checkedSteps.add(stepIndex);
+        // Trigger change detection
+        this.stepCompletionStatus = [...this.stepCompletionStatus];
+      });
     });
   }
 
@@ -139,6 +263,7 @@ export class LoanApplicationWizardComponent implements OnInit {
 
   /**
    * Check completion status for a single step - called when navigating to that step
+   * Note: Additional Documents step has been removed, indices adjusted accordingly
    */
   checkSingleStepCompletion(stepIndex: number): void {
     // Skip if already checked
@@ -179,101 +304,101 @@ export class LoanApplicationWizardComponent implements OnInit {
           );
         }
         break;
-      case 5: // Additional Documents - always false for now
-        this.stepCompletionStatus[stepIndex] = false;
+      case 5: // Additional Documents - no API call, completion handled by component
+        // Step completion is handled by the component itself via stepCompleted event
         this.checkedSteps.add(stepIndex);
         return;
-      case 6: // Nominee
+      case 6: // Nominee (was step 5)
         apiCall$ = this.personalService.getNomineeByCustomerId(this.customerId || this.loanApplicationId).pipe(
           catchError(() => of({ data: [] }))
         );
         break;
-      case 7: // Reference
+      case 7: // Reference (was step 6)
         apiCall$ = this.personalService.getReferenceDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
           catchError(() => of({ data: [] }))
         );
         break;
-      case 8: // Gold Ownership
+      case 8: // Gold Ownership (was step 7)
         if (accountNumber) {
           apiCall$ = this.personalService.getGoldOwnershipDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: [] }))
           );
         }
         break;
-      case 9: // First Valuation
+      case 9: // First Valuation (was step 8)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getFirstValuationDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 10: // Second Valuation
+      case 10: // Second Valuation (was step 9)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getSecondValuationDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 11: // Final Valuation
+      case 11: // Final Valuation (was step 10)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getFinalValuationById(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 12: // GL Scheme Selection
+      case 12: // GL Scheme Selection (was step 11)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getSchemeSelectionDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 13: // Bank Details
+      case 13: // Bank Details (was step 12)
         apiCall$ = this.personalService.getBankDetails(this.customerId || this.loanApplicationId).pipe(
           catchError(() => of({ data: [] }))
         );
         break;
-      case 14: // Packet Allotment
+      case 14: // Packet Allotment (was step 13)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getPacketAllotmentDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: [] }))
           );
         }
         break;
-      case 15: // Tare Weight
+      case 15: // Tare Weight (was step 14)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getTareWeightById(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: [] }))
           );
         }
         break;
-      case 16: // Expected Closure Date
+      case 16: // Expected Closure Date (was step 15)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 17: // Loan Application Approval
+      case 17: // Loan Application Approval (was step 16)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getApprovalFiles(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 18: // Disbursement
+      case 18: // Loan Agreement Document - check localStorage only
+        const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
+        this.stepCompletionStatus[stepIndex] = !!docGenerated;
+        this.checkedSteps.add(stepIndex);
+        this.stepCompletionStatus = [...this.stepCompletionStatus];
+        return;
+      case 19: // Disbursement
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getDisbursementInfo(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 19: // Loan Agreement Document - check localStorage only
-        const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
-        this.stepCompletionStatus[stepIndex] = !!docGenerated;
-        this.checkedSteps.add(stepIndex);
-        this.stepCompletionStatus = [...this.stepCompletionStatus];
-        return;
     }
 
     // Make the API call and update completion status
@@ -287,6 +412,7 @@ export class LoanApplicationWizardComponent implements OnInit {
 
   /**
    * Evaluate if a step is completed based on API result
+   * Note: Additional Documents step has been removed, indices adjusted accordingly
    */
   private evaluateStepCompletion(stepIndex: number, result: any): boolean {
     switch (stepIndex) {
@@ -301,47 +427,73 @@ export class LoanApplicationWizardComponent implements OnInit {
         return !!(result?.id);
       case 4: // KYC
         return !!(result?.data && result.data.length > 0);
-      case 5: // Additional Documents
+      case 5: // Additional Documents - completion handled by component
+        // Step completion is handled by the component itself via stepCompleted event
+        // This case should not be reached via API call, but return false as fallback
         return false;
-      case 6: // Nominee
-      case 7: // Reference
-      case 8: // Gold Ownership
+      case 6: // Nominee (was step 5)
+      case 7: // Reference (was step 6)
+      case 8: // Gold Ownership (was step 7)
         if (result?.data) {
           return Array.isArray(result.data) ? result.data.length > 0 : !!result.data.id;
         }
         return !!(result?.id);
-      case 9: // First Valuation
+      case 9: // First Valuation (was step 8)
         return !!(result?.data?.jewelleryItems?.length > 0);
-      case 10: // Second Valuation
+      case 10: // Second Valuation (was step 9)
         return !!result?.data;
-      case 11: // Final Valuation
-        return false; // Checked differently
-      case 12: // GL Scheme Selection
-        return false; // Skip for now
-      case 13: // Bank Details
+      case 11: // Final Valuation (was step 10)
+        // Check if finalValuation object exists with valid data
+        if (result?.data) {
+          const finalVal = result.data.finalValuation || result.data;
+          return !!(finalVal?.id || finalVal?.totalNetPurityWeight > 0 || finalVal?.totalGrossWeight > 0);
+        }
+        return false;
+      case 12: // GL Scheme Selection (was step 11)
+        // Check if scheme data exists with required fields
+        if (result?.data) {
+          const schemeData = result.data.goldLoanSchemeCalculation || result.data;
+          return !!(schemeData?.id || (schemeData?.schemeName && schemeData?.tenureMonths));
+        }
+        return false;
+      case 13: // Bank Details (was step 12)
         return !!(result?.data && result.data.length > 0);
-      case 14: // Packet Allotment
-      case 15: // Tare Weight
+      case 14: // Packet Allotment (was step 13)
+      case 15: // Tare Weight (was step 14)
         return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
-      case 16: // Expected Closure Date
+      case 16: // Expected Closure Date (was step 15)
         if (result?.data) {
           return !!(result.data.id || result.data.id === 0);
         }
         return !!(result?.id || result?.id === 0);
-      case 17: // Loan Application Approval
+      case 17: // Loan Application Approval (was step 16)
+        // Check if approval files exist - handle both response formats
         if (result?.code === 200 && result?.data) {
           const fileData = result.data;
           return !!(fileData['CAM-Gold-File-Name'] || fileData['Credit-Summary-File-Name']);
         }
-        return false;
-      case 18: // Disbursement
-        if (result?.code === 200 && result?.data) {
-          const status = result.data.disbusmentStatus;
-          return status === 'ACTIVE' || status === 'DISBURSED';
+        // Fallback: check if data exists directly (for error handling cases)
+        if (result?.data) {
+          const fileData = result.data;
+          return !!(fileData['CAM-Gold-File-Name'] || fileData['Credit-Summary-File-Name']);
+        }
+        // Check if result itself contains the file data
+        if (result && (result['CAM-Gold-File-Name'] || result['Credit-Summary-File-Name'])) {
+          return true;
         }
         return false;
-      case 19: // Loan Agreement Document
+      case 18: // Loan Agreement Document
         return !!(result?.generated);
+      case 19: // Disbursement
+        // Check if disbursement data exists (same as other steps)
+        // API response format: { code: 200, data: { id: 3, disbusmentStatus: 'IN-PROCESS', ... } }
+        if (result?.code === 200 && result?.data) {
+          return !!(result.data.id);
+        }
+        if (result?.data) {
+          return !!(result.data.id);
+        }
+        return !!(result?.id);
       default:
         if (result?.data) {
           return Array.isArray(result.data) ? result.data.length > 0 : !!result.data.id;
@@ -437,8 +589,8 @@ export class LoanApplicationWizardComponent implements OnInit {
       }
       // Clear checked steps cache so they will be re-checked with new loan account number
       this.checkedSteps.clear();
-      // Re-check current step
-      this.checkSingleStepCompletion(this.activeStep);
+      // Re-check ALL steps with new loan account number
+      this.checkAllStepsCompletion();
     }
   }
 

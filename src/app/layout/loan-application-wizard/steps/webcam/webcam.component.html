@@ -1,15 +1,63 @@
 <mat-card class="webcam-card">
-    <mat-card-title>Take Photo</mat-card-title>
+    <mat-card-title>
+      <mat-icon>photo_camera</mat-icon>
+      Take Photo
+    </mat-card-title>
     <mat-card-content>
   
+      <!-- Camera Selection Section -->
+      <div class="camera-selection" *ngIf="!isPreview && availableCameras.length > 0">
+        <div class="current-camera">
+          <mat-icon>videocam</mat-icon>
+          <span class="camera-label">{{ currentCameraName }}</span>
+        </div>
+        
+        <!-- Camera Dropdown Selector -->
+        <mat-form-field appearance="outline" class="camera-selector" *ngIf="multipleWebcamsAvailable">
+          <mat-label>Select Camera</mat-label>
+          <mat-select [value]="selectedCameraId" (selectionChange)="selectCamera($event.value)">
+            <mat-option *ngFor="let camera of availableCameras" [value]="camera.deviceId">
+              <mat-icon>{{ camera.label.toLowerCase().includes('front') ? 'person' : (camera.label.toLowerCase().includes('back') ? 'landscape' : 'videocam') }}</mat-icon>
+              {{ camera.label }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>{{ availableCameras.length }} camera(s) available</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Liveness Detection Status -->
+      <div class="liveness-status" *ngIf="!isPreview && livenessEnabled" 
+           [ngClass]="{
+             'status-success': livenessCheck.canCapture,
+             'status-warning': livenessCheck.hasFace && !livenessCheck.canCapture,
+             'status-error': !livenessCheck.hasFace
+           }">
+        <div class="liveness-indicator">
+          <mat-icon *ngIf="livenessCheck.canCapture">check_circle</mat-icon>
+          <mat-icon *ngIf="!livenessCheck.canCapture && livenessCheck.hasFace">face</mat-icon>
+          <mat-icon *ngIf="!livenessCheck.hasFace">face_retouching_off</mat-icon>
+          <span class="liveness-message">{{ livenessCheck.message }}</span>
+        </div>
+        <div class="face-count" *ngIf="livenessCheck.faceCount > 0">
+          <mat-icon>{{ livenessCheck.faceCount === 1 ? 'person' : 'groups' }}</mat-icon>
+          <span>{{ livenessCheck.faceCount }} face(s) detected</span>
+        </div>
+      </div>
+
       <!-- Webcam live preview -->
-      <div *ngIf="!isPreview && showWebcam">
+      <div class="webcam-container" *ngIf="!isPreview && showWebcam" 
+           [ngClass]="{'webcam-valid': livenessCheck.canCapture, 'webcam-invalid': livenessEnabled && !livenessCheck.canCapture}">
         <webcam
           [trigger]="triggerObservable"
           [switchCamera]="nextWebcamObservable"
           (imageCapture)="handleImage($event)"
           (initError)="handleInitError($event)">
         </webcam>
+        
+        <!-- Overlay indicator -->
+        <div class="face-overlay" *ngIf="livenessEnabled && !livenessCheck.canCapture">
+          <div class="face-frame"></div>
+        </div>
       </div>
   
       <!-- Photo preview -->
@@ -17,6 +65,10 @@
         <img 
           [src]="capturedImage ? capturedImage.imageAsDataUrl : uploadedImageDataUrl" 
           alt="Photo preview" />
+        <div class="preview-badge success">
+          <mat-icon>verified</mat-icon>
+          Photo Captured
+        </div>
       </div>
   
     </mat-card-content>
@@ -24,17 +76,42 @@
     <mat-card-actions>
       <!-- Actions when live webcam showing -->
       <ng-container *ngIf="!isPreview">
-        <button mat-raised-button color="primary" (click)="triggerSnapshot()">Capture</button>
-        <button mat-stroked-button (click)="switchCamera()" *ngIf="multipleWebcamsAvailable">Switch</button>
-        <button mat-button (click)="fileInput.click()">Upload from Device</button>
-        <button mat-button color="warn" (click)="cancel()">Cancel</button>
+        <button mat-raised-button color="primary" 
+                (click)="triggerSnapshot()" 
+                [disabled]="isCaptureDisabled"
+                [matTooltip]="isCaptureDisabled ? 'Complete liveness check to capture' : 'Capture photo'">
+          <mat-icon>camera</mat-icon>
+          Capture
+        </button>
+        <button mat-stroked-button color="accent" (click)="switchCamera()" *ngIf="multipleWebcamsAvailable">
+          <mat-icon>flip_camera_ios</mat-icon>
+          Flip Camera
+        </button>
+        <button mat-stroked-button (click)="toggleLiveness()" [color]="livenessEnabled ? 'primary' : ''">
+          <mat-icon>{{ livenessEnabled ? 'verified_user' : 'no_accounts' }}</mat-icon>
+          {{ livenessEnabled ? 'Liveness ON' : 'Liveness OFF' }}
+        </button>
+        <button mat-stroked-button (click)="fileInput.click()">
+          <mat-icon>upload</mat-icon>
+          Upload
+        </button>
+        <button mat-button color="warn" (click)="cancel()">
+          <mat-icon>close</mat-icon>
+          Cancel
+        </button>
         <input type="file" accept="image/*" #fileInput hidden (change)="handleFileInput($event)" />
       </ng-container>
   
       <!-- Actions when preview showing -->
       <ng-container *ngIf="isPreview">
-        <button mat-button color="primary" (click)="confirmPhoto()">Use Photo</button>
-        <button mat-button color="warn" (click)="retakePhoto()">Retake</button>
+        <button mat-raised-button color="primary" (click)="confirmPhoto()">
+          <mat-icon>check</mat-icon>
+          Use Photo
+        </button>
+        <button mat-stroked-button color="warn" (click)="retakePhoto()">
+          <mat-icon>refresh</mat-icon>
+          Retake
+        </button>
       </ng-container>
     </mat-card-actions>      
   </mat-card>

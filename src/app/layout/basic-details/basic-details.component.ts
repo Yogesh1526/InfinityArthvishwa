@@ -242,6 +242,8 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res?.code === 200 || res?.success) {
             this.toast.showSuccess('Customer saved successfully!');
+            this.router.navigate(['/loan-info-details']);
+
             let customerId = null;
             if (res?.data) {
               customerId = res.data.customerId || res.data.id || res.data.customer?.customerId || res.data.customer?.id;

@@ -76,7 +76,7 @@
           Editable Fields
         </span>
       </div>
-      <p class="section-description">Update stone weight and purity percentage for each item. Changes are auto-calculated.</p>
+      <p class="section-description">Update stone weight, karat, and purity percentage for each item. Net weight and net purity weight are auto-calculated.</p>
     </div>
     
     <form [formGroup]="form">
@@ -144,7 +144,7 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item; let i = index" class="editable-cell">
-              <mat-form-field appearance="outline" class="table-input-field">
+              <mat-form-field appearance="outline" class="table-input-field" [class.error-field]="itemErrors[i]?.stoneWeight">
                 <input 
                   matInput 
                   type="number" 
@@ -152,6 +152,8 @@
                   min="0"
                   [formControl]="getFormControl(i, 'stoneWeight')" 
                   placeholder="0.00" />
+                <mat-hint *ngIf="item.grossWeight > 0">Max: &lt;{{ getMaxStoneWeight(i) | number:'1.2-2' }}g</mat-hint>
+                <mat-error *ngIf="itemErrors[i]?.stoneWeight">{{ itemErrors[i].stoneWeight }}</mat-error>
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell">
@@ -175,16 +177,23 @@
             </td>
           </ng-container>
   
-          <!-- Karat -->
+          <!-- Karat (Editable) -->
           <ng-container matColumnDef="karat">
             <th mat-header-cell *matHeaderCellDef>
-              <div class="header-cell">
+              <div class="header-cell editable-header">
                 <mat-icon>category</mat-icon>
                 <span>Karat</span>
+                <mat-icon class="edit-indicator">edit</mat-icon>
               </div>
             </th>
-            <td mat-cell *matCellDef="let item" class="readonly-cell">
-              <span class="karat-badge">{{ item.karat }}</span>
+            <td mat-cell *matCellDef="let item; let i = index" class="editable-cell">
+              <mat-form-field appearance="outline" class="table-input-field karat-select">
+                <mat-select [formControl]="getFormControl(i, 'karat')">
+                  <mat-option *ngFor="let k of karatOptions" [value]="k.value">
+                    {{ k.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
           </ng-container>
@@ -199,7 +208,7 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item; let i = index" class="editable-cell">
-              <mat-form-field appearance="outline" class="table-input-field">
+              <mat-form-field appearance="outline" class="table-input-field" [class.error-field]="itemErrors[i]?.purity">
                 <input 
                   matInput 
                   type="number" 
@@ -208,6 +217,8 @@
                   max="100"
                   [formControl]="getFormControl(i, 'purity')" 
                   placeholder="0.00" />
+                <mat-hint *ngIf="item.karat">Range: {{ getPurityRange(item.karat).min }}% - {{ getPurityRange(item.karat).max }}%</mat-hint>
+                <mat-error *ngIf="itemErrors[i]?.purity">{{ itemErrors[i].purity }}</mat-error>
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
@@ -249,7 +260,6 @@
               <mat-icon>label</mat-icon>
               {{ item.jewelleryName }}
             </h4>
-            <span class="karat-badge">{{ item.karat }}</span>
           </div>
           
           <div class="card-body">
@@ -276,7 +286,7 @@
                   Stone Weight (g)
                   <mat-icon class="edit-icon">edit</mat-icon>
                 </label>
-                <mat-form-field appearance="outline" class="mobile-input">
+                <mat-form-field appearance="outline" class="mobile-input" [class.error-field]="itemErrors[i]?.stoneWeight">
                   <input 
                     matInput 
                     type="number" 
@@ -284,7 +294,9 @@
                     min="0"
                     [formControl]="getFormControl(i, 'stoneWeight')" 
                     placeholder="0.00" />
+                  <mat-hint *ngIf="item.grossWeight > 0">Max: &lt;{{ getMaxStoneWeight(i) | number:'1.2-2' }}g</mat-hint>
                 </mat-form-field>
+                <span class="error-text" *ngIf="itemErrors[i]?.stoneWeight">{{ itemErrors[i].stoneWeight }}</span>
               </div>
               
               <div class="info-item readonly calculated">
@@ -294,6 +306,21 @@
                 </label>
                 <span>{{ item.netWeight | number:'1.2-2' }}</span>
               </div>
+
+              <div class="info-item editable">
+                <label>
+                  <mat-icon>category</mat-icon>
+                  Karat
+                  <mat-icon class="edit-icon">edit</mat-icon>
+                </label>
+                <mat-form-field appearance="outline" class="mobile-input">
+                  <mat-select [formControl]="getFormControl(i, 'karat')">
+                    <mat-option *ngFor="let k of karatOptions" [value]="k.value">
+                      {{ k.label }} ({{ k.min }}% - {{ k.max }}%)
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
               
               <div class="info-item editable">
                 <label>
@@ -301,7 +328,7 @@
                   Purity (%)
                   <mat-icon class="edit-icon">edit</mat-icon>
                 </label>
-                <mat-form-field appearance="outline" class="mobile-input">
+                <mat-form-field appearance="outline" class="mobile-input" [class.error-field]="itemErrors[i]?.purity">
                   <input 
                     matInput 
                     type="number" 
@@ -310,7 +337,9 @@
                     max="100"
                     [formControl]="getFormControl(i, 'purity')" 
                     placeholder="0.00" />
+                  <mat-hint *ngIf="item.karat">Range: {{ getPurityRange(item.karat).min }}% - {{ getPurityRange(item.karat).max }}%</mat-hint>
                 </mat-form-field>
+                <span class="error-text" *ngIf="itemErrors[i]?.purity">{{ itemErrors[i].purity }}</span>
               </div>
               
               <div class="info-item readonly calculated">
@@ -359,13 +388,15 @@
       <div class="submit-section" *ngIf="!isValuationSaved">
         <div class="submit-info">
           <mat-icon>info</mat-icon>
-          <span>Net Weight and Net Purity Weight are automatically calculated based on your inputs.</span>
+          <span>
+            {{ hasChanges ? 'Net Weight and Net Purity Weight are automatically calculated based on your inputs.' : 'Please modify Stone Weight, Karat, or Purity to enable the update button.' }}
+          </span>
         </div>
         <button 
           mat-raised-button 
           color="primary" 
           (click)="submitAll()" 
-          [disabled]="form.invalid || isValuationSaved"
+          [disabled]="isUpdateDisabled()"
           class="submit-button">
           <mat-icon>save</mat-icon>
           Update Second Valuation
