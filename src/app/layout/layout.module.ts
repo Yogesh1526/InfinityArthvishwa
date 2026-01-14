@@ -32,10 +32,12 @@ import { BankDetailsComponent } from './loan-application-wizard/steps/bank-detai
 import { PacketAllotmentComponent } from './loan-application-wizard/steps/packet-allotment/packet-allotment.component';
 import { GlSchemeSelectionComponent } from './loan-application-wizard/steps/gl-scheme-selection/gl-scheme-selection.component';
 import { TareWeightComponent } from './loan-application-wizard/steps/tare-weight/tare-weight.component';
+import { CashSplitComponent } from './loan-application-wizard/steps/cash-split/cash-split.component';
 import { ExpectedClosureDateComponent } from './loan-application-wizard/steps/expected-closure-date/expected-closure-date.component';
 import { LoanApplicationApprovalComponent } from './loan-application-wizard/steps/loan-application-approval/loan-application-approval.component';
 import { DisbursementDetailsComponent } from './loan-application-wizard/steps/disbursement-details/disbursement-details.component';
 import { LoanAgreementDocumentComponent } from './loan-application-wizard/steps/loan-agreement-document/loan-agreement-document.component';
+import { ScannedDocumentComponent } from './loan-application-wizard/steps/scanned-document/scanned-document.component';
 import { WebcamComponent } from './loan-application-wizard/steps/webcam/webcam.component';
 import { WebcamModule } from 'ngx-webcam';
 import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
@@ -76,10 +78,12 @@ import { RoleFormComponent } from './roles-permissions/role-form/role-form.compo
     PacketAllotmentComponent,
     GlSchemeSelectionComponent,
     TareWeightComponent,
+    CashSplitComponent,
     ExpectedClosureDateComponent,
     LoanApplicationApprovalComponent,
     DisbursementDetailsComponent,
     LoanAgreementDocumentComponent,
+    ScannedDocumentComponent,
     WebcamComponent
   ],
   imports: [

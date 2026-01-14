@@ -1,146 +1,189 @@
-<div class="form-container">
-  <h2>
-    <mat-icon color="primary">attach_file</mat-icon>
-    Additional Documents
-  </h2>
+<div class="additional-documents-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">attach_file</mat-icon>
+      Additional Documents
+    </h2>
+    <p class="subtitle">Upload supporting documents (JPG, PNG, PDF, Word)</p>
+  </div>
 
-  <form [formGroup]="form" novalidate class="form-card">
-    <div class="upload-grid">
-      <!-- Income Proof -->
+  <!-- Loading Indicator -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading documents...</p>
+  </div>
+
+  <form [formGroup]="form" novalidate *ngIf="!loading">
+    <!-- Upload Card -->
+    <div class="upload-card-container">
       <div class="upload-card">
-        <div class="upload-header">
-          <mat-icon class="doc-icon">description</mat-icon>
-          <h3>Income Proof</h3>
-        </div>
-        <div class="upload-area">
-          <input
-            type="file"
-            #incomeProof
-            accept="image/*,.pdf"
-            hidden
-            (change)="onFileChange($event, 'incomeProof')"
-          />
-          
-          <div class="preview-container" *ngIf="documentPreviews['incomeProof'] as preview">
-            <div class="preview-wrapper">
-              <img
-                *ngIf="preview.toString().startsWith('data:image')"
-                [src]="preview"
-                alt="Income Proof"
-              />
-              <div *ngIf="!preview.toString().startsWith('data:image')" class="pdf-indicator">
-                <mat-icon>picture_as_pdf</mat-icon>
-                <span>PDF Document</span>
-              </div>
+        <div class="card-header">
+          <div class="header-left">
+            <div class="card-icon">
+              <mat-icon>cloud_upload</mat-icon>
             </div>
-            <button mat-icon-button color="warn" (click)="clearDocument('incomeProof')" class="remove-btn">
-              <mat-icon>close</mat-icon>
-            </button>
+            <div class="card-title">
+              <h3>Upload Document</h3>
+              <span class="card-subtitle">Select document type and upload file</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Document Type Dropdown -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Document Type</mat-label>
+              <mat-select formControlName="documentType" [(ngModel)]="selectedDocumentType" (selectionChange)="onDocumentTypeChange()">
+                <mat-option *ngFor="let type of documentTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>folder</mat-icon>
+            </mat-form-field>
           </div>
 
-          <div class="upload-placeholder" *ngIf="!documentPreviews['incomeProof']">
-            <mat-icon>cloud_upload</mat-icon>
-            <p>Click to upload</p>
-            <span>JPG, PNG, PDF</span>
+          <!-- Custom Document Type Input -->
+          <div class="form-row" *ngIf="showCustomInput">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Enter Document Type</mat-label>
+              <input matInput formControlName="customDocumentType" [(ngModel)]="customDocumentType" 
+                     placeholder="e.g., Bank Statement, Tax Return, etc." />
+              <mat-icon matPrefix>edit</mat-icon>
+            </mat-form-field>
           </div>
 
-          <button mat-stroked-button color="primary" (click)="fileInputs.incomeProof.click()" class="upload-button">
-            <mat-icon>attach_file</mat-icon>
-            Choose File
-          </button>
+          <!-- File Upload Area -->
+          <div class="upload-area">
+            <input type="file" id="document-upload" accept="image/*,application/pdf,.doc,.docx" 
+                   (change)="onFileChange($event)" hidden />
+            
+            <!-- Preview Section -->
+            <div class="upload-preview" *ngIf="documentPreview || selectedFile">
+              <div class="preview-content" *ngIf="documentPreview">
+                <img [src]="documentPreview" alt="Preview" />
+              </div>
+              <div class="file-info" *ngIf="selectedFile && !documentPreview">
+                <mat-icon class="file-icon">{{ getFileIcon(selectedFile.name) }}</mat-icon>
+                <span class="file-name">{{ selectedFile.name }}</span>
+              </div>
+              <button mat-icon-button class="remove-preview" (click)="clearFile()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <!-- Dropzone -->
+            <div class="upload-dropzone" *ngIf="!selectedFile" (click)="triggerFileInput()">
+              <mat-icon>cloud_upload</mat-icon>
+              <span>Click to upload or drag and drop</span>
+              <span class="file-types">JPG, PNG, PDF, Word</span>
+            </div>
+
+            <!-- Upload Button -->
+            <div class="upload-actions">
+              <button mat-raised-button color="primary" type="button" (click)="uploadDocument()"
+                      [disabled]="!selectedFile || !selectedDocumentType || saving">
+                <mat-icon>upload</mat-icon>
+                Upload Document
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Address Proof -->
-      <div class="upload-card">
-        <div class="upload-header">
-          <mat-icon class="doc-icon">home</mat-icon>
-          <h3>Address Proof</h3>
-        </div>
-        <div class="upload-area">
-          <input
-            type="file"
-            #addressProof
-            accept="image/*,.pdf"
-            hidden
-            (change)="onFileChange($event, 'addressProof')"
-          />
-          
-          <div class="preview-container" *ngIf="documentPreviews['addressProof'] as preview">
-            <div class="preview-wrapper">
-              <img
-                *ngIf="preview.toString().startsWith('data:image')"
-                [src]="preview"
-                alt="Address Proof"
-              />
-              <div *ngIf="!preview.toString().startsWith('data:image')" class="pdf-indicator">
-                <mat-icon>picture_as_pdf</mat-icon>
-                <span>PDF Document</span>
+    <!-- Uploaded Documents List -->
+    <div class="documents-list-section" *ngIf="uploadedDocuments.length > 0">
+      <h3 class="list-title">
+        <mat-icon>folder</mat-icon>
+        Uploaded Documents ({{ uploadedDocuments.length }})
+      </h3>
+      
+      <div class="documents-list">
+        <mat-card *ngFor="let doc of uploadedDocuments" class="document-item">
+          <mat-card-content>
+            <div class="document-info">
+              <mat-icon class="doc-icon" [class.pdf-icon]="getFileIcon(doc.fileName) === 'picture_as_pdf'"
+                        [class.word-icon]="getFileIcon(doc.fileName) === 'description' && doc.fileName?.includes('.doc')">
+                {{ getFileIcon(doc.fileName) }}
+              </mat-icon>
+              <div class="doc-details">
+                <h4>{{ doc.fileName || 'Document ' + doc.id }}</h4>
+                <div class="doc-meta">
+                  <span class="doc-type" *ngIf="doc.documentType">
+                    <mat-icon>label</mat-icon>
+                    {{ doc.documentType }}
+                  </span>
+                  <span class="doc-date" *ngIf="doc.uploadedAt">
+                    <mat-icon>schedule</mat-icon>
+                    {{ doc.uploadedAt | date:'short' }}
+                  </span>
+                </div>
               </div>
             </div>
-            <button mat-icon-button color="warn" (click)="clearDocument('addressProof')" class="remove-btn">
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-
-          <div class="upload-placeholder" *ngIf="!documentPreviews['addressProof']">
-            <mat-icon>cloud_upload</mat-icon>
-            <p>Click to upload</p>
-            <span>JPG, PNG, PDF</span>
-          </div>
-
-          <button mat-stroked-button color="primary" (click)="fileInputs.addressProof.click()" class="upload-button">
-            <mat-icon>attach_file</mat-icon>
-            Choose File
-          </button>
-        </div>
+            <div class="doc-actions">
+              <button mat-icon-button color="primary" (click)="viewDocument(doc)" 
+                      [disabled]="isLoadingDocument['view_' + doc.id]" matTooltip="View">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" (click)="downloadDocument(doc.id!, doc.fileName)" 
+                      matTooltip="Download">
+                <mat-icon>download</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteDocument(doc)" matTooltip="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
       </div>
+    </div>
 
-      <!-- Other Document -->
-      <div class="upload-card">
-        <div class="upload-header">
-          <mat-icon class="doc-icon">folder</mat-icon>
-          <h3>Other Document</h3>
-        </div>
-        <div class="upload-area">
-          <input
-            type="file"
-            #otherDocument
-            accept="image/*,.pdf"
-            hidden
-            (change)="onFileChange($event, 'otherDocument')"
-          />
-          
-          <div class="preview-container" *ngIf="documentPreviews['otherDocument'] as preview">
-            <div class="preview-wrapper">
-              <img
-                *ngIf="preview.toString().startsWith('data:image')"
-                [src]="preview"
-                alt="Other Document"
-              />
-              <div *ngIf="!preview.toString().startsWith('data:image')" class="pdf-indicator">
-                <mat-icon>picture_as_pdf</mat-icon>
-                <span>PDF Document</span>
-              </div>
-            </div>
-            <button mat-icon-button color="warn" (click)="clearDocument('otherDocument')" class="remove-btn">
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="uploadedDocuments.length === 0 && !loading">
+      <mat-icon>folder_open</mat-icon>
+      <p>No documents uploaded yet</p>
+      <span>Upload documents using the form above</span>
+    </div>
+  </form>
 
-          <div class="upload-placeholder" *ngIf="!documentPreviews['otherDocument']">
-            <mat-icon>cloud_upload</mat-icon>
-            <p>Click to upload</p>
-            <span>JPG, PNG, PDF</span>
-          </div>
-
-          <button mat-stroked-button color="primary" (click)="fileInputs.otherDocument.click()" class="upload-button">
-            <mat-icon>attach_file</mat-icon>
-            Choose File
+  <!-- Document View Modal -->
+  <div class="document-modal" *ngIf="viewingDocument" (click)="closeDocumentView()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ viewingDocument.title }}</h3>
+        <button mat-icon-button (click)="closeDocumentView()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Image Viewer -->
+        <img *ngIf="viewingDocument.type === 'image' && viewingDocument.url" 
+             [src]="viewingDocument.url" alt="{{ viewingDocument.title }}" />
+        
+        <!-- PDF Viewer -->
+        <iframe *ngIf="viewingDocument.type === 'pdf' && viewingDocument.safeUrl" 
+                [src]="viewingDocument.safeUrl" 
+                frameborder="0"
+                class="pdf-viewer"></iframe>
+        
+        <!-- Word/Other Document Viewer -->
+        <div *ngIf="viewingDocument.type === 'word' && viewingDocument.url" class="word-viewer">
+          <mat-icon>description</mat-icon>
+          <p>Word documents cannot be previewed in browser</p>
+          <button mat-raised-button color="primary" (click)="downloadDocumentFromView()">
+            <mat-icon>download</mat-icon>
+            Download to View
           </button>
         </div>
       </div>
     </div>
-  </form>
+  </div>
+
+  <!-- Saving Indicator -->
+  <div *ngIf="saving" class="saving-overlay">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Uploading document...</p>
+  </div>
 </div>
-  

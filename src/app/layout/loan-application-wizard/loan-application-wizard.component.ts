@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
+import { ClientDocumentService } from 'src/app/services/client-document.service';
 import { ToastService } from 'src/app/services/toast.service';
 import { of, forkJoin } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -21,6 +22,7 @@ export class LoanApplicationWizardComponent implements OnInit {
   loanApplicationId!: string;
   customerId!: string;
   customerNumericId!: number; // Numeric database ID for APIs that need it
+  customerName: string = 'N/A'; // Customer name to pass to child components
   stepCompletionStatus: boolean[] = [];
   private checkedSteps: Set<number> = new Set(); // Track which steps have been checked
 
@@ -41,9 +43,11 @@ export class LoanApplicationWizardComponent implements OnInit {
     { label: 'Bank Details', key: 'bankDetails' },
     { label: 'Packet Allotment', key: 'packetAllotment' },
     { label: 'Tare Weight', key: 'tareWeight' },
+    { label: 'Cash Split', key: 'cashSplit' },
     { label: 'Expected Closure Date', key: 'expectedClosureDate' },
     { label: 'Loan Application Approval', key: 'loanApplicationApproval' },
     { label: 'Loan Agreement Document', key: 'loanAgreementDocument' },
+    { label: 'Scanned Document', key: 'scannedDocument' },
     { label: 'Disbursement', key: 'disbursement' }
   ];
 
@@ -52,6 +56,7 @@ export class LoanApplicationWizardComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private personalService: PersonalDetailsService,
+    private clientDocumentService: ClientDocumentService,
     private toastService: ToastService
   ) {
     // Initialize step completion status array
@@ -100,10 +105,14 @@ export class LoanApplicationWizardComponent implements OnInit {
           }
           // Store numeric ID for APIs that need it
           this.customerNumericId = customer.id || 0;
+          // Build and store customer name
+          const nameParts = [customer.firstName, customer.middleName, customer.lastName].filter(Boolean);
+          this.customerName = nameParts.length > 0 ? nameParts.join(' ') : 'N/A';
         } else {
           // If not found, try to use customerId as fallback
           this.loanApplicationId = this.customerId;
           this.customerNumericId = 0;
+          this.customerName = 'N/A';
         }
         // Check ALL steps on initial load to show correct status in sidebar
         this.checkAllStepsCompletion();
@@ -113,6 +122,7 @@ export class LoanApplicationWizardComponent implements OnInit {
         // Fallback to customerId if API fails
         this.loanApplicationId = this.customerId;
         this.customerNumericId = 0;
+        this.customerName = 'N/A';
         // Still try to check steps
         this.checkAllStepsCompletion();
       }
@@ -151,8 +161,12 @@ export class LoanApplicationWizardComponent implements OnInit {
       );
     }
     
-    // Step 5: Additional Documents - no API call, completion handled by component
-    // Step completion is handled by the component itself via stepCompleted event
+    // Step 5: Additional Documents
+    if (this.customerId) {
+      apiCalls[5] = this.clientDocumentService.getAllClientDocuments(this.customerId).pipe(
+        catchError(() => of({ data: [] }))
+      );
+    }
     
     // Step 6: Nominee (was step 5)
     apiCalls[6] = this.personalService.getNomineeByCustomerId(this.customerId || this.loanApplicationId).pipe(
@@ -206,25 +220,33 @@ export class LoanApplicationWizardComponent implements OnInit {
         catchError(() => of({ data: [] }))
       );
       
-      // Step 16: Expected Closure Date (was step 15)
-      apiCalls[16] = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
+      // Step 16: Cash Split - no API call, completion handled by component
+      
+      // Step 17: Expected Closure Date (was step 16)
+      apiCalls[17] = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
         catchError(() => of({ data: null }))
       );
       
-      // Step 17: Loan Application Approval (was step 16)
-      apiCalls[17] = this.personalService.getApprovalFiles(this.customerId, accountNumber).pipe(
+      // Step 18: Loan Application Approval (was step 17)
+      apiCalls[18] = this.personalService.getApprovalFiles(this.customerId, accountNumber).pipe(
         catchError(() => of({ data: null }))
       );
     }
     
-    // Step 18: Loan Agreement Document - check localStorage
+    // Step 19: Loan Agreement Document - check localStorage
     const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
-    this.stepCompletionStatus[18] = !!docGenerated;
-    this.checkedSteps.add(18);
+    this.stepCompletionStatus[19] = !!docGenerated;
+    this.checkedSteps.add(19);
     
-    // Step 19: Disbursement - requires accountNumber
+    // Step 20: Scanned Document - requires accountNumber
     if (accountNumber) {
-      apiCalls[19] = this.personalService.getDisbursementInfo(this.customerId, accountNumber).pipe(
+      apiCalls[20] = this.personalService.getScanDocument(this.customerId, accountNumber).pipe(
+        catchError(() => of(null))
+      );
+    }
+    // Step 21: Disbursement - requires accountNumber (was step 20)
+    if (accountNumber) {
+      apiCalls[21] = this.personalService.getDisbursementInfo(this.customerId, accountNumber).pipe(
         catchError(() => of({ data: null }))
       );
     }
@@ -304,10 +326,13 @@ export class LoanApplicationWizardComponent implements OnInit {
           );
         }
         break;
-      case 5: // Additional Documents - no API call, completion handled by component
-        // Step completion is handled by the component itself via stepCompleted event
-        this.checkedSteps.add(stepIndex);
-        return;
+      case 5: // Additional Documents
+        if (this.customerId) {
+          apiCall$ = this.clientDocumentService.getAllClientDocuments(this.customerId).pipe(
+            catchError(() => of({ data: [] }))
+          );
+        }
+        break;
       case 6: // Nominee (was step 5)
         apiCall$ = this.personalService.getNomineeByCustomerId(this.customerId || this.loanApplicationId).pipe(
           catchError(() => of({ data: [] }))
@@ -372,27 +397,41 @@ export class LoanApplicationWizardComponent implements OnInit {
           );
         }
         break;
-      case 16: // Expected Closure Date (was step 15)
+      case 16: // Cash Split
+        if (this.customerId && accountNumber) {
+          apiCall$ = this.personalService.getAllCashSplitDetails(this.customerId, accountNumber).pipe(
+            catchError(() => of({ data: [] }))
+          );
+        }
+        break;
+      case 17: // Expected Closure Date (was step 16)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 17: // Loan Application Approval (was step 16)
+      case 18: // Loan Application Approval (was step 17)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getApprovalFiles(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
           );
         }
         break;
-      case 18: // Loan Agreement Document - check localStorage only
+      case 19: // Loan Agreement Document - check localStorage only
         const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
         this.stepCompletionStatus[stepIndex] = !!docGenerated;
         this.checkedSteps.add(stepIndex);
         this.stepCompletionStatus = [...this.stepCompletionStatus];
         return;
-      case 19: // Disbursement
+      case 20: // Scanned Document
+        if (this.customerId && accountNumber) {
+          apiCall$ = this.personalService.getScanDocument(this.customerId, accountNumber).pipe(
+            catchError(() => of(null))
+          );
+        }
+        break;
+      case 21: // Disbursement (was step 20)
         if (this.customerId && accountNumber) {
           apiCall$ = this.personalService.getDisbursementInfo(this.customerId, accountNumber).pipe(
             catchError(() => of({ data: null }))
@@ -427,9 +466,15 @@ export class LoanApplicationWizardComponent implements OnInit {
         return !!(result?.id);
       case 4: // KYC
         return !!(result?.data && result.data.length > 0);
-      case 5: // Additional Documents - completion handled by component
-        // Step completion is handled by the component itself via stepCompleted event
-        // This case should not be reached via API call, but return false as fallback
+      case 5: // Additional Documents
+        // Check if documents array exists and has items
+        if (result?.data) {
+          return Array.isArray(result.data) ? result.data.length > 0 : !!result.data;
+        }
+        // Also check if result is an array directly
+        if (Array.isArray(result)) {
+          return result.length > 0;
+        }
         return false;
       case 6: // Nominee (was step 5)
       case 7: // Reference (was step 6)
@@ -461,12 +506,14 @@ export class LoanApplicationWizardComponent implements OnInit {
       case 14: // Packet Allotment (was step 13)
       case 15: // Tare Weight (was step 14)
         return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
-      case 16: // Expected Closure Date (was step 15)
+      case 16: // Cash Split
+        return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
+      case 17: // Expected Closure Date (was step 16)
         if (result?.data) {
           return !!(result.data.id || result.data.id === 0);
         }
         return !!(result?.id || result?.id === 0);
-      case 17: // Loan Application Approval (was step 16)
+      case 18: // Loan Application Approval (was step 17)
         // Check if approval files exist - handle both response formats
         if (result?.code === 200 && result?.data) {
           const fileData = result.data;
@@ -482,9 +529,12 @@ export class LoanApplicationWizardComponent implements OnInit {
           return true;
         }
         return false;
-      case 18: // Loan Agreement Document
+      case 19: // Loan Agreement Document (was step 18)
         return !!(result?.generated);
-      case 19: // Disbursement
+      case 20: // Scanned Document
+        // Check if scanned document exists (blob response)
+        return !!(result && result.size > 0);
+      case 21: // Disbursement (was step 20)
         // Check if disbursement data exists (same as other steps)
         // API response format: { code: 200, data: { id: 3, disbusmentStatus: 'IN-PROCESS', ... } }
         if (result?.code === 200 && result?.data) {

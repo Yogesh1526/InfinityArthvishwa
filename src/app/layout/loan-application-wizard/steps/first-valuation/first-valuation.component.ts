@@ -34,7 +34,7 @@ export class FirstValuationComponent implements OnInit {
   }
 
   get maxStoneWeightHint(): number {
-    return this.grossWeightValue * 0.5;
+    return this.grossWeightValue * 0.9;
   }
 
   displayedColumns: string[] = [
@@ -144,11 +144,11 @@ export class FirstValuationComponent implements OnInit {
   validateStoneWeight() {
     const grossWeight = this.jewelleryForm.get('grossWeight')?.value as number || 0;
     const stoneWeight = this.jewelleryForm.get('stoneWeight')?.value as number || 0;
-    const maxStoneWeight = grossWeight * 0.5; // 50% of gross weight
+    const maxStoneWeight = grossWeight * 0.9; // 90% of gross weight (cross weight)
 
     if (stoneWeight > 0 && grossWeight > 0) {
-      if (stoneWeight >= maxStoneWeight) {
-        this.stoneWeightError = `Stone Weight must be less than 50% of Gross Weight (max: ${(maxStoneWeight - 0.01).toFixed(2)}g)`;
+      if (stoneWeight > maxStoneWeight) {
+        this.stoneWeightError = `Stone Weight must be 90% or less of Gross Weight (max: ${maxStoneWeight.toFixed(2)}g)`;
         this.jewelleryForm.get('stoneWeight')?.setErrors({ exceedsLimit: true });
       } else {
         this.stoneWeightError = '';

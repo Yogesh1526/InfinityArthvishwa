@@ -8,14 +8,32 @@
     <p class="subtitle">Review loan disbursement information and activate account</p>
   </div>
 
+  <!-- Checking Scanned Document State -->
+  <div *ngIf="checkingScannedDocument" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Checking scanned document...</p>
+  </div>
+
+  <!-- Scanned Document Not Uploaded State -->
+  <div *ngIf="!checkingScannedDocument && !scannedDocumentExists" class="empty-state warning-state">
+    <mat-icon class="warning-icon">warning</mat-icon>
+    <h3>Scanned Document Required</h3>
+    <p>Please upload the scanned document first before accessing disbursement details.</p>
+    <p class="instruction-text">Go to the "Scanned Document" step and upload the required document.</p>
+    <button mat-stroked-button color="primary" (click)="loadDisbursementData()">
+      <mat-icon>refresh</mat-icon>
+      Check Again
+    </button>
+  </div>
+
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-container">
+  <div *ngIf="!checkingScannedDocument && scannedDocumentExists && isLoading" class="loading-container">
     <mat-spinner diameter="50"></mat-spinner>
     <p>Loading disbursement details...</p>
   </div>
 
   <!-- No Data State -->
-  <div *ngIf="!isLoading && !disbursementData" class="empty-state">
+  <div *ngIf="!checkingScannedDocument && scannedDocumentExists && !isLoading && !disbursementData" class="empty-state">
     <mat-icon>search_off</mat-icon>
     <h3>No Disbursement Data Found</h3>
     <p>Disbursement details will be available once the loan application is approved and processed.</p>
@@ -26,7 +44,7 @@
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="!isLoading && disbursementData" class="view-section">
+  <div *ngIf="!checkingScannedDocument && scannedDocumentExists && !isLoading && disbursementData" class="view-section">
     <!-- Customer & Loan Details Card -->
     <div class="section-card">
       <div class="section-header">
@@ -210,7 +228,8 @@
         color="primary" 
         class="activate-button"
         (click)="activateDisbursement()"
-        [disabled]="isActivating">
+        [disabled]="!scannedDocumentExists || isActivating"
+        [matTooltip]="!scannedDocumentExists ? 'Please upload scanned document first' : ''">
         <mat-spinner *ngIf="isActivating" diameter="20" class="button-spinner"></mat-spinner>
         <mat-icon *ngIf="!isActivating">check_circle</mat-icon>
         {{ isActivating ? 'Activating...' : 'Activate Loan Account' }}

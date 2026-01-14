@@ -30,23 +30,19 @@
 }
 
 .logo {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--primary-dark);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  justify-content: center;
   margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: #ffffff;
-  color: var(--primary-dark);
-  border-radius: var(--border-radius-md);
-  border: 2px solid var(--primary-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: var(--spacing-md);
 }
 
-.logo span {
-  font-size: 20px;
+.logo img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 150px;
+  object-fit: contain;
 }
 
 mat-nav-list {

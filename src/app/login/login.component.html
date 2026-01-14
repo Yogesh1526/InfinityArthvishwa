@@ -1,12 +1,31 @@
 <div class="login-container">
   <div class="login-panel">
     <div class="login-image">
-      <img src="assets\Images\Login.jpg" alt="Employee Login" /> <br>
-      <h1 class="brand-title">Dhanprerana</h1>
+      <div class="login-image-content">
+        <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv Logo" class="login-logo" />
+        <h1 class="brand-title">Dhanprerana Finserv</h1>
+        <p class="brand-tagline">Empowering Financial Growth</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <mat-icon>security</mat-icon>
+            <span>Secure & Encrypted</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon>speed</mat-icon>
+            <span>Fast & Reliable</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon>support_agent</mat-icon>
+            <span>24/7 Support</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="login-form">
-      <h2>Login</h2>
-      <p class="subtitle">Welcome back to Dhanprerana Bank CRM</p>
+      <div class="form-header">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to access your account</p>
+      </div>
 
       <form #loginForm="ngForm" (ngSubmit)="onSubmit()" (keydown.enter)="onKeyPress($event)">
         <!-- Username Field -->
@@ -85,7 +104,7 @@
 
       <!-- Security Notice -->
       <div class="security-notice">
-        <mat-icon>security</mat-icon>
+        <mat-icon>lock</mat-icon>
         <span>Your session is secure and encrypted</span>
       </div>
     </div>

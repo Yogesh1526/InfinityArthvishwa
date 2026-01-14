@@ -45,6 +45,8 @@ export class DisbursementDetailsComponent implements OnInit, OnChanges {
   isLoading = false;
   isActivating = false;
   loanAccountNumber: string | null = null;
+  scannedDocumentExists = false;
+  checkingScannedDocument = false;
 
   constructor(
     private personalService: PersonalDetailsService,
@@ -97,6 +99,40 @@ export class DisbursementDetailsComponent implements OnInit, OnChanges {
       return;
     }
 
+    // First check if scanned document exists
+    this.checkingScannedDocument = true;
+    this.personalService.getScanDocument(this.customerId, accountNumber).subscribe({
+      next: (blob: Blob) => {
+        this.checkingScannedDocument = false;
+        if (blob && blob.size > 0) {
+          // Scanned document exists, proceed to load disbursement data
+          this.scannedDocumentExists = true;
+          this.loadDisbursementInfo();
+        } else {
+          // Scanned document doesn't exist
+          this.scannedDocumentExists = false;
+          this.disbursementData = null;
+        }
+      },
+      error: (err: any) => {
+        this.checkingScannedDocument = false;
+        // Scanned document doesn't exist
+        this.scannedDocumentExists = false;
+        this.disbursementData = null;
+      }
+    });
+  }
+
+  loadDisbursementInfo(): void {
+    if (!this.customerId) {
+      return;
+    }
+
+    const accountNumber = this.getLoanAccountNumber();
+    if (!accountNumber) {
+      return;
+    }
+
     this.isLoading = true;
 
     this.personalService.getDisbursementInfo(this.customerId, accountNumber).subscribe({
@@ -123,6 +159,11 @@ export class DisbursementDetailsComponent implements OnInit, OnChanges {
   activateDisbursement(): void {
     if (!this.customerId || !this.getLoanAccountNumber()) {
       this.toastService.showWarning('Missing customer or loan account information.');
+      return;
+    }
+
+    if (!this.scannedDocumentExists) {
+      this.toastService.showError('Please upload scanned document first before activating disbursement.');
       return;
     }
 
