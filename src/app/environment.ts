@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://sentences-expert-ssl-lighting.trycloudflare.com'
+    apiUrl: 'https://std-auctions-variation-karaoke.trycloudflare.com'
   };
   

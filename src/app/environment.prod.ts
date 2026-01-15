@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-production-api-url.com'
+  apiUrl: 'https://std-auctions-variation-karaoke.trycloudflare.com'
 };
 
