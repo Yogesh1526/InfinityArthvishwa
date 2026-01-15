@@ -1,0 +1,146 @@
+<div class="scanned-document-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Scanned Document</h1>
+    <p class="page-subtitle">Upload scanned document before disbursement</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="state-container loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="main-content">
+    <!-- Upload Section -->
+    <div *ngIf="!uploadedDocument" class="upload-container">
+      <div class="upload-box">
+        <input #fileInput type="file" accept="image/*,application/pdf" 
+               (change)="onFileChange($event)" hidden />
+        
+        <!-- File Selected Preview -->
+        <div *ngIf="selectedFile" class="file-selected">
+          <div class="file-preview-card">
+            <div class="preview-header">
+              <div class="file-type-icon">
+                <mat-icon>{{ getFileIcon(selectedFile.name) }}</mat-icon>
+              </div>
+              <div class="file-info-text">
+                <div class="file-name">{{ selectedFile.name }}</div>
+                <div class="file-meta">{{ formatFileSize(selectedFile.size) }}</div>
+              </div>
+              <button mat-icon-button class="remove-file-btn" (click)="clearFile()">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            <div class="preview-image-container" *ngIf="documentPreview">
+              <img [src]="documentPreview" alt="Preview" />
+            </div>
+          </div>
+          
+          <button mat-raised-button color="primary" class="upload-button" 
+                  (click)="uploadDocument()" [disabled]="saving">
+            <mat-spinner *ngIf="saving" diameter="20" class="button-spinner"></mat-spinner>
+            <mat-icon *ngIf="!saving">cloud_upload</mat-icon>
+            <span>{{ saving ? 'Uploading...' : 'Upload Document' }}</span>
+          </button>
+        </div>
+
+        <!-- Upload Dropzone -->
+        <div *ngIf="!selectedFile" class="dropzone" (click)="triggerFileInput()">
+          <div class="dropzone-content">
+            <mat-icon class="dropzone-icon">cloud_upload</mat-icon>
+            <div class="dropzone-text">
+              <p class="dropzone-main-text">Click to select file</p>
+              <p class="dropzone-sub-text">or drag and drop here</p>
+            </div>
+            <div class="file-formats">
+              <span>JPG</span>
+              <span>PNG</span>
+              <span>PDF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Uploaded Section -->
+    <div *ngIf="uploadedDocument" class="document-uploaded">
+      <div class="success-message">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <div class="success-text">
+          <h2>Document Uploaded</h2>
+          <p>Your scanned document has been successfully uploaded</p>
+        </div>
+      </div>
+
+      <div class="document-card">
+        <div class="document-header">
+          <div class="document-icon">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="document-title-section">
+            <h3>Scanned Document</h3>
+            <span class="status-badge">
+              <mat-icon>check</mat-icon>
+              Uploaded
+            </span>
+          </div>
+        </div>
+
+        <div class="document-actions">
+          <button mat-stroked-button (click)="viewDocument()" [disabled]="isLoadingDocument">
+            <mat-icon>visibility</mat-icon>
+            View
+          </button>
+          <button mat-stroked-button (click)="downloadDocument()" [disabled]="isLoadingDocument">
+            <mat-icon>download</mat-icon>
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!uploadedDocument && !selectedFile" class="state-container empty">
+      <mat-icon>insert_drive_file</mat-icon>
+      <h3>No Document</h3>
+      <p>Upload a scanned document to proceed</p>
+    </div>
+  </div>
+
+  <!-- Document Viewer Modal -->
+  <div class="viewer-modal" *ngIf="viewingDocument" (click)="closeDocumentViewer()">
+    <div class="viewer-content" (click)="$event.stopPropagation()">
+      <div class="viewer-header">
+        <h3>{{ viewingDocument.title }}</h3>
+        <button mat-icon-button (click)="closeDocumentViewer()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="viewer-body">
+        <img *ngIf="viewingDocument.type === 'image' && viewingDocument.safeUrl" 
+             [src]="viewingDocument.safeUrl" alt="{{ viewingDocument.title }}" />
+        <iframe *ngIf="viewingDocument.type === 'pdf' && viewingDocument.safeUrl" 
+                [src]="viewingDocument.safeUrl" frameborder="0"></iframe>
+        <div *ngIf="viewingDocument.type === 'download' && viewingDocument.url" class="download-prompt">
+          <mat-icon>description</mat-icon>
+          <p>Preview not available</p>
+          <button mat-raised-button color="primary" (click)="downloadDocument()">
+            <mat-icon>download</mat-icon>
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Overlay -->
+  <div *ngIf="saving" class="upload-overlay">
+    <div class="overlay-content">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Uploading document...</p>
+    </div>
+  </div>
+</div>

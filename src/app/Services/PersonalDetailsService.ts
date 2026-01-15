@@ -312,6 +312,31 @@ export class PersonalDetailsService {
     return this.http.put(`${this.baseUrl}/bank-details/updateBankDetails`, payload);
   }
 
+  // New Cash Split APIs (using the specified endpoints)
+  getAllCashSplitDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    const params = new HttpParams()
+      .set('customerId', customerId)
+      .set('loanAccountNumber', loanAccountNumber);
+    return this.http.get(`${this.baseUrl}/cash-split/getAllCashSplitDetails`, { params });
+  }
+
+  saveCashSplit(payload: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/cash-split/saveCashSplit`, payload);
+  }
+
+  updateCashSplitDetails(payload: any[]): Observable<any> {
+    return this.http.put(`${this.baseUrl}/cash-split/updateCashSplitDetails`, payload);
+  }
+
+  deleteCashSplitDetails(customerId: string, loanAccountNumber: string, disbursalMode: string, cashAmount: number): Observable<any> {
+    const params = new HttpParams()
+      .set('customerId', customerId)
+      .set('loanAccountNumber', loanAccountNumber)
+      .set('disbursalMode', disbursalMode)
+      .set('cashAmount', cashAmount.toString());
+    return this.http.delete(`${this.baseUrl}/cash-split/deleteCashSplitDetails`, { params });
+  }
+
   refreshPennyDropStatus(loanAccountNo: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/bank-details/refreshPennyDrop/${loanAccountNo}`, {});
   }
@@ -464,6 +489,17 @@ export class PersonalDetailsService {
       `${this.baseUrl}/disbusment-details/activeDisbusmentLoanAccouunt/${customerId}/${loanAccountNumber}`,
       {}
     );
+  }
+
+  // Scanned Document APIs
+  uploadScanDocument(customerId: string, loanAccountNumber: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.baseUrl}/disbusment-details/uploadScanDocument/${customerId}/${loanAccountNumber}`, formData);
+  }
+
+  getScanDocument(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/disbusment-details/getScanDocument/${customerId}/${loanAccountNumber}`, { responseType: 'blob' });
   }
 }
 

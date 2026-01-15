@@ -125,13 +125,23 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   mapStatus(apiStatus: string): 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending' {
-    switch (apiStatus?.toUpperCase()) {
-      case 'SUBMITTED': return 'Pending';
-      case 'APPROVED': return 'Approved';
-      case 'REJECTED': return 'Rejected';
-      case 'DISBURSED': return 'Disbursed';
-      case 'ABANDONED': return 'Abandoned';
-      default: return 'Pending';
+    if (!apiStatus) return 'Pending';
+    
+    switch (apiStatus.toUpperCase()) {
+      case 'ACTIVE':
+      case 'SUBMITTED':
+      case 'PENDING':
+        return 'Pending';
+      case 'APPROVED':
+        return 'Approved';
+      case 'REJECTED':
+        return 'Rejected';
+      case 'DISBURSED':
+        return 'Disbursed';
+      case 'ABANDONED':
+        return 'Abandoned';
+      default:
+        return 'Pending';
     }
   }
 

@@ -90,7 +90,7 @@
           <mat-label>Stone Weight (g)</mat-label>
           <input matInput type="number" formControlName="stoneWeight" step="0.01" min="0" />
           <mat-icon matPrefix>brightness_1</mat-icon>
-          <mat-hint *ngIf="grossWeightValue > 0">Max: less than {{ maxStoneWeightHint | number:'1.2-2' }}g</mat-hint>
+          <mat-hint *ngIf="grossWeightValue > 0">Max: up to {{ maxStoneWeightHint | number:'1.2-2' }}g (90% of gross weight)</mat-hint>
           <mat-error *ngIf="stoneWeightError">{{ stoneWeightError }}</mat-error>
         </mat-form-field>
 

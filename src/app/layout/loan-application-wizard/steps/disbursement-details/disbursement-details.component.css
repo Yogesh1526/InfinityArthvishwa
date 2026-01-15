@@ -81,6 +81,30 @@
   max-width: 400px;
 }
 
+.empty-state .instruction-text {
+  color: #999;
+  font-size: 13px;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.warning-state {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.warning-state .warning-icon {
+  color: #ff9800 !important;
+}
+
+.warning-state h3 {
+  color: #f57c00;
+}
+
+.warning-state p {
+  color: #856404;
+}
+
 /* View Section */
 .view-section {
   display: flex;

@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://quarterly-quality-ddr-motors.trycloudflare.com'
+    apiUrl: 'https://sentences-expert-ssl-lighting.trycloudflare.com'
   };
   

@@ -1,0 +1,218 @@
+<div class="cash-split-container" *ngIf="formLoaded">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">account_balance_wallet</mat-icon>
+      Cash Split
+    </h2>
+    <p class="subtitle">Manage payment mode split for loan disbursement</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading cash split data...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading">
+    <!-- Loan Summary -->
+    <div class="loan-summary-section">
+      <h3>
+        <mat-icon>info</mat-icon>
+        Loan Summary
+      </h3>
+      <div class="loan-summary-card">
+        <div class="summary-row">
+          <div class="summary-item">
+            <label>Customer Name</label>
+            <span class="value">{{ customerName }}</span>
+          </div>
+          <div class="summary-item">
+            <label>Loan Number</label>
+            <span class="value">{{ loanAccountNumber || loanApplicationId || 'N/A' }}</span>
+          </div>
+          <div class="summary-item">
+            <label>Disbursement Amount</label>
+            <span class="value amount">{{ disbursedAmount > 0 ? formatCurrency(disbursedAmount) : 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Mode -->
+    <div *ngIf="isDataAvailable && !isEditMode" class="view-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>payment</mat-icon>
+          Payment Split Details
+        </h3>
+        <button mat-raised-button color="primary" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit Cash Split
+        </button>
+      </div>
+
+      <!-- Payment Modes List -->
+      <div class="payment-list" *ngIf="cashSplitData.length > 0">
+        <div class="payment-item" *ngFor="let item of cashSplitData; let i = index">
+          <div class="payment-item-header">
+            <div class="payment-item-title">
+              <span class="payment-number">{{ i + 1 }}</span>
+              <span class="payment-mode">{{ reversePaymentModeMap[item.paymentMode] || item.paymentMode }}</span>
+            </div>
+            <div class="payment-item-actions">
+              <button mat-icon-button color="warn" (click)="onDeleteRow(i, item)" matTooltip="Delete">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="payment-item-content">
+            <div class="payment-detail">
+              <span class="detail-label">Amount:</span>
+              <span class="detail-value">{{ formatCurrency(item.paymentAmount) }}</span>
+            </div>
+            <div class="payment-detail" *ngIf="item.referenceNumber">
+              <span class="detail-label">Reference:</span>
+              <span class="detail-value">{{ item.referenceNumber }}</span>
+            </div>
+            <div class="payment-detail" *ngIf="item.remark">
+              <span class="detail-label">Remarks:</span>
+              <span class="detail-value">{{ item.remark }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Summary -->
+      <div class="total-summary">
+        <div class="total-item">
+          <span class="total-label">Total Payment Amount:</span>
+          <span class="total-value">{{ formatCurrency(getTotal()) }}</span>
+        </div>
+        <div class="total-item" *ngIf="requiredAmount > 0">
+          <span class="total-label">Disbursement Amount:</span>
+          <span class="total-value">{{ formatCurrency(requiredAmount) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Mode -->
+    <div *ngIf="isEditMode" class="edit-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>payment</mat-icon>
+          Payment Split Details
+          <span class="max-limit-info" *ngIf="cashSplits.length >= 2">(Maximum 2 payment modes)</span>
+        </h3>
+        <div class="header-actions">
+          <button mat-raised-button color="primary" (click)="addRow()" [disabled]="isSaving || isLoading || cashSplits.length >= 2" type="button" class="add-row-btn" [matTooltip]="cashSplits.length >= 2 ? 'Maximum 2 payment modes allowed' : ''">
+            <mat-icon>add</mat-icon>
+            Add Payment Mode
+          </button>
+          <button *ngIf="isDataAvailable" mat-stroked-button (click)="onCancel()" [disabled]="isSaving" type="button">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="form">
+        <div formArrayName="cashSplits">
+          <!-- Payment Mode Cards -->
+          <div class="payment-cards-container" *ngIf="cashSplits.length > 0">
+            <div class="payment-card" *ngFor="let control of cashSplits.controls; let i = index" [formGroupName]="i">
+              <div class="card-header">
+                <div class="card-title">
+                  <span>Payment Mode {{ i + 1 }}</span>
+                </div>
+                <button mat-icon-button color="warn" (click)="removeRow(i)" [disabled]="cashSplits.length === 1 || isSaving" type="button" class="delete-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              
+              <div class="card-content">
+                <div class="form-row">
+                  <div class="form-group">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Payment Mode *</mat-label>
+                      <mat-select formControlName="paymentMode">
+                        <mat-option *ngFor="let mode of getAvailablePaymentModes(i)" [value]="mode">{{ mode }}</mat-option>
+                      </mat-select>
+                      <mat-error *ngIf="control.get('paymentMode')?.hasError('required') && control.get('paymentMode')?.touched">
+                        Payment mode is required
+                      </mat-error>
+                      <mat-error *ngIf="control.get('paymentMode')?.hasError('duplicate')">
+                        This payment mode is already selected
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                  <div class="form-group">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Amount (₹) *</mat-label>
+                      <input matInput type="number" formControlName="amount" placeholder="0.00" min="0.01" step="0.01" />
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Reference / UTR</mat-label>
+                      <input 
+                        matInput 
+                        formControlName="referenceNo"
+                        [placeholder]="control.get('paymentMode')?.value === 'Cash' ? '—' : 'Enter reference'"
+                        [disabled]="control.get('paymentMode')?.value === 'Cash'" />
+                    </mat-form-field>
+                  </div>
+                  <div class="form-group">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Remarks</mat-label>
+                      <input matInput formControlName="remarks" placeholder="Optional" />
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="cashSplits.length === 0" class="empty-state">
+          <mat-icon>payment</mat-icon>
+          <p>No payment modes added. Click "Add Payment Mode" to get started.</p>
+        </div>
+
+        <!-- Total Section -->
+        <div class="total-section" *ngIf="cashSplits.length > 0">
+          <div class="total-row">
+            <div class="total-label">Total Payment Amount:</div>
+            <div class="total-amount" [class.error]="requiredAmount > 0 && abs(getTotal() - requiredAmount) >= 0.01" [class.success]="requiredAmount > 0 && abs(getTotal() - requiredAmount) < 0.01">
+              {{ formatCurrency(getTotal()) }}
+            </div>
+          </div>
+          <div *ngIf="requiredAmount > 0" class="total-row">
+            <div class="total-label">Disbursement Amount:</div>
+            <div class="total-amount">{{ formatCurrency(requiredAmount) }}</div>
+          </div>
+          <div *ngIf="requiredAmount > 0 && abs(getTotal() - requiredAmount) >= 0.01" class="error-message">
+            <mat-icon>error</mat-icon>
+            <span>Total payment amount must equal Disbursement Amount. Difference: {{ formatCurrency(abs(getDifference())) }}</span>
+          </div>
+          <div *ngIf="requiredAmount > 0 && abs(getTotal() - requiredAmount) < 0.01" class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            <span>Total payment amount matches Disbursement Amount</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions" *ngIf="cashSplits.length > 0">
+          <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSaving || isLoading || !isValid()" type="button">
+            <mat-icon *ngIf="!isSaving">save</mat-icon>
+            <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+            <span>{{ isSaving ? 'Saving...' : 'Save Cash Split' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
