@@ -91,8 +91,14 @@ export class AuthInterceptor implements HttpInterceptor {
           // Too many requests
           errorMessage = 'Too many requests. Please try again later.';
         } else if (error.status === 0) {
-          // Network error
-          errorMessage = 'Network error. Please check your internet connection.';
+          // Network error - server is down or no connection
+          // Check if token is expired, if so redirect to login
+          if (this.authService.isTokenExpired()) {
+            errorMessage = 'Your session has expired. Please login again.';
+            this.authService.logout();
+          } else {
+            errorMessage = 'Network error. Please check your internet connection.';
+          }
         } else if (error.status >= 500) {
           // Server errors
           errorMessage = error.error?.message || 'Server error. Please try again later.';

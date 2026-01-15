@@ -30,6 +30,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // First check if token is expired - if so, redirect to login immediately
+    if (this.authService.isTokenExpired()) {
+      this.authService.clearAuthData();
+      this.router.navigate(['/login'], { replaceUrl: true });
+      return;
+    }
+
+    // Check if user is logged in
+    if (!this.authService.isLoggedIn()) {
+      this.authService.clearAuthData();
+      this.router.navigate(['/login'], { replaceUrl: true });
+      return;
+    }
+
     // Load user info from token first (in case it's not in storage)
     this.authService.loadUserInfoFromToken();
 
@@ -37,6 +51,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.authService.userInfo$
       .pipe(takeUntil(this.destroy$))
       .subscribe(userInfo => {
+        // Check token expiration on each user info update
+        if (this.authService.isTokenExpired()) {
+          this.authService.clearAuthData();
+          this.router.navigate(['/login'], { replaceUrl: true });
+          return;
+        }
+        
         this.userInfo = userInfo;
         this.username = userInfo?.name || userInfo?.username || 'User';
         this.checkAdminRole();
