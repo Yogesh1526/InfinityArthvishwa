@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
+import { GoldRateService } from 'src/app/services/gold-rate.service';
 
 interface LoanApplication {
   id: number;
@@ -11,7 +12,7 @@ interface LoanApplication {
   occupation: string;
   loanPurpose: string;
   createdBy: string;
-  status: 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending';
+  status: string;
 }
 
 @Component({
@@ -41,13 +42,19 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   errorMessage: string = '';
   hasData: boolean = false;
 
+  // Gold rate alert
+  showGoldRateAlert: boolean = false;
+  goldRateNeedsUpdate: boolean = false;
+
   constructor(
     private router: Router,
-    private loanService: PersonalDetailsService
+    private loanService: PersonalDetailsService,
+    private goldRateService: GoldRateService
   ) {}
 
   ngOnInit(): void {
     this.loadCustomerDetails();
+    this.checkGoldRateStatus();
   }
 
   loadCustomerDetails(): void {
@@ -77,7 +84,7 @@ export class LoanInfoDetailsTableComponent implements OnInit {
             occupation: c.occupation ?? 'N/A',
             loanPurpose: c.loanPurpose ?? 'N/A',
             createdBy: c.createdBy ?? 'N/A',
-            status: this.mapStatus(c.applicationStatus)
+            status: c.applicationStatus ?? 'N/A'
           }));
         }
 
@@ -124,31 +131,14 @@ export class LoanInfoDetailsTableComponent implements OnInit {
     this.loadCustomerDetails();
   }
 
-  mapStatus(apiStatus: string): 'Approved' | 'Rejected' | 'Disbursed' | 'Abandoned' | 'Pending' {
-    if (!apiStatus) return 'Pending';
-    
-    switch (apiStatus.toUpperCase()) {
-      case 'ACTIVE':
-      case 'SUBMITTED':
-      case 'PENDING':
-        return 'Pending';
-      case 'APPROVED':
-        return 'Approved';
-      case 'REJECTED':
-        return 'Rejected';
-      case 'DISBURSED':
-        return 'Disbursed';
-      case 'ABANDONED':
-        return 'Abandoned';
-      default:
-        return 'Pending';
-    }
-  }
 
   get filteredLoans(): LoanApplication[] {
     const text = this.filterText.toLowerCase();
     return this.loanList.filter(loan => {
-      const matchStatus = this.selectedStatus === 'All' || loan.status === this.selectedStatus;
+      let matchStatus = true;
+      if (this.selectedStatus !== 'All') {
+        matchStatus = this.matchesStatusFilter(loan.status, this.selectedStatus);
+      }
       const matchText = 
         loan.name.toLowerCase().includes(text) || 
         loan.customerId.toLowerCase().includes(text) ||
@@ -156,6 +146,24 @@ export class LoanInfoDetailsTableComponent implements OnInit {
         loan.tempLoanAccountNumber.toLowerCase().includes(text);
       return matchStatus && matchText;
     });
+  }
+
+  matchesStatusFilter(apiStatus: string, filterStatus: string): boolean {
+    if (!apiStatus) return false;
+    const statusUpper = apiStatus.toUpperCase();
+    
+    switch (filterStatus) {
+      case 'Approved':
+        return statusUpper === 'APPROVED';
+      case 'Rejected':
+        return statusUpper === 'REJECTED';
+      case 'Disbursed':
+        return statusUpper === 'DISBURSED';
+      case 'Pending':
+        return statusUpper === 'ACTIVE' || statusUpper === 'SUBMITTED' || statusUpper === 'PENDING';
+      default:
+        return false;
+    }
   }
 
   get pagedLoans(): LoanApplication[] {
@@ -224,9 +232,68 @@ export class LoanInfoDetailsTableComponent implements OnInit {
 
   updateCounts(): void {
     this.loanCount = this.loanList.length;
-    this.approvedCount = this.loanList.filter(l => l.status === 'Approved').length;
-    this.rejectedCount = this.loanList.filter(l => l.status === 'Rejected').length;
-    this.disbursedCount = this.loanList.filter(l => l.status === 'Disbursed').length;
-    this.pendingCount = this.loanList.filter(l => l.status === 'Pending').length;
+    this.approvedCount = this.loanList.filter(l => l.status?.toUpperCase() === 'APPROVED').length;
+    this.rejectedCount = this.loanList.filter(l => l.status?.toUpperCase() === 'REJECTED').length;
+    this.disbursedCount = this.loanList.filter(l => l.status?.toUpperCase() === 'DISBURSED').length;
+    this.pendingCount = this.loanList.filter(l => {
+      const status = l.status?.toUpperCase();
+      return status === 'ACTIVE' || status === 'SUBMITTED' || status === 'PENDING';
+    }).length;
+  }
+
+  checkGoldRateStatus(): void {
+    this.goldRateService.getCurrentGoldRate().subscribe({
+      next: (response: any) => {
+        // Check if gold rate exists and is up to date
+        let goldRate = null;
+        
+        if (response?.data?.data) {
+          goldRate = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+        } else if (response?.data) {
+          goldRate = Array.isArray(response.data) ? response.data[0] : response.data;
+        }
+
+        if (!goldRate || !goldRate.ratePerGram) {
+          // No gold rate found
+          this.showGoldRateAlert = true;
+          this.goldRateNeedsUpdate = true;
+          return;
+        }
+
+        // Check if rate date is today
+        if (goldRate.rateDate) {
+          const today = new Date().toISOString().split('T')[0];
+          const rateDate = goldRate.rateDate.split('T')[0];
+          
+          if (rateDate !== today) {
+            // Rate is not for today
+            this.showGoldRateAlert = true;
+            this.goldRateNeedsUpdate = true;
+          } else {
+            this.showGoldRateAlert = false;
+            this.goldRateNeedsUpdate = false;
+          }
+        } else {
+          // No date specified, show alert
+          this.showGoldRateAlert = true;
+          this.goldRateNeedsUpdate = true;
+        }
+      },
+      error: (err) => {
+        // If error (including 404), show alert
+        if (err.status === 404 || err.status === 0) {
+          this.showGoldRateAlert = true;
+          this.goldRateNeedsUpdate = true;
+        }
+      }
+    });
+  }
+
+  navigateToGoldRate(): void {
+    this.router.navigate(['/gold-rate']);
+  }
+
+  dismissGoldRateAlert(): void {
+    this.showGoldRateAlert = false;
   }
 }

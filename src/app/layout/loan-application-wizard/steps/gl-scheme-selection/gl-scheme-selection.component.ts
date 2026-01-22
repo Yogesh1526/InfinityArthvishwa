@@ -287,4 +287,31 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
       }
     });
   }
+
+  validateStep(): boolean {
+    // Loan amount and processing fee are required
+    if (!this.isDataAvailable) {
+      this.toastService.showWarning('Please save the GL scheme selection first.');
+      return false;
+    }
+    
+    // Check if loan amount and processing fee exist in the scheme data
+    const schemeData = this.schemeData?.goldLoanSchemeCalculation || this.schemeData;
+    if (!schemeData) {
+      this.toastService.showWarning('Please complete the GL scheme selection.');
+      return false;
+    }
+    
+    if (!schemeData.loanAmount || schemeData.loanAmount <= 0) {
+      this.toastService.showWarning('Loan amount is required. Please update the loan amount.');
+      return false;
+    }
+    
+    if (!schemeData.processingFees || schemeData.processingFees <= 0) {
+      this.toastService.showWarning('Processing fee is required. Please update the processing fee.');
+      return false;
+    }
+    
+    return true;
+  }
 }

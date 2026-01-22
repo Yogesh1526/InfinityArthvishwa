@@ -209,14 +209,10 @@ export class BasicDetailsComponent implements OnInit {
   
       this.apiService.update(body).subscribe({
         next: (res: any) => {
-          if (res?.code === 200 || res?.success) {
+          if (res.code === 201 || res.code === 200 || res?.success) {
             this.toast.showSuccess('Customer updated successfully!');
-            // Navigate to customer profile after successful update
-            if (this.customerId && this.customerId !== 'N/A') {
-              this.router.navigate(['/customer-profile', this.customerId]);
-            } else {
-              this.toast.showError('Customer ID is not available');
-            }
+            // Navigate to loan-info-details after successful update
+            this.router.navigate(['/loan-info-details']);
           } else {
             this.toast.showError(res?.message || 'Update failed');
           }
@@ -240,20 +236,9 @@ export class BasicDetailsComponent implements OnInit {
       
       this.apiService.create(body).subscribe({
         next: (res: any) => {
-          if (res?.code === 200 || res?.success) {
+          if (res.code === 201 || res.code === 200) {
             this.toast.showSuccess('Customer saved successfully!');
-            this.router.navigate(['/loan-info-details']);
-
-            let customerId = null;
-            if (res?.data) {
-              customerId = res.data.customerId || res.data.id || res.data.customer?.customerId || res.data.customer?.id;
-            } else if (res?.customerId) {
-              customerId = res.customerId;
-            } else if (res?.id) {
-              customerId = res.id;
-            }
-            
-            // Reset form and redirect to loan-info-details
+            // Reset form and navigate to loan-info-details
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });
             this.router.navigate(['/loan-info-details']);

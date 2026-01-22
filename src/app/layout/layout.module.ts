@@ -43,6 +43,7 @@ import { WebcamModule } from 'ngx-webcam';
 import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
 import { RoleListComponent } from './roles-permissions/role-list/role-list.component';
 import { RoleFormComponent } from './roles-permissions/role-form/role-form.component';
+import { GoldRateComponent } from './gold-rate/gold-rate.component';
 
 
 
@@ -60,6 +61,7 @@ import { RoleFormComponent } from './roles-permissions/role-form/role-form.compo
     CustomerProfileComponent,
     RoleListComponent,
     RoleFormComponent,
+    GoldRateComponent,
     PersonalDetailsComponent,
     FamilyDetailsComponent,
     AddressActivityComponent,
@@ -91,6 +93,20 @@ import { RoleFormComponent } from './roles-permissions/role-form/role-form.compo
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts') // Lazy load ECharts
     })
+  ],
+  exports: [
+    SidebarComponent,
+    HeaderComponent,
+    DashboardComponent,
+    LayoutComponent,
+    WorklistComponent,
+    BasicDetailsComponent,
+    LoanInfoComponent,
+    LoanApplicationWizardComponent,
+    CustomerProfileComponent,
+    RoleListComponent,
+    RoleFormComponent,
+    GoldRateComponent
   ]
 })
 export class LayoutModule { }

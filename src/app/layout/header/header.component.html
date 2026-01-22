@@ -25,6 +25,10 @@
           <mat-icon>people</mat-icon>
           <span>Customer</span>
         </a>
+        <a (click)="navigateTo('gold-rate')" routerLinkActive="active">
+          <mat-icon>monetization_on</mat-icon>
+          <span>Gold Rate</span>
+        </a>
         <a *ngIf="isAdmin" (click)="navigateTo('roles')" routerLinkActive="active" class="admin-link">
           <mat-icon>admin_panel_settings</mat-icon>
           <span>Roles & Permissions</span>

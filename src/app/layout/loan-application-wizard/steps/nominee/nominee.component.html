@@ -152,7 +152,7 @@
       <button *ngIf="isDataAvailable" mat-stroked-button type="button" (click)="onCancel()">
         Cancel
       </button>
-      <button mat-raised-button color="primary" type="submit">
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
         <mat-icon>save</mat-icon>
         {{ nomineeId ? 'Update Details' : 'Save Details' }}
       </button>

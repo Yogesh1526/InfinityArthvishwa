@@ -12,6 +12,152 @@
   margin: 0;
 }
 
+/* Gold Rate Alert Banner */
+.gold-rate-alert {
+  margin-bottom: 24px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 4px solid #f59e0b;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.alert-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.alert-icon-wrapper {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.alert-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.alert-message {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alert-message strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #92400e;
+  display: block;
+}
+
+.alert-message span {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.4;
+}
+
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.update-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  transition: all 0.2s ease;
+}
+
+.update-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.update-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.dismiss-btn {
+  color: #92400e !important;
+  transition: all 0.2s ease;
+}
+
+.dismiss-btn:hover {
+  background: rgba(146, 64, 14, 0.1) !important;
+  transform: rotate(90deg);
+}
+
+.dismiss-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
 /* Header Section */
 .dashboard-header {
   display: flex;
@@ -274,6 +420,19 @@
   background: #f8fafc;
 }
 
+.table-row.row-active {
+  background: #f0fdf4;
+  border-left: 4px solid #10b981;
+}
+
+.table-row.row-active:hover {
+  background: #dcfce7;
+}
+
+.table-row.row-active td {
+  border-color: #bbf7d0;
+}
+
 /* Cell Styles */
 .customer-id {
   font-family: 'Monaco', 'Consolas', monospace;
@@ -361,6 +520,11 @@
 .status-badge.abandoned {
   background: #f3f4f6;
   color: #4b5563;
+}
+
+.status-badge.active {
+  background: green;
+  color: white;
 }
 
 /* Actions */
@@ -584,6 +748,42 @@
 @media (max-width: 768px) {
   .loan-dashboard {
     padding: 16px;
+  }
+
+  .gold-rate-alert {
+    margin-bottom: 16px;
+  }
+
+  .alert-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .alert-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .alert-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .alert-message {
+    width: 100%;
+  }
+
+  .alert-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .update-btn {
+    flex: 1;
+    justify-content: center;
   }
 
   .dashboard-header {

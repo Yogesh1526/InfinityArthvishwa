@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://fabric-layout-bouquet-islamic.trycloudflare.com'
+  apiUrl: 'https://relations-retrieved-skiing-shipment.trycloudflare.com'
 };
 

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
@@ -27,12 +27,12 @@ export class FamilyDetailsComponent implements OnInit, OnChanges {
     private toastService: ToastService
   ) {
     this.form = this.fb.group({
-      spouseFirstName: [''],
-      spouseLastName: [''],
-      fatherFirstName: [''],
-      fatherLastName: [''],
-      motherFirstName: [''],
-      motherLastName: ['']
+      spouseFirstName: ['', Validators.required],
+      spouseLastName: ['', Validators.required],
+      fatherFirstName: ['', Validators.required],
+      fatherLastName: ['', Validators.required],
+      motherFirstName: ['', Validators.required],
+      motherLastName: ['', Validators.required]
     });
   }
 
@@ -77,7 +77,29 @@ export class FamilyDetailsComponent implements OnInit, OnChanges {
   }
   
 
+  validateStep(): boolean {
+    // If form is already saved (not in edit mode), allow navigation
+    if (!this.isEditMode && this.familyDetails) {
+      return true;
+    }
+    // If in edit mode, validate form
+    if (this.isEditMode) {
+      this.form.markAllAsTouched();
+      if (!this.form.valid) {
+        this.toastService.showWarning('Please fill all required fields correctly.');
+        return false;
+      }
+    }
+    return true;
+  }
+
   onSubmit() {
+    this.form.markAllAsTouched();
+    if (!this.form.valid) {
+      this.toastService.showWarning('Please fill all required fields correctly.');
+      return;
+    }
+
     const payload = {
       ...this.form.value,
       customerId: this.customerId,

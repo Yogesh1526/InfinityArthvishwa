@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
 
@@ -93,10 +93,10 @@ export class WorkDetailsComponent implements OnInit, OnChanges {
     private toastService: ToastService
   ) {
     this.form = this.fb.group({
-      customerSegment: [''],
-      occupation: [''],
-      experienceInCurrentJob: [''],
-      annualIncome: ['']
+      customerSegment: ['', Validators.required],
+      occupation: ['', Validators.required],
+      experienceInCurrentJob: ['', Validators.required],
+      annualIncome: ['', Validators.required]
     });
   }
 
@@ -171,7 +171,24 @@ export class WorkDetailsComponent implements OnInit, OnChanges {
     }
   }
 
+  validateStep(): boolean {
+    // If form is already saved (not editable), allow navigation
+    if (!this.isEditable && this.isDataAvailable) {
+      return true;
+    }
+    // If in edit mode, validate form
+    if (this.isEditable) {
+      this.form.markAllAsTouched();
+      if (!this.form.valid) {
+        this.toastService.showWarning('Please fill all required fields correctly.');
+        return false;
+      }
+    }
+    return true;
+  }
+
   onSubmit() {
+    this.form.markAllAsTouched();
     if (!this.form.valid) {
       this.toastService.showWarning('Please fill all required fields correctly.');
       return;

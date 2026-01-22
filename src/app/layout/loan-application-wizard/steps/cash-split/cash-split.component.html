@@ -33,7 +33,7 @@
             <span class="value">{{ loanAccountNumber || loanApplicationId || 'N/A' }}</span>
           </div>
           <div class="summary-item">
-            <label>Disbursement Amount</label>
+            <label>Net Disbursement Amount</label>
             <span class="value amount">{{ disbursedAmount > 0 ? formatCurrency(disbursedAmount) : 'N/A' }}</span>
           </div>
         </div>
@@ -91,7 +91,7 @@
           <span class="total-value">{{ formatCurrency(getTotal()) }}</span>
         </div>
         <div class="total-item" *ngIf="requiredAmount > 0">
-          <span class="total-label">Disbursement Amount:</span>
+          <span class="total-label">Net Disbursement Amount:</span>
           <span class="total-value">{{ formatCurrency(requiredAmount) }}</span>
         </div>
       </div>
@@ -191,7 +191,7 @@
             </div>
           </div>
           <div *ngIf="requiredAmount > 0" class="total-row">
-            <div class="total-label">Disbursement Amount:</div>
+            <div class="total-label">Net Disbursement Amount:</div>
             <div class="total-amount">{{ formatCurrency(requiredAmount) }}</div>
           </div>
           <div *ngIf="requiredAmount > 0 && abs(getTotal() - requiredAmount) >= 0.01" class="error-message">

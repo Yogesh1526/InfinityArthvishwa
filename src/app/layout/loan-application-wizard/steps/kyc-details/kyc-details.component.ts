@@ -665,4 +665,39 @@ export class KycDetailsComponent implements OnInit {
     this.form.patchValue({ panIdentifierNumber: this.originalPanNumber });
     this.isEditingPanNumber = false;
   }
+
+  validateStep(): boolean {
+    // Check if all required documents are uploaded and verified
+    this.form.markAllAsTouched();
+    
+    // Validate Aadhaar
+    if (!this.form.get('aadhaarIdentifierNumber')?.valid) {
+      this.toastService.showWarning('Aadhaar number is required.');
+      return false;
+    }
+    if (!this.isAadhaarSaved) {
+      this.toastService.showWarning('Please upload both front and back sides of Aadhaar card.');
+      return false;
+    }
+    if (!this.form.get('aadhaarVerified')?.value) {
+      this.toastService.showWarning('Please verify the Aadhaar card.');
+      return false;
+    }
+    
+    // Validate PAN
+    if (!this.form.get('panIdentifierNumber')?.valid) {
+      this.toastService.showWarning('PAN number is required.');
+      return false;
+    }
+    if (!this.isPanSaved) {
+      this.toastService.showWarning('Please upload PAN card.');
+      return false;
+    }
+    if (!this.form.get('panVerified')?.value) {
+      this.toastService.showWarning('Please verify the PAN card.');
+      return false;
+    }
+    
+    return true;
+  }
 }

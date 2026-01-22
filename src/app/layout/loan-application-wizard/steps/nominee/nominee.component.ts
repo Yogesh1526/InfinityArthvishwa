@@ -151,7 +151,24 @@ export class NomineeComponent implements OnInit {
     }
   }
 
+  validateStep(): boolean {
+    // If form is already saved (not editable), allow navigation
+    if (!this.isEditable && this.isDataAvailable) {
+      return true;
+    }
+    // If in edit mode, validate form
+    if (this.isEditable) {
+      this.form.markAllAsTouched();
+      if (!this.form.valid) {
+        this.toastService.showWarning('Please fill all required fields correctly.');
+        return false;
+      }
+    }
+    return true;
+  }
+
   onSubmit(): void {
+    this.form.markAllAsTouched();
     if (!this.form.valid) {
       this.toastService.showWarning('Please fill all required fields correctly.');
       return;

@@ -1,0 +1,175 @@
+<div class="page-container">
+  <mat-card class="gold-rate-card">
+    <div class="header-section">
+      <h2>
+        <mat-icon color="primary">monetization_on</mat-icon>
+        Gold Rate Management
+      </h2>
+      <div class="date-badge">
+        <mat-icon>calendar_today</mat-icon>
+        <span>{{ todayDate }}</span>
+      </div>
+    </div>
+
+    <!-- Current Rate Display -->
+    <div class="current-rate-section" *ngIf="currentGoldRate && !isLoading">
+      <div class="rate-display-card">
+        <div class="rate-icon-wrapper">
+          <mat-icon class="gold-icon">monetization_on</mat-icon>
+        </div>
+        <div class="rate-content">
+          <div class="rate-label">Current Gold Rate</div>
+          <div class="rate-value">{{ formatCurrency(currentGoldRate.ratePerGram) }}</div>
+          <div class="rate-unit">per gram</div>
+          <div class="rate-badge-group">
+            <span class="rate-badge" *ngIf="currentGoldRate.currency">
+              <mat-icon>attach_money</mat-icon>
+              {{ currentGoldRate.currency }}
+            </span>
+            <span class="rate-badge" *ngIf="currentGoldRate.karat">
+              <mat-icon>diamond</mat-icon>
+              {{ currentGoldRate.karat }}K
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Information Card -->
+      <mat-card class="details-card">
+        <div class="details-header">
+          <mat-icon>info</mat-icon>
+          <h3>Rate Details</h3>
+        </div>
+        <div class="details-grid">
+          <div class="detail-item" *ngIf="currentGoldRate.rateDate">
+            <div class="detail-label">
+              <mat-icon>calendar_today</mat-icon>
+              Rate Date
+            </div>
+            <div class="detail-value">{{ formatDate(currentGoldRate.rateDate) }}</div>
+          </div>
+          <div class="detail-item" *ngIf="currentGoldRate.createdBy">
+            <div class="detail-label">
+              <mat-icon>person_add</mat-icon>
+              Created By
+            </div>
+            <div class="detail-value">{{ currentGoldRate.createdBy }}</div>
+          </div>
+          <div class="detail-item" *ngIf="currentGoldRate.createdDate">
+            <div class="detail-label">
+              <mat-icon>schedule</mat-icon>
+              Created Date
+            </div>
+            <div class="detail-value">{{ formatDate(currentGoldRate.createdDate) }}</div>
+          </div>
+          <div class="detail-item" *ngIf="currentGoldRate.updatedBy">
+            <div class="detail-label">
+              <mat-icon>edit</mat-icon>
+              Updated By
+            </div>
+            <div class="detail-value">{{ currentGoldRate.updatedBy }}</div>
+          </div>
+          <div class="detail-item" *ngIf="currentGoldRate.updatedDate">
+            <div class="detail-label">
+              <mat-icon>update</mat-icon>
+              Last Updated
+            </div>
+            <div class="detail-value">{{ formatDate(currentGoldRate.updatedDate) }}</div>
+          </div>
+          <div class="detail-item" *ngIf="currentGoldRate.id">
+            <div class="detail-label">
+              <mat-icon>tag</mat-icon>
+              ID
+            </div>
+            <div class="detail-value">#{{ currentGoldRate.id }}</div>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading gold rate...</p>
+    </div>
+
+    <!-- Update Rate Form -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>edit</mat-icon>
+          {{ currentGoldRate ? 'Update Today\'s Rate' : 'Set Today\'s Rate' }}
+        </h3>
+      </div>
+
+      <form [formGroup]="goldRateForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="rate-input-field">
+            <mat-label>Rate Per Gram (₹)</mat-label>
+            <mat-icon matPrefix>currency_rupee</mat-icon>
+            <input 
+              matInput 
+              type="number" 
+              formControlName="ratePerGram" 
+              placeholder="Enter rate per gram"
+              step="0.01"
+              min="0.01" />
+            <mat-error *ngIf="ratePerGramControl?.hasError('required')">
+              Gold rate is required
+            </mat-error>
+            <mat-error *ngIf="ratePerGramControl?.hasError('min')">
+              Rate must be greater than 0
+            </mat-error>
+            <mat-error *ngIf="ratePerGramControl?.hasError('pattern')">
+              Please enter a valid rate (e.g., 6500.50)
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-info">
+          <mat-icon>info_outline</mat-icon>
+          <span>Enter the current gold rate per gram in Indian Rupees (₹)</span>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit" 
+            [disabled]="goldRateForm.invalid || isSaving"
+            class="submit-button">
+            <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+            <mat-icon *ngIf="!isSaving">{{ currentGoldRate ? 'update' : 'save' }}</mat-icon>
+            {{ isSaving ? 'Saving...' : (currentGoldRate ? 'Update Rate' : 'Save Rate') }}
+          </button>
+          <button 
+            mat-stroked-button 
+            type="button" 
+            (click)="loadCurrentGoldRate()" 
+            [disabled]="isSaving || isLoading">
+            <mat-icon>refresh</mat-icon>
+            Refresh
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <mat-card class="info-card">
+        <div class="info-header">
+          <mat-icon>info</mat-icon>
+          <h4>About Gold Rate</h4>
+        </div>
+        <ul class="info-list">
+          <li>The gold rate is updated daily and affects all loan calculations</li>
+          <li>Ensure the rate is accurate before saving</li>
+          <li>You can update the rate multiple times during the day</li>
+          <li>The latest rate will be used for all new transactions</li>
+        </ul>
+      </mat-card>
+    </div>
+  </mat-card>
+</div>
+

@@ -22,6 +22,28 @@
 
   <!-- Data Display -->
   <div *ngIf="hasData && !hasError" class="dashboard-content">
+    <!-- Gold Rate Alert Banner -->
+    <div *ngIf="showGoldRateAlert" class="gold-rate-alert">
+      <div class="alert-content">
+        <div class="alert-icon-wrapper">
+          <mat-icon class="alert-icon">monetization_on</mat-icon>
+        </div>
+        <div class="alert-message">
+          <strong>Please Update Gold Rate</strong>
+          <span>Today's gold rate needs to be updated to ensure accurate loan calculations.</span>
+        </div>
+        <div class="alert-actions">
+          <button mat-raised-button color="primary" (click)="navigateToGoldRate()" class="update-btn">
+            <mat-icon>edit</mat-icon>
+            Update Now
+          </button>
+          <button mat-icon-button (click)="dismissGoldRateAlert()" class="dismiss-btn" matTooltip="Dismiss">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-left">
@@ -119,7 +141,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let loan of pagedLoans" (click)="editLoan(loan)" class="table-row">
+            <tr *ngFor="let loan of pagedLoans" (click)="editLoan(loan)" class="table-row" [ngClass]="{'row-active': loan.status?.toUpperCase() === 'ACTIVE'}">
               <td>
                 <span class="customer-id">{{ loan.customerId }}</span>
               </td>

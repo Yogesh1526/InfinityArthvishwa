@@ -24,6 +24,61 @@ export class FirstValuationComponent implements OnInit {
     { value: '20', label: '20', min: 81, max: 87 },
     { value: '18', label: '18', min: 75, max: 80 }
   ];
+
+  jewelleryTypeOptions = [
+    { id: 603, name: "Necklace with stone", position: 0, description: "Necklace with stone", isActive: true, codeScore: 0, mandatory: false },
+    { id: 310, name: "Nose ring", position: 1, description: "Nose ring", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 286, name: "Karimani Chain", position: 1, description: "Karimani Chain", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 333, name: "KASIMALAI", position: 1, description: "KASIMALAI", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 321, name: "Kumkum Bowl", position: 1, description: "Kumkum Bowl", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 334, name: "LOCKET", position: 1, description: "LOCKET", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 340, name: "LOCKET WITH STONE", position: 1, description: "LOCKET WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 308, name: "Maala", position: 1, description: "Maala", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 309, name: "Maatal", position: 1, description: "Maatal", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 343, name: "MATTI", position: 1, description: "MATTI", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 335, name: "NECKLACE", position: 1, description: "NECKLACE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 337, name: "NECKLACE WITH STONES", position: 1, description: "NECKLACE WITH STONES", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 336, name: "NECKLACES", position: 1, description: "NECKLACES", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 307, name: "Kada", position: 1, description: "Kada", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 311, name: "Nose stud", position: 1, description: "Nose stud", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 313, name: "Ring", position: 1, description: "Ring", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 314, name: "Ring with Chain", position: 1, description: "Ring with Chain", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 339, name: "RING WITH STONE", position: 1, description: "RING WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 315, name: "Show Chain", position: 1, description: "Show Chain", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 316, name: "Step Chain", position: 1, description: "Step Chain", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 331, name: "STUDS", position: 1, description: "STUDS", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 332, name: "STUDS WITH STONE", position: 1, description: "STUDS WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 317, name: "Thala", position: 1, description: "Thala", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 319, name: "Vanki", position: 1, description: "Vanki", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 338, name: "WAIST CHAIN", position: 1, description: "WAIST CHAIN", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 320, name: "Waist chain (Ottiyanam)", position: 1, description: "Waist chain (Ottiyanam)", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 299, name: "Chain", position: 1, description: "Chain", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 323, name: "ANKLET", position: 1, description: "ANKLET", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 288, name: "Anklet (Koluse)", position: 1, description: "Anklet (Koluse)", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 292, name: "Aranjanam", position: 1, description: "Aranjanam", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 293, name: "Armlet", position: 1, description: "Armlet", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 294, name: "Baby Bangle", position: 1, description: "Baby Bangle", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 295, name: "Baby Ring", position: 1, description: "Baby Ring", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 296, name: "Bangle", position: 1, description: "Bangle", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 325, name: "BANGLE WITH STONE", position: 1, description: "BANGLE WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 324, name: "BANGLES", position: 1, description: "BANGLES", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 297, name: "Bracelet", position: 1, description: "Bracelet", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 327, name: "BRACELET WITH STONE", position: 1, description: "BRACELET WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 298, name: "Broad Bangle", position: 1, description: "Broad Bangle", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 287, name: "Aaram", position: 1, description: "Aaram", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 300, name: "Chain with Locket", position: 1, description: "Chain with Locket", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 301, name: "Chain with Pendant", position: 1, description: "Chain with Pendant", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 328, name: "CHAIN WITH STONE", position: 1, description: "CHAIN WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 341, name: "CHAINS", position: 1, description: "CHAINS", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 302, name: "Choker", position: 1, description: "Choker", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 303, name: "Chutti", position: 1, description: "Chutti", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 304, name: "Ear Drops", position: 1, description: "Ear Drops", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 329, name: "EAR RING", position: 1, description: "EAR RING", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 330, name: "EAR RING WITH STONE", position: 1, description: "EAR RING WITH STONE", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 305, name: "Ear Stud", position: 1, description: "Ear Stud", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 322, name: "Ear stud with Jimikk", position: 1, description: "Ear stud with Jimikk", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" },
+    { id: 306, name: "Jimmiki", position: 1, description: "Jimmiki", isActive: true, codeScore: 0, mandatory: false, systemIdentifier: "IND" }
+  ];
   
   purityRange = { min: 0, max: 0 };
   purityError = '';
@@ -49,13 +104,13 @@ export class FirstValuationComponent implements OnInit {
   ];
 
   jewelleryForm = this.fb.group({
-    jewelleryName: [''],
-    quantity: [0],
-    grossWeight: [0],
-    stoneWeight: [0],
+    jewelleryName: ['', Validators.required],
+    quantity: [0, [Validators.required, Validators.min(1)]],
+    grossWeight: [0, [Validators.required, Validators.min(0.01)]],
+    stoneWeight: [0, [Validators.required, Validators.min(0)]],
     netWeight: [0],
-    karat: [''],
-    purity: [0],
+    karat: ['', Validators.required],
+    purity: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
     netPurityWeight: [0]
   });
 
@@ -266,12 +321,26 @@ export class FirstValuationComponent implements OnInit {
   }
 
   addJewellery() {
-    if (this.jewelleryForm.valid) {
-      const item = { ...this.jewelleryForm.value };
-      this.jewelleryList.push(item);
-      this.dataSource.data = [...this.jewelleryList]; // trigger refresh
-      this.jewelleryForm.reset();
+    this.jewelleryForm.markAllAsTouched();
+    
+    if (this.jewelleryForm.invalid) {
+      this.toastService.showWarning('Please fill all required fields correctly.');
+      return;
     }
+
+    // Additional validation for stone weight and purity
+    if (this.purityError || this.stoneWeightError) {
+      this.toastService.showWarning('Please correct the validation errors before adding the item.');
+      return;
+    }
+
+    const item = { ...this.jewelleryForm.value };
+    this.jewelleryList.push(item);
+    this.dataSource.data = [...this.jewelleryList]; // trigger refresh
+    this.jewelleryForm.reset();
+    this.purityError = '';
+    this.stoneWeightError = '';
+    this.purityRange = { min: 0, max: 0 };
   }
 
   /**
@@ -325,6 +394,21 @@ export class FirstValuationComponent implements OnInit {
       this.toastService.showError('Customer ID is required.');
       return;
     }
+
+    // Validate all items in the list
+    const hasInvalidItems = this.jewelleryList.some(item => {
+      return !item.jewelleryName || 
+             !item.quantity || item.quantity < 1 ||
+             !item.grossWeight || item.grossWeight <= 0 ||
+             item.stoneWeight < 0 ||
+             !item.karat ||
+             !item.purity || item.purity <= 0 || item.purity > 100;
+    });
+
+    if (hasInvalidItems) {
+      this.toastService.showWarning('Please ensure all jewellery items have valid data before submitting.');
+      return;
+    }
   
     // Prepare payload in correct format
     const items = this.jewelleryList.map((item) => ({
@@ -375,6 +459,27 @@ export class FirstValuationComponent implements OnInit {
   }
 
   uploadedImageUrl: string | null = null;
+
+  /**
+   * Validate step before allowing navigation
+   * Returns true if valuation is saved, false otherwise
+   */
+  validateStep(): boolean {
+    // If valuation is already saved, allow navigation
+    if (this.isValuationSaved) {
+      return true;
+    }
+
+    // If there are items in the list but not saved, show warning
+    if (this.jewelleryList.length > 0) {
+      this.toastService.showWarning('Please submit the first valuation before proceeding to the next step.');
+      return false;
+    }
+
+    // If no items added, show warning
+    this.toastService.showWarning('Please add and submit at least one jewellery item before proceeding.');
+    return false;
+  }
    
   uploadImage(event: Event) {
     const input = event.target as HTMLInputElement;

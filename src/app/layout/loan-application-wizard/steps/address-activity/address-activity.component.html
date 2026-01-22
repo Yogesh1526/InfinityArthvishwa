@@ -211,7 +211,7 @@
           <mat-icon>close</mat-icon>
           Cancel
         </button>
-        <button mat-raised-button color="primary" type="submit" class="save-btn">
+        <button mat-raised-button color="primary" type="submit" class="save-btn" [disabled]="form.invalid">
           <mat-icon>check_circle</mat-icon>
           Save Address
         </button>

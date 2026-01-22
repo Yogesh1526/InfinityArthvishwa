@@ -371,4 +371,13 @@ export class AdditionalDocumentsComponent implements OnInit, OnChanges {
       document.body.removeChild(link);
     }
   }
+
+  validateStep(): boolean {
+    // At least one document is required
+    if (this.uploadedDocuments.length === 0) {
+      this.toastService.showWarning('At least one document is required. Please upload at least one document.');
+      return false;
+    }
+    return true;
+  }
 }

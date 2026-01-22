@@ -131,48 +131,6 @@
       </div>
     </div>
 
-    <!-- Fee Breakdown Card -->
-    <div class="section-card">
-      <div class="section-header">
-        <h3>
-          <mat-icon>receipt_long</mat-icon>
-          Fee Breakdown
-        </h3>
-      </div>
-      <div class="fees-container">
-        <!-- Fee Table -->
-        <div class="fee-table">
-          <div class="fee-table-header">
-            <span class="fee-col-desc">Description</span>
-            <span class="fee-col-amount">Amount</span>
-          </div>
-          
-          <div class="fee-row">
-            <span class="fee-col-desc">Processing Fee</span>
-            <span class="fee-col-amount">{{ formatCurrency(disbursementData.processingFee) }}</span>
-          </div>
-          <div class="fee-row sub">
-            <span class="fee-col-desc">SGST</span>
-            <span class="fee-col-amount">{{ formatCurrency(disbursementData.processingFeeGst) }}</span>
-          </div>
-          <div class="fee-row sub">
-            <span class="fee-col-desc">CGST</span>
-            <span class="fee-col-amount">{{ formatCurrency(disbursementData.processingFeeCgst) }}</span>
-          </div>
-
-          <!-- Totals -->
-          <div class="fee-row total-deduction">
-            <span class="fee-col-desc">Total Deductions</span>
-            <span class="fee-col-amount">- {{ formatCurrency(totalDeductions) }}</span>
-          </div>
-          <div class="fee-row net-disbursement">
-            <span class="fee-col-desc">Net Disbursement Amount</span>
-            <span class="fee-col-amount">{{ formatCurrency(disbursementData.netDisbursmentAmount) }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Bank Details Card -->
     <div class="section-card">
       <div class="section-header">

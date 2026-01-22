@@ -302,5 +302,21 @@ export class BankDetailsComponent implements OnInit {
         return 'Pending';
     }
   }
+
+  validateStep(): boolean {
+    // If form is already saved (not in edit mode), allow navigation
+    if (!this.isEditMode && this.isDataAvailable) {
+      return true;
+    }
+    // If in edit mode, validate form
+    if (this.isEditMode) {
+      this.form.markAllAsTouched();
+      if (!this.form.valid) {
+        this.toastService.showWarning('Please fill all required fields correctly.');
+        return false;
+      }
+    }
+    return true;
+  }
 }
 

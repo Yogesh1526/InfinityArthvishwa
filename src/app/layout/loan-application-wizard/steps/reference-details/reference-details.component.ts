@@ -156,4 +156,13 @@ export class ReferenceDetailsComponent implements OnInit {
       }
     }
   }
+
+  validateStep(): boolean {
+    // At least 2 references are required
+    if (this.referenceList.length < 2) {
+      this.toastService.showWarning('At least 2 references are required. Please add more references.');
+      return false;
+    }
+    return true;
+  }
 }

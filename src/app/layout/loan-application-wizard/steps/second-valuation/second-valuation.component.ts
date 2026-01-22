@@ -245,6 +245,11 @@ export class SecondValuationComponent implements OnInit {
   }
 
   submitAll() {
+    // Mark all form controls as touched to show validation errors
+    this.itemsFormArray.controls.forEach(control => {
+      control.markAllAsTouched();
+    });
+
     if (this.form.invalid || this.hasValidationErrors()) {
       this.toastService.showWarning('Please correct the form fields before submitting.');
       return;
@@ -413,5 +418,31 @@ export class SecondValuationComponent implements OnInit {
    */
   isUpdateDisabled(): boolean {
     return !this.hasChanges || this.form.invalid || this.hasValidationErrors() || this.isValuationSaved;
+  }
+
+  /**
+   * Validate step before allowing navigation
+   * Returns true if valuation is updated/saved, false otherwise
+   */
+  validateStep(): boolean {
+    // If no items loaded, cannot proceed (first valuation must be completed first)
+    if (this.jewelleryItems.length === 0) {
+      this.toastService.showWarning('Please complete the first valuation before proceeding.');
+      return false;
+    }
+
+    // If valuation is already saved/updated, allow navigation
+    if (this.isValuationSaved) {
+      return true;
+    }
+
+    // If there are changes but not saved, show warning
+    if (this.hasChanges) {
+      this.toastService.showWarning('Please update the second valuation before proceeding to the next step.');
+      return false;
+    }
+
+    // If no changes made, allow navigation (data is already saved from first valuation)
+    return true;
   }
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
 
@@ -30,10 +30,10 @@ export class GoldOwnershipDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      sourceOfJewellery: [''],
-      yearOfPurchase: [''],
-      storeNameAndLocation: [''],
-      purposeOfPurchasing: ['']
+      sourceOfJewellery: ['', Validators.required],
+      yearOfPurchase: ['', Validators.required],
+      storeNameAndLocation: ['', Validators.required],
+      purposeOfPurchasing: ['', Validators.required]
     });
 
     // Load stored loanAccountNumber from localStorage
@@ -182,7 +182,24 @@ export class GoldOwnershipDetailsComponent implements OnInit {
     }
   }
 
+  validateStep(): boolean {
+    // If form is already saved (not editable), allow navigation
+    if (!this.isEditable && this.isDataAvailable) {
+      return true;
+    }
+    // If in edit mode, validate form
+    if (this.isEditable) {
+      this.form.markAllAsTouched();
+      if (!this.form.valid) {
+        this.toastService.showWarning('Please fill all required fields correctly.');
+        return false;
+      }
+    }
+    return true;
+  }
+
   onSubmit(): void {
+    this.form.markAllAsTouched();
     if (!this.form.valid) {
       this.toastService.showWarning('Please fill all required fields correctly.');
       return;

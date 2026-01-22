@@ -189,4 +189,25 @@ export class FinalValuationComponent implements OnInit {
     });
   }
 
+  /**
+   * Validate step before allowing navigation
+   * Returns true if final valuation exists, false otherwise
+   */
+  validateStep(): boolean {
+    // If final valuation exists, allow navigation
+    if (this.finalValuation) {
+      return true;
+    }
+
+    // If first or second valuation doesn't exist, show warning
+    if (!this.firstValuation || !this.secondValuation) {
+      this.toastService.showWarning('Please complete first and second valuations before proceeding.');
+      return false;
+    }
+
+    // If final valuation doesn't exist, show warning
+    this.toastService.showWarning('Please generate the final valuation before proceeding to the next step.');
+    return false;
+  }
+
 }

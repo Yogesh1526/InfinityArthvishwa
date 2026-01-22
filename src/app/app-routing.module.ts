@@ -13,6 +13,7 @@ import { LoanInfoDetailsTableComponent } from './pages/loan-info-details-table/l
 import { CustomerProfileComponent } from './layout/customer-profile/customer-profile.component';
 import { RoleListComponent } from './layout/roles-permissions/role-list/role-list.component';
 import { RoleFormComponent } from './layout/roles-permissions/role-form/role-form.component';
+import { GoldRateComponent } from './layout/gold-rate/gold-rate.component';
 import { RoleGuard } from './auth/role.guard';
 
 const routes: Routes = [
@@ -82,6 +83,11 @@ const routes: Routes = [
       { 
         path: 'loan-info-details', 
         component: LoanInfoDetailsTableComponent,
+        canActivate: [AuthGuard]
+      },
+      { 
+        path: 'gold-rate', 
+        component: GoldRateComponent,
         canActivate: [AuthGuard]
       }
     ]

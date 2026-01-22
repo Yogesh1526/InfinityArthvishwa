@@ -8,6 +8,19 @@ import { ToastService } from 'src/app/services/toast.service';
 import { of, forkJoin } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PersonalDetailsComponent } from './steps/personal-details/personal-details.component';
+import { FamilyDetailsComponent } from './steps/family-details/family-details.component';
+import { AddressActivityComponent } from './steps/address-activity/address-activity.component';
+import { WorkDetailsComponent } from './steps/work-details/work-details.component';
+import { KycDetailsComponent } from './steps/kyc-details/kyc-details.component';
+import { AdditionalDocumentsComponent } from './steps/additional-documents/additional-documents.component';
+import { NomineeComponent } from './steps/nominee/nominee.component';
+import { ReferenceDetailsComponent } from './steps/reference-details/reference-details.component';
+import { GoldOwnershipDetailsComponent } from './steps/gold-ownership-details/gold-ownership-details.component';
+import { GlSchemeSelectionComponent } from './steps/gl-scheme-selection/gl-scheme-selection.component';
+import { BankDetailsComponent } from './steps/bank-details/bank-details.component';
+import { FirstValuationComponent } from './steps/first-valuation/first-valuation.component';
+import { SecondValuationComponent } from './steps/second-valuation/second-valuation.component';
+import { FinalValuationComponent } from './steps/final-valuation/final-valuation.component';
 
 @Component({
   selector: 'app-loan-application-wizard',
@@ -16,6 +29,19 @@ import { PersonalDetailsComponent } from './steps/personal-details/personal-deta
 })
 export class LoanApplicationWizardComponent implements OnInit {
   @ViewChild('personalDetailsRef') personalDetailsRef!: PersonalDetailsComponent;
+  @ViewChild('familyDetailsRef') familyDetailsRef!: FamilyDetailsComponent;
+  @ViewChild('addressActivityRef') addressActivityRef!: AddressActivityComponent;
+  @ViewChild('workDetailsRef') workDetailsRef!: WorkDetailsComponent;
+  @ViewChild('kycDetailsRef') kycDetailsRef!: KycDetailsComponent;
+  @ViewChild('additionalDocumentsRef') additionalDocumentsRef!: AdditionalDocumentsComponent;
+  @ViewChild('nomineeRef') nomineeRef!: NomineeComponent;
+  @ViewChild('referenceDetailsRef') referenceDetailsRef!: ReferenceDetailsComponent;
+  @ViewChild('goldOwnershipRef') goldOwnershipRef!: GoldOwnershipDetailsComponent;
+  @ViewChild('firstValuationRef') firstValuationRef!: FirstValuationComponent;
+  @ViewChild('secondValuationRef') secondValuationRef!: SecondValuationComponent;
+  @ViewChild('finalValuationRef') finalValuationRef!: FinalValuationComponent;
+  @ViewChild('glSchemeSelectionRef') glSchemeSelectionRef!: GlSchemeSelectionComponent;
+  @ViewChild('bankDetailsRef') bankDetailsRef!: BankDetailsComponent;
   
   activeStep = 0;
   mainForm!: FormGroup;
@@ -570,13 +596,86 @@ export class LoanApplicationWizardComponent implements OnInit {
   }
 
   goToStep(index: number): void {
-    this.activeStep = index;
-    // Check completion for the step we're navigating to
-    this.checkSingleStepCompletion(index);
+    // Enforce sequential navigation - only allow navigation to:
+    // 1. Current step (no change)
+    // 2. Next step (if current is completed)
+    // 3. Previous completed steps
+    if (index === this.activeStep) {
+      return; // Already on this step
+    }
+    
+    // Allow going to previous steps if they're completed
+    if (index < this.activeStep) {
+      // Check if all previous steps up to the target are completed
+      let canNavigate = true;
+      for (let i = 0; i < index; i++) {
+        if (!this.isStepCompleted(i)) {
+          canNavigate = false;
+          break;
+        }
+      }
+      if (canNavigate) {
+        this.activeStep = index;
+        this.checkSingleStepCompletion(index);
+      } else {
+        this.toastService.showWarning('Please complete all previous steps before navigating.');
+      }
+      return;
+    }
+    
+    // For next steps, check if current step is completed
+    if (index > this.activeStep) {
+      // Check if all steps from current to target-1 are completed
+      let canNavigate = true;
+      for (let i = this.activeStep; i < index; i++) {
+        if (!this.isStepCompleted(i)) {
+          canNavigate = false;
+          break;
+        }
+      }
+      if (canNavigate) {
+        this.activeStep = index;
+        this.checkSingleStepCompletion(index);
+      } else {
+        this.toastService.showWarning('Please complete the current step before proceeding to the next step.');
+      }
+      return;
+    }
   }
 
   isStepCompleted(index: number): boolean {
     return this.stepCompletionStatus[index] || false;
+  }
+
+  canNavigateToStep(index: number): boolean {
+    // Can always navigate to current step
+    if (index === this.activeStep) {
+      return true;
+    }
+    
+    // Can navigate to previous completed steps
+    if (index < this.activeStep) {
+      // Check if all steps up to target are completed
+      for (let i = 0; i < index; i++) {
+        if (!this.isStepCompleted(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    // For next steps, check if all previous steps are completed
+    if (index > this.activeStep) {
+      // Check if all steps from 0 to index-1 are completed
+      for (let i = 0; i < index; i++) {
+        if (!this.isStepCompleted(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    return false;
   }
 
   isLastStep(): boolean {
@@ -601,9 +700,74 @@ export class LoanApplicationWizardComponent implements OnInit {
    */
   validateCurrentStep(): boolean {
     switch (this.activeStep) {
-      case 0: // Personal Details - Photo is required
+      case 0: // Personal Details
         if (this.personalDetailsRef) {
           return this.personalDetailsRef.validateStep();
+        }
+        return true;
+      case 1: // Family Details
+        if (this.familyDetailsRef) {
+          return this.familyDetailsRef.validateStep();
+        }
+        return true;
+      case 2: // Address Activity
+        if (this.addressActivityRef) {
+          return this.addressActivityRef.validateStep();
+        }
+        return true;
+      case 3: // Work Details
+        if (this.workDetailsRef) {
+          return this.workDetailsRef.validateStep();
+        }
+        return true;
+      case 4: // KYC Details
+        if (this.kycDetailsRef) {
+          return this.kycDetailsRef.validateStep();
+        }
+        return true;
+      case 5: // Additional Documents
+        if (this.additionalDocumentsRef) {
+          return this.additionalDocumentsRef.validateStep();
+        }
+        return true;
+      case 6: // Nominee
+        if (this.nomineeRef) {
+          return this.nomineeRef.validateStep();
+        }
+        return true;
+      case 7: // Reference Details
+        if (this.referenceDetailsRef) {
+          return this.referenceDetailsRef.validateStep();
+        }
+        return true;
+      case 8: // Gold Ownership
+        if (this.goldOwnershipRef) {
+          return this.goldOwnershipRef.validateStep();
+        }
+        return true;
+      case 9: // First Valuation
+        if (this.firstValuationRef) {
+          return this.firstValuationRef.validateStep();
+        }
+        return true;
+      case 10: // Second Valuation
+        if (this.secondValuationRef) {
+          return this.secondValuationRef.validateStep();
+        }
+        return true;
+      case 11: // Final Valuation
+        if (this.finalValuationRef) {
+          return this.finalValuationRef.validateStep();
+        }
+        return true;
+      case 12: // GL Scheme Selection
+        if (this.glSchemeSelectionRef) {
+          return this.glSchemeSelectionRef.validateStep();
+        }
+        return true;
+      case 13: // Bank Details
+        if (this.bankDetailsRef) {
+          return this.bankDetailsRef.validateStep();
         }
         return true;
       default:

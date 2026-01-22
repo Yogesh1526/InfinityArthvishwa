@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
 
@@ -52,17 +52,17 @@ export class AddressActivityComponent implements OnInit {
 
   initForm(): void {
     this.form = this.fb.group({
-      addressType: ['Communication Address'],
-      ownership: [''],
-      addressLine1: [''],
+      addressType: ['Communication Address', Validators.required],
+      ownership: ['', Validators.required],
+      addressLine1: ['', Validators.required],
       addressLine2: [''],
       landmark: [''],
-      village: [''],
-      district: [''],
-      state: [''],
-      pincode: [''],
-      country: ['India'],
-      yearsOfResidence: ['']
+      village: ['', Validators.required],
+      district: ['', Validators.required],
+      state: ['', Validators.required],
+      pincode: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
+      country: ['India', Validators.required],
+      yearsOfResidence: ['', Validators.required]
     });
 
     // Set default country to India
@@ -115,7 +115,32 @@ export class AddressActivityComponent implements OnInit {
     this.form.enable();
   }
 
+  validateStep(): boolean {
+    // If form is already saved (not editable), allow navigation
+    if (!this.isEditable && this.addressList.length > 0) {
+      return true;
+    }
+    // If in edit mode, validate form
+    if (this.isEditable) {
+      this.form.markAllAsTouched();
+      if (!this.form.valid) {
+        this.toastService.showWarning('Please fill all required fields correctly.');
+        return false;
+      }
+    } else if (this.addressList.length === 0) {
+      this.toastService.showWarning('Please add at least one address.');
+      return false;
+    }
+    return true;
+  }
+
   onSubmit(): void {
+    this.form.markAllAsTouched();
+    if (!this.form.valid) {
+      this.toastService.showWarning('Please fill all required fields correctly.');
+      return;
+    }
+    
     if (this.form.valid) {
       const body: any = {
         addressType: this.form.value.addressType,
