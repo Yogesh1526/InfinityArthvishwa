@@ -52,9 +52,14 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
     'DP02',
     'DP03',
     'DP04',
-    'DP05'
+    'DP05',
+    'DP06',
+    'DP07',
+    'DP08',
+    'DP09',
+    'DP10'
   ];
-
+  
   constructor(
     private fb: FormBuilder,
     private personalService: PersonalDetailsService,
