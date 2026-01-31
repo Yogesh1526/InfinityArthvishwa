@@ -28,7 +28,6 @@ export class RoleFormComponent implements OnInit {
   ) {
     this.roleForm = this.fb.group({
       roleName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      isDefault: ['N', Validators.required],
       status: ['Active', Validators.required],
       permissionDto: this.fb.array([])
     });
@@ -54,22 +53,28 @@ export class RoleFormComponent implements OnInit {
     this.roleService.getAllPermissions().subscribe({
       next: (response: any) => {
         this.isLoading = false;
+        let list: any[] = [];
         if (response?.data) {
-          this.allPermissions = Array.isArray(response.data) ? response.data : [response.data];
+          list = Array.isArray(response.data) ? response.data : [response.data];
+        } else if (response?.content && Array.isArray(response.content)) {
+          list = response.content;
         } else if (Array.isArray(response)) {
-          this.allPermissions = response;
-        } else {
-          this.allPermissions = [];
+          list = response;
         }
+        const normalized: Permission[] = list.map((p: any) => ({
+          ...p,
+          permissionId: p.permissionId ?? p.id,
+          permissionName: p.permissionName ?? p.name ?? p.code ?? `Permission ${p.permissionId ?? p.id}`
+        }));
+        this.allPermissions = normalized;
         this.filteredPermissions = [...this.allPermissions];
       },
       error: (err) => {
         this.isLoading = false;
         this.toastService.showError('Failed to load permissions');
         console.error('Error loading permissions:', err);
-        // Use mock data for development
-        this.allPermissions = this.getMockPermissions();
-        this.filteredPermissions = [...this.allPermissions];
+        this.allPermissions = [];
+        this.filteredPermissions = [];
       }
     });
   }
@@ -83,8 +88,7 @@ export class RoleFormComponent implements OnInit {
         if (role) {
           this.roleForm.patchValue({
             roleName: role.roleName,
-            isDefault: role.isDefault || 'N',
-            status: role.status || 'Active'
+            status: role.isDeleted === false ? 'Active' : (role.status || 'Inactive')
           });
 
           // Load selected permissions
@@ -138,9 +142,10 @@ export class RoleFormComponent implements OnInit {
     const term = this.searchTerm.toLowerCase().trim();
     this.filteredPermissions = this.allPermissions.filter(permission => {
       const name = (permission.permissionName || '').toLowerCase();
+      const code = (permission.code || '').toLowerCase();
       const module = (permission.module || '').toLowerCase();
       const description = (permission.description || '').toLowerCase();
-      return name.includes(term) || module.includes(term) || description.includes(term);
+      return name.includes(term) || code.includes(term) || module.includes(term) || description.includes(term);
     });
   }
 
@@ -161,7 +166,6 @@ export class RoleFormComponent implements OnInit {
     
     const roleData: Role = {
       roleName: formValue.roleName,
-      isDefault: formValue.isDefault,
       status: formValue.status,
       permissionDto: formValue.permissionDto.map((id: number) => ({ permissionId: id }))
     };
@@ -216,20 +220,6 @@ export class RoleFormComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/roles']);
-  }
-
-  getMockPermissions(): Permission[] {
-    // Mock permissions for development/testing
-    return [
-      { permissionId: 1, permissionName: 'View Dashboard', module: 'Dashboard' },
-      { permissionId: 2, permissionName: 'Manage Customers', module: 'Customers' },
-      { permissionId: 3, permissionName: 'View Loans', module: 'Loans' },
-      { permissionId: 4, permissionName: 'Create Loans', module: 'Loans' },
-      { permissionId: 5, permissionName: 'Approve Loans', module: 'Loans' },
-      { permissionId: 6, permissionName: 'Manage Roles', module: 'Admin' },
-      { permissionId: 7, permissionName: 'Manage Users', module: 'Admin' },
-      { permissionId: 8, permissionName: 'View Reports', module: 'Reports' }
-    ];
   }
 
   getSelectedPermissionsCount(): number {

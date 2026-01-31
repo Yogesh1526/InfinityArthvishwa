@@ -78,11 +78,11 @@
   <!-- Form Mode -->
   <form *ngIf="isEditMode" [formGroup]="form" (ngSubmit)="onSubmit()" class="content-card">
     <div class="details-wrapper">
-      <!-- Spouse Information -->
+      <!-- Spouse Information (Optional - unmarried customers may leave blank) -->
       <div class="info-group">
         <h4 class="group-title">
           <mat-icon>favorite</mat-icon>
-          Spouse Information
+          Spouse Information <span class="optional-badge">(Optional)</span>
         </h4>
         <div class="form-grid">
           <mat-form-field appearance="outline" class="form-field">

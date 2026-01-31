@@ -23,8 +23,8 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // ✅ Skip adding token for the signin endpoint (public endpoint)
-    if (req.url.endsWith('/api/auth/signin')) {
+    // Skip adding token for public auth endpoints
+    if (req.url.endsWith('/api/auth/signin') || req.url.endsWith('/api/auth/signup')) {
       return next.handle(req);
     }
 

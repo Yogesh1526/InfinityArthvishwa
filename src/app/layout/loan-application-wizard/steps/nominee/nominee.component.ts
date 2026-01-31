@@ -58,6 +58,17 @@ export class NomineeComponent implements OnInit {
   }
 
   /**
+   * Format date for API (yyyy-MM-dd)
+   */
+  formatDateForApi(date: Date | string): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
    * Calculate age from date of birth
    */
   calculateAge(dob: Date | string): number {
@@ -91,12 +102,13 @@ export class NomineeComponent implements OnInit {
         if (nominee && nominee.id) {
           this.nomineeId = nominee.id;
           const nameParts = nominee.nomineeName?.split(' ') || ['', ''];
+          const dobValue = nominee.dateOfBirth || nominee.dob || '';
           this.form.patchValue({
             firstName: nameParts[0] || '',
             lastName: nameParts.slice(1).join(' ') || '',
             relationship: nominee.relationShip || '',
             gender: nominee.gender || '',
-            dob: nominee.dob || '',
+            dob: dobValue,
             mobileNumber: nominee.phoneNo || '',
             age: nominee.age || ''
           });
@@ -178,6 +190,7 @@ export class NomineeComponent implements OnInit {
       nomineeName: `${this.form.value.firstName} ${this.form.value.lastName}`.trim(),
       relationShip: this.form.value.relationship,
       age: this.form.value.age || null,
+      dateOfBirth: this.form.value.dob ? this.formatDateForApi(this.form.value.dob) : null,
       phoneNo: parseInt(this.form.value.mobileNumber),
       gender: this.form.value.gender,
       customerId: this.customerId

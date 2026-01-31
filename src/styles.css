@@ -25,6 +25,29 @@ body {
   padding-top: 60px !important;
 }
 
+/* Loan dialog mat-select dropdown - enough height for options */
+.loan-select-panel {
+  max-height: 280px !important;
+}
+
+/* Ensure Add New Loan dialog opens centered in the middle of the screen */
+.cdk-overlay-pane.add-new-loan-dialog-panel {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 12px !important;
+  overflow: visible;
+}
+
+/* Add New Loan dialog - prevent clipping of form labels */
+.add-new-loan-dialog-panel .mat-mdc-dialog-container,
+.add-new-loan-dialog-panel .mat-dialog-container {
+  overflow: visible !important;
+}
+
 /* Custom toast colors and styles */
 .mat-snack-bar-container.toast-success {
   background-color: var(--success-color, #4caf50) !important;

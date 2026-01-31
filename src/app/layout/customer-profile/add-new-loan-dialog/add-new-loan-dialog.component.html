@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>
+  <mat-icon>add_circle</mat-icon>
+  Add New Loan Application
+</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="loan-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Loan Purpose</mat-label>
+      <mat-select formControlName="loanPurpose" placeholder="Select loan purpose" panelClass="loan-select-panel">
+        <mat-option value="">Select</mat-option>
+        <mat-option *ngFor="let opt of loanPurposeOptions" [value]="opt">{{ opt }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('loanPurpose')?.hasError('required')">
+        Loan purpose is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Relationship Manager</mat-label>
+      <mat-select formControlName="relationshipManager" placeholder="Select relationship manager" panelClass="loan-select-panel">
+        <mat-option value="">Select</mat-option>
+        <mat-option *ngFor="let rm of relationshipManagers" [value]="rm.userId">
+          {{ rm.name }} ({{ rm.userName }})
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('relationshipManager')?.hasError('required')">
+        Relationship manager is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Sourcing Channel</mat-label>
+      <mat-select formControlName="sourcingChannel" placeholder="Select sourcing channel" panelClass="loan-select-panel">
+        <mat-option value="">Select</mat-option>
+        <mat-option *ngFor="let ch of sourcingChannelOptions" [value]="ch">{{ ch }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('sourcingChannel')?.hasError('required')">
+        Sourcing channel is required
+      </mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="isSubmitting">Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="form.invalid || isSubmitting">
+    <mat-spinner *ngIf="isSubmitting" diameter="20" class="btn-spinner"></mat-spinner>
+    <mat-icon *ngIf="!isSubmitting">check</mat-icon>
+    {{ isSubmitting ? 'Saving...' : 'Submit' }}
+  </button>
+</mat-dialog-actions>

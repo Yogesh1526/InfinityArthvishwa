@@ -48,7 +48,7 @@ export class GoldOwnershipDetailsComponent implements OnInit {
   }
 
   /**
-   * Load loanAccountNumber from localStorage using customerId as key
+   * Load loanAccountNumber from localStorage or loanApplicationId (from URL/parent)
    */
   loadStoredLoanAccountNumber(): void {
     if (this.customerId) {
@@ -56,6 +56,10 @@ export class GoldOwnershipDetailsComponent implements OnInit {
       if (stored) {
         this.loanAccountNumber = stored;
       }
+    }
+    // Fallback: use loanApplicationId from parent when it's a valid loan account (from URL query param)
+    if (!this.loanAccountNumber && this.loanApplicationId && (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'))) {
+      this.loanAccountNumber = this.loanApplicationId;
     }
   }
 
@@ -235,9 +239,19 @@ export class GoldOwnershipDetailsComponent implements OnInit {
         }
       });
     } else {
-      // Create new gold ownership
+      // Create new gold ownership - include loanAccountNumber in request body
+      let loanAccountNumber = this.loanAccountNumber;
+      if (!loanAccountNumber && this.loanApplicationId && (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'))) {
+        loanAccountNumber = this.loanApplicationId;
+      }
+      if (!loanAccountNumber) {
+        this.toastService.showError('Loan Account Number is required. Please complete the previous step to create a loan account first.');
+        return;
+      }
+
       const payload = {
         customerId: this.customerId,
+        loanAccountNumber,
         sourceOfJewellery: this.form.value.sourceOfJewellery,
         yearOfPurchase: formattedDate,
         storeNameAndLocation: this.form.value.storeNameAndLocation,

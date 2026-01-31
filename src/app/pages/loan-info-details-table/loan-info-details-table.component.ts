@@ -3,16 +3,27 @@ import { Router } from '@angular/router';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { GoldRateService } from 'src/app/services/gold-rate.service';
 
+interface LoanAccountDetail {
+  loanAccountNumber: string;
+  customerId: string;
+  netDisbursedAmount?: number;
+  loanDate?: string;
+  loanStatus?: string;
+}
+
 interface LoanApplication {
   id: number;
   customerId: string;
   tempLoanAccountNumber: string;
   name: string;
   mobileNumber: string;
-  occupation: string;
-  loanPurpose: string;
+  loanDate: string;
+  loanAmount: number | null;
   createdBy: string;
   status: string;
+  /** True if loanAccountDetailsDto has at least one loan with loanStatus ACTIVE */
+  isDisbursed: boolean;
+  loanAccountDetailsDto?: LoanAccountDetail[];
 }
 
 @Component({
@@ -75,17 +86,7 @@ export class LoanInfoDetailsTableComponent implements OnInit {
         } else {
           this.hasData = true;
           this.hasError = false;
-          this.loanList = customers.map((c: any) => ({
-            id: c.id,
-            customerId: c.customerId ?? 'N/A',
-            tempLoanAccountNumber: c.tempLoanAccountNumber ?? c.loanAccountNo ?? 'N/A',
-            name: this.buildFullName(c.firstName, c.middleName, c.lastName),
-            mobileNumber: c.mobileNumber ?? 'N/A',
-            occupation: c.occupation ?? 'N/A',
-            loanPurpose: c.loanPurpose ?? 'N/A',
-            createdBy: c.createdBy ?? 'N/A',
-            status: c.applicationStatus ?? 'N/A'
-          }));
+          this.loanList = customers.map((c: any) => this.mapCustomerToLoan(c));
         }
 
         this.updateCounts();
@@ -111,11 +112,58 @@ export class LoanInfoDetailsTableComponent implements OnInit {
     });
   }
 
+  /**
+   * Maps API customer to LoanApplication using loanAccountDetailsDto for disbursed/pending and loan amount/date.
+   */
+  mapCustomerToLoan(c: any): LoanApplication {
+    const loanDetails = c.loanAccountDetailsDto || [];
+    const activeLoan = loanDetails.find((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
+    const firstLoan = loanDetails[0];
+    const isDisbursed = loanDetails.some((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
+
+    const loanAmount = activeLoan?.netDisbursedAmount ?? firstLoan?.netDisbursedAmount ?? c.loanDisbussementAmount ?? c.loanAmount ?? c.loanAmountNeedToBeDisbursed ?? null;
+    const loanDateRaw = activeLoan?.loanDate ?? firstLoan?.loanDate ?? c.loanDisbusDate ?? c.loanDate ?? c.createdDate ?? c.applicationDate;
+
+    return {
+      id: c.id,
+      customerId: c.customerId ?? 'N/A',
+      tempLoanAccountNumber: c.tempLoanAccountNumber ?? firstLoan?.loanAccountNumber ?? c.loanAccountNo ?? 'N/A',
+      name: this.buildFullName(c.firstName, c.middleName, c.lastName),
+      mobileNumber: c.mobileNumber ?? 'N/A',
+      loanDate: this.formatLoanDate(loanDateRaw),
+      loanAmount: loanAmount != null ? Number(loanAmount) : null,
+      createdBy: c.createdBy ?? 'N/A',
+      status: c.applicationStatus ?? 'N/A',
+      isDisbursed,
+      loanAccountDetailsDto: loanDetails
+    };
+  }
+
   buildFullName(firstName: string, middleName: string, lastName: string): string {
     return [firstName, middleName, lastName]
       .filter(name => name && name.trim())
       .join(' ')
       .trim() || 'N/A';
+  }
+
+  formatLoanDate(dateVal: string | Date | null | undefined): string {
+    if (!dateVal) return 'N/A';
+    try {
+      const d = typeof dateVal === 'string' ? new Date(dateVal) : dateVal;
+      return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return 'N/A';
+    }
+  }
+
+  formatCurrency(value: number | null | undefined): string {
+    if (value == null || value === undefined || isNaN(value)) return 'N/A';
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0
+    }).format(value);
   }
 
   getInitials(name: string): string {
@@ -137,20 +185,20 @@ export class LoanInfoDetailsTableComponent implements OnInit {
     return this.loanList.filter(loan => {
       let matchStatus = true;
       if (this.selectedStatus !== 'All') {
-        matchStatus = this.matchesStatusFilter(loan.status, this.selectedStatus);
+        matchStatus = this.matchesStatusFilter(loan, this.selectedStatus);
       }
       const matchText = 
         loan.name.toLowerCase().includes(text) || 
         loan.customerId.toLowerCase().includes(text) ||
         loan.mobileNumber.includes(text) ||
-        loan.tempLoanAccountNumber.toLowerCase().includes(text);
+        loan.tempLoanAccountNumber.toLowerCase().includes(text) ||
+        (loan.loanDate && loan.loanDate !== 'N/A' && loan.loanDate.toLowerCase().includes(text));
       return matchStatus && matchText;
     });
   }
 
-  matchesStatusFilter(apiStatus: string, filterStatus: string): boolean {
-    if (!apiStatus) return false;
-    const statusUpper = apiStatus.toUpperCase();
+  matchesStatusFilter(loan: LoanApplication, filterStatus: string): boolean {
+    const statusUpper = (loan.status || '').toUpperCase().replace(/_/g, '-');
     
     switch (filterStatus) {
       case 'Approved':
@@ -158,9 +206,11 @@ export class LoanInfoDetailsTableComponent implements OnInit {
       case 'Rejected':
         return statusUpper === 'REJECTED';
       case 'Disbursed':
-        return statusUpper === 'DISBURSED';
+        // Use loanAccountDetailsDto: has at least one loan with loanStatus ACTIVE
+        return loan.isDisbursed;
       case 'Pending':
-        return statusUpper === 'ACTIVE' || statusUpper === 'SUBMITTED' || statusUpper === 'PENDING';
+        // In-process: applicationStatus IN-PROCESS (API uses IN-PROCESS with hyphen)
+        return statusUpper === 'IN-PROCESS' || statusUpper === 'PENDING' || statusUpper === 'SUBMITTED';
       default:
         return false;
     }
@@ -211,10 +261,10 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   editLoan(loan: LoanApplication): void {
-    // Use customerId for navigation, fallback to tempLoanAccountNumber if customerId is not available
+    // Use customerId for navigation to customer profile, fallback to tempLoanAccountNumber if customerId is not available
     const idToUse = loan.customerId && loan.customerId !== 'N/A' ? loan.customerId : loan.tempLoanAccountNumber;
     if (idToUse && idToUse !== 'N/A') {
-      this.router.navigate(['/loan-wizard', idToUse]);
+      this.router.navigate(['/customer-profile', idToUse]);
     }
   }
 
@@ -234,10 +284,12 @@ export class LoanInfoDetailsTableComponent implements OnInit {
     this.loanCount = this.loanList.length;
     this.approvedCount = this.loanList.filter(l => l.status?.toUpperCase() === 'APPROVED').length;
     this.rejectedCount = this.loanList.filter(l => l.status?.toUpperCase() === 'REJECTED').length;
-    this.disbursedCount = this.loanList.filter(l => l.status?.toUpperCase() === 'DISBURSED').length;
+    // Disbursed: loanAccountDetailsDto has at least one loan with loanStatus ACTIVE
+    this.disbursedCount = this.loanList.filter(l => l.isDisbursed).length;
+    // Pending: applicationStatus IN-PROCESS (API uses hyphen)
     this.pendingCount = this.loanList.filter(l => {
-      const status = l.status?.toUpperCase();
-      return status === 'ACTIVE' || status === 'SUBMITTED' || status === 'PENDING';
+      const s = (l.status || '').toUpperCase().replace(/_/g, '-');
+      return s === 'IN-PROCESS' || s === 'PENDING' || s === 'SUBMITTED';
     }).length;
   }
 

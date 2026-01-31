@@ -1,0 +1,135 @@
+<mat-card class="user-form-card">
+  <div class="header-section">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Go Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>
+      <mat-icon color="primary">{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+      {{ isEditMode ? 'Edit User' : 'Add User' }}
+    </h2>
+  </div>
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" novalidate>
+    <div class="form-section">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="userName" placeholder="Enter username" [readonly]="isEditMode" />
+          <mat-error *ngIf="userForm.get('userName')?.hasError('required')">Username is required</mat-error>
+          <mat-error *ngIf="userForm.get('userName')?.hasError('minlength')">At least 3 characters</mat-error>
+          <mat-error *ngIf="userForm.get('userName')?.hasError('maxlength')">Max 50 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Full Name</mat-label>
+          <input matInput formControlName="name" placeholder="Full name (optional)" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" placeholder="Email (optional)" />
+          <mat-error *ngIf="userForm.get('email')?.hasError('email')">Invalid email</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="Active">Active</mat-option>
+            <mat-option value="Inactive">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <ng-container *ngIf="!isEditMode">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" type="password" placeholder="Password" />
+            <mat-error *ngIf="userForm.get('password')?.hasError('required')">Password is required</mat-error>
+            <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">At least 6 characters</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Confirm Password</mat-label>
+            <input matInput formControlName="confirmPassword" type="password" placeholder="Confirm" />
+            <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('required')">Confirm password</mat-error>
+            <mat-error *ngIf="userForm.hasError('passwordMismatch')">Passwords do not match</mat-error>
+          </mat-form-field>
+        </ng-container>
+
+        <div *ngIf="isEditMode" class="change-password-section">
+          <mat-checkbox (change)="onToggleChangePassword()" [checked]="changePassword">
+            Change password
+          </mat-checkbox>
+          <div *ngIf="changePassword" class="form-row password-fields">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>New Password</mat-label>
+              <input matInput formControlName="password" type="password" placeholder="New password" />
+              <mat-error *ngIf="userForm.get('password')?.hasError('required')">Required</mat-error>
+              <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">At least 6 characters</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Confirm New Password</mat-label>
+              <input matInput formControlName="confirmPassword" type="password" placeholder="Confirm" />
+              <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('required')">Required</mat-error>
+              <mat-error *ngIf="userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched">Passwords do not match</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roles Section -->
+    <div class="form-section roles-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon>badge</mat-icon>
+          Roles
+          <span class="badge">{{ getSelectedRolesCount() }}</span>
+        </h3>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Roles</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput (input)="onSearchChange($event)" placeholder="Search..." />
+        </mat-form-field>
+      </div>
+
+      <div class="roles-wrapper" *ngIf="!isLoading">
+        <div class="roles-grid">
+          <div
+            class="role-item"
+            *ngFor="let role of filteredRoles"
+            [class.selected]="isRoleSelected(role.roleId!)"
+            (click)="toggleRole(role.roleId!)">
+            <mat-checkbox
+              [checked]="isRoleSelected(role.roleId!)"
+              (click)="$event.stopPropagation()"
+              (change)="toggleRole(role.roleId!)">
+            </mat-checkbox>
+            <div class="role-content">
+              <div class="role-name">{{ role.roleName }}</div>
+              <div class="role-meta" *ngIf="role.status">{{ role.status }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="loading-state" *ngIf="isLoading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading roles...</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading && filteredRoles.length === 0">
+        <mat-icon>info_outline</mat-icon>
+        <p>No roles found. Create roles first.</p>
+      </div>
+    </div>
+
+    <div class="form-row form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid || isSaving">
+        <mat-spinner *ngIf="isSaving" diameter="20" class="button-spinner"></mat-spinner>
+        {{ isSaving ? 'Saving...' : (isEditMode ? 'Update User' : 'Create User') }}
+      </button>
+      <button mat-stroked-button type="button" (click)="goBack()" [disabled]="isSaving">Cancel</button>
+    </div>
+  </form>
+</mat-card>

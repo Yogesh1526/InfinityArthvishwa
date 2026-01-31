@@ -1,4 +1,4 @@
-.role-list-card {
+.user-list-card {
   margin: var(--spacing-md) auto;
   padding: 2rem;
   max-width: 100%;
@@ -38,7 +38,6 @@
   gap: 0.5rem;
 }
 
-/* Summary Section */
 .summary-section {
   display: flex;
   gap: 1.5rem;
@@ -77,7 +76,6 @@
   color: #1e293b;
 }
 
-/* Table Wrapper */
 .table-wrapper {
   margin-top: 1.5rem;
 }
@@ -91,14 +89,14 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.roles-table {
+.users-table {
   width: 100%;
-  min-width: 700px;
+  min-width: 900px;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-.roles-table .mat-header-cell {
+.users-table .mat-header-cell {
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   font-weight: 600;
   font-size: 0.8125rem;
@@ -110,32 +108,32 @@
   white-space: nowrap;
 }
 
-.roles-table .mat-header-cell:first-of-type {
+.users-table .mat-header-cell:first-of-type {
   padding-left: 1.5rem;
   border-top-left-radius: 12px;
 }
 
-.roles-table .mat-header-cell:last-of-type {
+.users-table .mat-header-cell:last-of-type {
   padding-right: 1.5rem;
   border-top-right-radius: 12px;
 }
 
-.roles-table .mat-cell {
+.users-table .mat-cell {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.9375rem;
   vertical-align: middle;
 }
 
-.roles-table .mat-cell:first-of-type {
+.users-table .mat-cell:first-of-type {
   padding-left: 1.5rem;
 }
 
-.roles-table .mat-cell:last-of-type {
+.users-table .mat-cell:last-of-type {
   padding-right: 1.5rem;
 }
 
-.roles-table .mat-row:last-child .mat-cell {
+.users-table .mat-row:last-child .mat-cell {
   border-bottom: none;
 }
 
@@ -148,11 +146,11 @@
   transition: background-color 0.15s ease;
 }
 
-.roles-table .mat-row {
+.users-table .mat-row {
   min-height: 52px;
 }
 
-.roles-table .mat-row .mat-cell {
+.users-table .mat-row .mat-cell {
   vertical-align: middle;
 }
 
@@ -168,36 +166,45 @@
   background-color: #f1f5f9;
 }
 
-/* Column widths */
-.roles-table .mat-column-roleName {
-  min-width: 180px;
-  max-width: 240px;
+/* Column widths for balanced layout */
+.users-table .mat-column-userName {
+  min-width: 160px;
+  max-width: 200px;
 }
 
-.roles-table .mat-column-status {
+.users-table .mat-column-name {
+  min-width: 140px;
+}
+
+.users-table .mat-column-email {
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.users-table .mat-column-status {
   min-width: 100px;
   text-align: center;
 }
 
-.roles-table .mat-column-permissions {
-  min-width: 120px;
+.users-table .mat-column-roles {
+  min-width: 140px;
+  max-width: 220px;
 }
 
-.roles-table .mat-column-actions {
+.users-table .mat-column-actions {
   min-width: 140px;
   width: 140px;
   vertical-align: middle !important;
   text-align: center;
 }
 
-/* Role Name Cell */
-.role-name-cell {
+.user-name-cell {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.role-icon {
+.user-icon {
   flex-shrink: 0;
   color: #1976d2;
   font-size: 1.25rem;
@@ -205,14 +212,13 @@
   height: 1.25rem;
 }
 
-.role-name {
+.user-name {
   font-weight: 600;
   font-size: 0.9375rem;
   color: #1e293b;
   word-break: break-word;
 }
 
-/* Status Badge */
 .status-badge {
   display: inline-block;
   padding: 0.35rem 0.85rem;
@@ -236,8 +242,7 @@
   border: 1px solid #fecaca;
 }
 
-/* Permissions Info */
-.permissions-info {
+.roles-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -246,7 +251,7 @@
   line-height: 1.4;
 }
 
-.permissions-info mat-icon {
+.roles-info mat-icon {
   flex-shrink: 0;
   font-size: 1.125rem;
   width: 1.125rem;
@@ -254,7 +259,6 @@
   color: #6366f1;
 }
 
-/* Actions */
 .actions-header {
   text-align: center;
 }
@@ -285,7 +289,6 @@
   height: 1.25rem;
 }
 
-/* Loading State */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -301,7 +304,6 @@
   font-size: 0.9375rem;
 }
 
-/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -339,8 +341,7 @@
   gap: 0.5rem;
 }
 
-/* Pagination */
-::ng-deep .role-list-card .mat-paginator {
+::ng-deep .user-list-card .mat-paginator {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-top: none;
@@ -349,22 +350,21 @@
   padding: 0 1rem;
 }
 
-::ng-deep .role-list-card .mat-paginator-container {
+::ng-deep .user-list-card .mat-paginator-container {
   min-height: 52px;
   padding: 0 1rem;
 }
 
-::ng-deep .role-list-card .mat-paginator-page-size {
+::ng-deep .user-list-card .mat-paginator-page-size {
   align-items: center;
 }
 
-::ng-deep .role-list-card .mat-paginator-range-actions {
+::ng-deep .user-list-card .mat-paginator-range-actions {
   margin-left: auto;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .role-list-card {
+  .user-list-card {
     margin: var(--spacing-sm);
     padding: 1.5rem;
   }
@@ -396,13 +396,13 @@
     border-radius: 12px 12px 0 0;
   }
 
-  ::ng-deep .role-list-card .mat-paginator {
+  ::ng-deep .user-list-card .mat-paginator {
     border-radius: 0 0 12px 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .role-list-card {
+  .user-list-card {
     padding: 1rem;
   }
 

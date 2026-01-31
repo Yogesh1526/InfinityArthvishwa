@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './register/register.component';
 import { MaterialModule } from './material.module';
 import { FormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -36,6 +37,7 @@ export const MY_DATE_FORMATS = {
   declarations: [
     AppComponent,
     LoginComponent,
+    RegisterComponent,
     LoanInfoDetailsTableComponent,
     LoaderComponent,
     DataNotFoundComponent

@@ -34,17 +34,6 @@
             Status is required
           </mat-error>
         </mat-form-field>
-
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Is Default</mat-label>
-          <mat-select formControlName="isDefault">
-            <mat-option value="Y">Yes</mat-option>
-            <mat-option value="N">No</mat-option>
-          </mat-select>
-          <mat-error *ngIf="roleForm.get('isDefault')?.hasError('required')">
-            Default setting is required
-          </mat-error>
-        </mat-form-field>
       </div>
     </div>
 

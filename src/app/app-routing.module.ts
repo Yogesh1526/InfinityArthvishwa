@@ -5,6 +5,7 @@ import { LayoutComponent } from './layout/layout/layout.component';
 import { AuthGuard } from './auth/auth.guard';
 import { LoginGuard } from './auth/login.guard';
 import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './register/register.component';
 import { WorklistComponent } from './layout/worklist/worklist.component';
 import { BasicDetailsComponent } from './layout/basic-details/basic-details.component';
 import { LoanInfoComponent } from './layout/loan-info/loan-info.component';
@@ -13,7 +14,11 @@ import { LoanInfoDetailsTableComponent } from './pages/loan-info-details-table/l
 import { CustomerProfileComponent } from './layout/customer-profile/customer-profile.component';
 import { RoleListComponent } from './layout/roles-permissions/role-list/role-list.component';
 import { RoleFormComponent } from './layout/roles-permissions/role-form/role-form.component';
+import { RoleViewComponent } from './layout/roles-permissions/role-view/role-view.component';
 import { GoldRateComponent } from './layout/gold-rate/gold-rate.component';
+import { UserListComponent } from './layout/user-management/user-list/user-list.component';
+import { UserFormComponent } from './layout/user-management/user-form/user-form.component';
+import { UserViewComponent } from './layout/user-management/user-view/user-view.component';
 import { RoleGuard } from './auth/role.guard';
 
 const routes: Routes = [
@@ -24,6 +29,13 @@ const routes: Routes = [
   { 
     path: 'login', 
     component: LoginComponent,
+    canActivate: [LoginGuard]
+  },
+
+  // Registration - public
+  { 
+    path: 'register', 
+    component: RegisterComponent,
     canActivate: [LoginGuard]
   },
 
@@ -76,6 +88,11 @@ const routes: Routes = [
         canActivate: [AuthGuard, RoleGuard]
       },
       { 
+        path: 'roles/view/:id', 
+        component: RoleViewComponent,
+        canActivate: [AuthGuard, RoleGuard]
+      },
+      { 
         path: 'loan-wizard/:id', 
         component: LoanApplicationWizardComponent,
         canActivate: [AuthGuard]
@@ -89,6 +106,26 @@ const routes: Routes = [
         path: 'gold-rate', 
         component: GoldRateComponent,
         canActivate: [AuthGuard]
+      },
+      { 
+        path: 'users', 
+        component: UserListComponent,
+        canActivate: [AuthGuard, RoleGuard]
+      },
+      { 
+        path: 'users/create', 
+        component: UserFormComponent,
+        canActivate: [AuthGuard, RoleGuard]
+      },
+      { 
+        path: 'users/edit/:id', 
+        component: UserFormComponent,
+        canActivate: [AuthGuard, RoleGuard]
+      },
+      { 
+        path: 'users/view/:id', 
+        component: UserViewComponent,
+        canActivate: [AuthGuard, RoleGuard]
       }
     ]
   },

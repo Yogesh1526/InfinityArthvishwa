@@ -1,0 +1,85 @@
+<div class="register-container">
+  <div class="register-panel">
+    <div class="register-image">
+      <div class="register-image-content">
+        <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Logo" class="register-logo" />
+        <h1 class="brand-title">Dhanprerana Finserv</h1>
+        <p class="brand-tagline">Create your account</p>
+        <div class="brand-features">
+          <div class="feature-item">
+            <mat-icon>person_add</mat-icon>
+            <span>User Registration</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon>verified_user</mat-icon>
+            <span>Secure signup</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="register-form">
+      <div class="form-header">
+        <h2>Register</h2>
+        <p class="subtitle">Sign up to get started</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput [(ngModel)]="userName" name="userName" (blur)="validateForm()"
+            [class.mat-form-field-invalid]="errors.userName" />
+          <mat-error *ngIf="errors.userName">{{ errors.userName }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <mat-icon matPrefix>email</mat-icon>
+          <input matInput type="email" [(ngModel)]="email" name="email" (blur)="validateForm()"
+            [class.mat-form-field-invalid]="errors.email" />
+          <mat-error *ngIf="errors.email">{{ errors.email }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Full Name (optional)</mat-label>
+          <mat-icon matPrefix>badge</mat-icon>
+          <input matInput [(ngModel)]="name" name="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password"
+            (blur)="validateForm()" [class.mat-form-field-invalid]="errors.password" />
+          <button mat-icon-button matSuffix type="button" (click)="togglePassword()" tabindex="-1">
+            <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="errors.password">{{ errors.password }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmPassword"
+            name="confirmPassword" (blur)="validateForm()" [class.mat-form-field-invalid]="errors.confirmPassword" />
+          <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword()" tabindex="-1">
+            <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="errors.confirmPassword">{{ errors.confirmPassword }}</mat-error>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" class="full-width register-button"
+          [disabled]="isLoading || !userName.trim() || !email.trim() || !password || !confirmPassword">
+          <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+          <mat-icon *ngIf="!isLoading">person_add</mat-icon>
+          <span>{{ isLoading ? 'Creating account...' : 'Register' }}</span>
+        </button>
+      </form>
+
+      <div class="login-link">
+        <span>Already have an account?</span>
+        <a (click)="goToLogin()">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>

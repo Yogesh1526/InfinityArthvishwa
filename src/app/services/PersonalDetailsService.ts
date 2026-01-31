@@ -144,13 +144,13 @@ export class PersonalDetailsService {
     return this.http.delete(`${this.baseUrl}/gold-ownership/deleteGoldOwnershipDetail/${loanAccountNo}/${id}`);
   }
 
-  saveFirstValuationDetails(customerId: string, items: any[], image?: File) {
+  saveFirstValuationDetails(customerId: string, loanAccountNumber: string, items: any[], image?: File) {
     const formData = new FormData();
     formData.append('items', JSON.stringify(items));
     if (image) {
       formData.append('image', image);
     }
-    return this.http.post(`${this.baseUrl}/firstValuation/save/${customerId}`, formData);
+    return this.http.post(`${this.baseUrl}/firstValuation/save/${customerId}/${loanAccountNumber}`, formData);
   }
 
   uploadFirstValuationImage(customerId: string, loanAccountNumber: string, file: File) {
@@ -393,6 +393,16 @@ export class PersonalDetailsService {
 
   updatePacketAllotment(payload: any): Observable<any> {
     return this.http.put(`${this.baseUrl}/packet-allotment/updatePacketAllotment`, payload);
+  }
+
+  // Add new loan account (from customer profile)
+  addNewLoanAccount(body: {
+    customerId: string;
+    loanPurpose: string;
+    relationShipManager: string;
+    sourceChannel: string;
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/loan-account/addNewLoanAccount`, body);
   }
 
   // GL Scheme Selection API

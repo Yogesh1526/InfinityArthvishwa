@@ -41,9 +41,14 @@ import { ScannedDocumentComponent } from './loan-application-wizard/steps/scanne
 import { WebcamComponent } from './loan-application-wizard/steps/webcam/webcam.component';
 import { WebcamModule } from 'ngx-webcam';
 import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
+import { AddNewLoanDialogComponent } from './customer-profile/add-new-loan-dialog/add-new-loan-dialog.component';
 import { RoleListComponent } from './roles-permissions/role-list/role-list.component';
 import { RoleFormComponent } from './roles-permissions/role-form/role-form.component';
+import { RoleViewComponent } from './roles-permissions/role-view/role-view.component';
 import { GoldRateComponent } from './gold-rate/gold-rate.component';
+import { UserListComponent } from './user-management/user-list/user-list.component';
+import { UserFormComponent } from './user-management/user-form/user-form.component';
+import { UserViewComponent } from './user-management/user-view/user-view.component';
 
 
 
@@ -59,9 +64,14 @@ import { GoldRateComponent } from './gold-rate/gold-rate.component';
     LoanInfoComponent,
     LoanApplicationWizardComponent,
     CustomerProfileComponent,
+    AddNewLoanDialogComponent,
     RoleListComponent,
     RoleFormComponent,
+    RoleViewComponent,
     GoldRateComponent,
+    UserListComponent,
+    UserFormComponent,
+    UserViewComponent,
     PersonalDetailsComponent,
     FamilyDetailsComponent,
     AddressActivityComponent,
@@ -106,7 +116,10 @@ import { GoldRateComponent } from './gold-rate/gold-rate.component';
     CustomerProfileComponent,
     RoleListComponent,
     RoleFormComponent,
-    GoldRateComponent
+    GoldRateComponent,
+    UserListComponent,
+    UserFormComponent,
+    UserViewComponent
   ]
 })
 export class LayoutModule { }

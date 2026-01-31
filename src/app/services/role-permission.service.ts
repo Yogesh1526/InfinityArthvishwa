@@ -6,6 +6,8 @@ import { environment } from '../environment';
 export interface Permission {
   permissionId: number;
   permissionName?: string;
+  code?: string;
+  status?: string;
   description?: string;
   module?: string;
   [key: string]: any;
@@ -18,8 +20,8 @@ export interface PermissionDto {
 export interface Role {
   roleId?: number;
   roleName: string;
-  isDefault: string; // 'Y' or 'N'
-  status: string; // 'Active' or 'Inactive'
+  isDeleted?: boolean; // false = Active, true = Inactive
+  status?: string;
   permissionDto?: PermissionDto[];
   permissions?: Permission[];
   createdAt?: string;
@@ -93,22 +95,21 @@ export class RolePermissionService {
    * Save permission
    */
   savePermission(permission: Permission): Observable<any> {
-    return this.http.post(`${this.baseUrl}/UAM-SERVICE/permission/save`, permission);
+    return this.http.post(`${this.baseUrl}/permission/save`, permission);
   }
 
   /**
    * Get all permissions
    */
   getAllPermissions(): Observable<any> {
-    // Try multiple possible endpoints
-    return this.http.get(`${this.baseUrl}/UAM-SERVICE/permission/all`);
+    return this.http.get(`${this.baseUrl}/permission/all`);
   }
 
   /**
    * Get permissions by module
    */
   getPermissionsByModule(module: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/UAM-SERVICE/permission/module/${module}`);
+    return this.http.get(`${this.baseUrl}/permission/module/${module}`);
   }
 }
 
