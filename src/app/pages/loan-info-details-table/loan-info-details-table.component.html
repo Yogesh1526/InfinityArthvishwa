@@ -133,15 +133,15 @@
               <th>Loan Account No.</th>
               <th>Full Name</th>
               <th>Mobile Number</th>
-              <th>Occupation</th>
-              <th>Loan Purpose</th>
+              <th>Loan Date</th>
+              <th>Loan Amount</th>
               <th>Lead By</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let loan of pagedLoans" (click)="editLoan(loan)" class="table-row" [ngClass]="{'row-active': loan.status?.toUpperCase() === 'ACTIVE'}">
+            <tr *ngFor="let loan of pagedLoans" (click)="editLoan(loan)" class="table-row" [ngClass]="{'row-active': loan.isDisbursed}">
               <td>
                 <span class="customer-id">{{ loan.customerId }}</span>
               </td>
@@ -157,8 +157,8 @@
               <td>
                 <span class="mobile-number">{{ loan.mobileNumber }}</span>
               </td>
-              <td>{{ loan.occupation }}</td>
-              <td>{{ loan.loanPurpose }}</td>
+              <td>{{ loan.loanDate }}</td>
+              <td>{{ formatCurrency(loan.loanAmount) }}</td>
               <td>
                 <span class="lead-name">{{ loan.createdBy }}</span>
               </td>

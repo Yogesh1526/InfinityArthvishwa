@@ -27,8 +27,8 @@ export class FamilyDetailsComponent implements OnInit, OnChanges {
     private toastService: ToastService
   ) {
     this.form = this.fb.group({
-      spouseFirstName: ['', Validators.required],
-      spouseLastName: ['', Validators.required],
+      spouseFirstName: [''],
+      spouseLastName: [''],
       fatherFirstName: ['', Validators.required],
       fatherLastName: ['', Validators.required],
       motherFirstName: ['', Validators.required],
@@ -100,9 +100,15 @@ export class FamilyDetailsComponent implements OnInit, OnChanges {
       return;
     }
 
+    const formVal = this.form.value;
+    // Spouse info is optional; pass "N/A" for both when unmarried/not provided
+    const spouseFirstName = (formVal.spouseFirstName || '').trim();
+    const spouseLastName = (formVal.spouseLastName || '').trim();
     const payload = {
-      ...this.form.value,
+      ...formVal,
       customerId: this.customerId,
+      spouseFirstName: spouseFirstName || 'N/A',
+      spouseLastName: spouseLastName || 'N/A',
     };
 
     // Check if we're updating existing family details
@@ -149,9 +155,12 @@ export class FamilyDetailsComponent implements OnInit, OnChanges {
 
   editDetails() {
     if (this.familyDetails) {
+      // Show empty for spouse when value is "N/A" so user can leave blank or fill in
+      const spouseFirst = this.familyDetails.spouseFirstName;
+      const spouseLast = this.familyDetails.spouseLastName;
       this.form.patchValue({
-        spouseFirstName: this.familyDetails.spouseFirstName || '',
-        spouseLastName: this.familyDetails.spouseLastName || '',
+        spouseFirstName: (spouseFirst === 'N/A' || !spouseFirst) ? '' : spouseFirst,
+        spouseLastName: (spouseLast === 'N/A' || !spouseLast) ? '' : spouseLast,
         fatherFirstName: this.familyDetails.fatherFirstName || '',
         fatherLastName: this.familyDetails.fatherLastName || '',
         motherFirstName: this.familyDetails.motherFirstName || '',

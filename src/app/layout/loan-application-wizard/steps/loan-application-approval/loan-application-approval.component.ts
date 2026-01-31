@@ -131,6 +131,10 @@ export class LoanApplicationApprovalComponent implements OnInit {
           // Check if loan is approved (both reports available)
           this.isApproved = this.reports.length === 2 && 
                            this.reports.every(r => r.status === 'SUCCESS');
+          // Emit step completed when we have approval files (tick visible in sidebar)
+          if (this.reports.some(r => r.status === 'SUCCESS')) {
+            this.stepCompleted.emit();
+          }
         } else {
           // If API call fails or returns no data, show pending reports
           this.reports = [

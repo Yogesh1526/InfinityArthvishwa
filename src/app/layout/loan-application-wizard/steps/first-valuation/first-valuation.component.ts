@@ -395,6 +395,15 @@ export class FirstValuationComponent implements OnInit {
       return;
     }
 
+    let accountNumber = this.loanAccountNumber;
+    if (!accountNumber && this.loanApplicationId && (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'))) {
+      accountNumber = this.loanApplicationId;
+    }
+    if (!accountNumber) {
+      this.toastService.showError('Loan Account Number is required. Please complete the gold ownership step first.');
+      return;
+    }
+
     // Validate all items in the list
     const hasInvalidItems = this.jewelleryList.some(item => {
       return !item.jewelleryName || 
@@ -420,8 +429,8 @@ export class FirstValuationComponent implements OnInit {
       purity: item.purity
     }));
   
-    // Send items and image together in one API call
-    this.apiService.saveFirstValuationDetails(this.customerId, items, this.selectedImageFile || undefined).subscribe({
+    // Send items and image together in one API call - pass loanAccountNumber in URL param
+    this.apiService.saveFirstValuationDetails(this.customerId, accountNumber, items, this.selectedImageFile || undefined).subscribe({
       next: (response: any) => {
         // Extract loan account number from response if available
         if (response && response.data && response.data.loanAccountNumber) {

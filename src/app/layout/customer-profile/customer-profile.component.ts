@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { PersonalDetailsService } from '../../services/PersonalDetailsService';
 import { ToastService } from '../../services/toast.service';
 import { LoaderService } from '../../services/loader.service';
+import { AddNewLoanDialogComponent, AddNewLoanDialogResult } from './add-new-loan-dialog/add-new-loan-dialog.component';
 
 @Component({
   selector: 'app-customer-profile',
@@ -19,6 +21,7 @@ export class CustomerProfileComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private dialog: MatDialog,
     private apiService: PersonalDetailsService,
     private toastService: ToastService,
     public loaderService: LoaderService
@@ -28,12 +31,7 @@ export class CustomerProfileComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       this.customerId = params.get('id');
       if (this.customerId) {
-        // API calls commented out for layout improvement
-        // this.loadCustomerDetails();
-        // this.loadLoans();
-        
-        // Mock data for layout development
-        this.loadMockData();
+        this.loadCustomerDetails();
       } else {
         this.toastService.showError('Customer ID is required');
         this.router.navigate(['/loan-info-details']);
@@ -41,79 +39,49 @@ export class CustomerProfileComponent implements OnInit {
     });
   }
 
-  // Mock data loader for layout development
-  loadMockData(): void {
-    this.isLoading = false;
-    this.customer = {
-      customerId: this.customerId || 'CN0599644834286',
-      firstName: 'John',
-      middleName: 'Michael',
-      lastName: 'Doe',
-      dateOfBirth: new Date('1990-05-15'),
-      gender: 'Male',
-      maritalStatus: 'Married',
-      mobileNumber: '9876543210',
-      alternateMobileNumber: '9876543211',
-      email: 'john.doe@example.com',
-      office: 'Bhosari',
-      education: 'Postgraduate',
-      preferredLanguage: 'Marathi',
-      religion: 'Hindu',
-      nationality: 'Indian',
-      riskCategory: 'Medium',
-      clientType: 'Premium',
-      externalId: 'EXT123456',
-      submittedDate: new Date(),
-      applicationStatus: 'Active',
-      note: 'Customer is verified and active'
-    };
-    this.loans = [];
+  loadCustomerDetails(): void {
+    if (!this.customerId) return;
+
+    this.isLoading = true;
+    this.apiService.getById(this.customerId).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        const data = res?.data ?? res;
+        if (data) {
+          this.customer = data;
+          const loanList = data.loanAccountDetailsDtoList || data.loanAccountDetailsDto || [];
+          this.loans = this.mapLoanAccountDetails(loanList);
+        } else {
+          this.toastService.showError('Customer not found');
+          this.router.navigate(['/loan-info-details']);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.toastService.showError(err?.error?.message || 'Failed to load customer details');
+        console.error('Error loading customer details:', err);
+      }
+    });
   }
 
-  // API calls commented out for layout improvement
-  // loadCustomerDetails(): void {
-  //   if (!this.customerId) return;
-  //   
-  //   this.isLoading = true;
-  //   this.apiService.getById(this.customerId).subscribe({
-  //     next: (res) => {
-  //       this.isLoading = false;
-  //       if (res?.data) {
-  //         this.customer = res.data;
-  //       } else {
-  //         this.toastService.showError('Customer not found');
-  //         this.router.navigate(['/loan-info-details']);
-  //       }
-  //     },
-  //     error: (err) => {
-  //       this.isLoading = false;
-  //       this.toastService.showError('Failed to load customer details');
-  //       console.error(err);
-  //     }
-  //   });
-  // }
-
-  // loadLoans(): void {
-  //   if (!this.customerId) return;
-  //   
-  //   // TODO: Replace with actual API call to get loans for this customer
-  //   // For now, using mock data structure
-  //   this.loans = [
-  //     // This will be populated from API
-  //   ];
-  //   
-  //   // Example API call (uncomment when API is ready):
-  //   // this.apiService.getLoansByCustomerId(this.customerId).subscribe({
-  //   //   next: (res) => {
-  //   //     if (res?.data) {
-  //   //       this.loans = Array.isArray(res.data) ? res.data : [res.data];
-  //   //     }
-  //   //   },
-  //   //   error: (err) => {
-  //   //     console.error('Failed to load loans:', err);
-  //   //   }
-  //   // });
-  // }
+  /**
+   * Maps loanAccountDetailsDtoList from API to loans format for template binding.
+   */
+  private mapLoanAccountDetails(loanDetails: any[]): any[] {
+    return (loanDetails || []).map((loan: any, index: number) => ({
+      id: loan.loanAccountNumber || index,
+      loanAccountNo: loan.loanAccountNumber,
+      loanAccountNumber: loan.loanAccountNumber,
+      status: loan.loanStatus,
+      loanStatus: loan.loanStatus,
+      principalAmount: loan.netDisbursedAmount ?? loan.loanAmount ?? 0,
+      netDisbursedAmount: loan.netDisbursedAmount,
+      loanDate: loan.loanDate,
+      rateOfInterest: loan.rateOfInterest ?? loan.interestRate,
+      interestRate: loan.rateOfInterest ?? loan.interestRate ?? 'N/A',
+      tenure: loan.tenure ?? 'N/A'
+    }));
+  }
 
   editCustomer(): void {
     if (this.customerId) {
@@ -122,15 +90,37 @@ export class CustomerProfileComponent implements OnInit {
   }
 
   addNewLoan(): void {
-    if (this.customerId) {
-      this.router.navigate(['/loan-wizard', this.customerId]);
-    }
+    if (!this.customerId) return;
+    const dialogRef = this.dialog.open(AddNewLoanDialogComponent, {
+      width: '520px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'add-new-loan-dialog-panel',
+      disableClose: false,
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      data: { customerId: this.customerId }
+    });
+    dialogRef.afterClosed().subscribe((result: AddNewLoanDialogResult) => {
+      if (result) {
+        const customerId = result.customerId || this.customerId;
+        const queryParams: any = {
+          loanPurpose: result.loanPurpose,
+          relationshipManager: result.relationshipManager,
+          sourcingChannel: result.sourcingChannel
+        };
+        if (result.loanAccountNumber) {
+          queryParams.loanAccount = result.loanAccountNumber;
+        }
+        this.router.navigate(['/loan-wizard', customerId], { queryParams });
+      }
+    });
   }
 
-  viewLoan(loanId: string): void {
+  viewLoan(loanAccountNumberOrId: string): void {
     if (this.customerId) {
-      this.router.navigate(['/loan-wizard', this.customerId], { 
-        queryParams: { loanId } 
+      this.router.navigate(['/loan-wizard', this.customerId], {
+        queryParams: loanAccountNumberOrId ? { loanAccount: loanAccountNumberOrId } : {}
       });
     }
   }
@@ -138,24 +128,29 @@ export class CustomerProfileComponent implements OnInit {
   getLoanStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
       'active': 'status-active',
+      'in-process': 'status-pending',
+      'in_process': 'status-pending',
       'pending': 'status-pending',
       'approved': 'status-approved',
       'rejected': 'status-rejected',
       'closed': 'status-closed',
       'disbursed': 'status-disbursed'
     };
-    return statusMap[status?.toLowerCase()] || 'status-default';
+    const normalized = (status || '').toLowerCase().replace(/_/g, '-');
+    return statusMap[normalized] || 'status-default';
   }
 
   getLoanStatusLabel(status: string): string {
     if (!status) return 'Unknown';
+    if (status.toUpperCase() === 'IN-PROCESS') return 'In Process';
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }
 
   getStatusIcon(status: string): string {
-    const statusLower = status?.toLowerCase() || '';
+    const statusLower = (status || '').toLowerCase().replace(/_/g, '-');
     const iconMap: { [key: string]: string } = {
       'pending': 'hourglass_empty',
+      'in-process': 'hourglass_empty',
       'approved': 'check_circle',
       'active': 'play_circle',
       'rejected': 'cancel',
@@ -171,6 +166,25 @@ export class CustomerProfileComponent implements OnInit {
 
   setActiveTab(index: number): void {
     this.selectedTabIndex = index;
+  }
+
+  getFullName(): string {
+    if (!this.customer) return 'N/A';
+    return [this.customer.firstName, this.customer.middleName, this.customer.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || 'N/A';
+  }
+
+  /**
+   * Returns data URL for customer photo from API (base64).
+   * Returns null when no photo is available.
+   */
+  getPhotoUrl(): string | null {
+    if (!this.customer?.photo) return null;
+    const base64 = this.customer.photo;
+    if (base64.startsWith('data:')) return base64;
+    return `data:image/jpeg;base64,${base64}`;
   }
 }
 

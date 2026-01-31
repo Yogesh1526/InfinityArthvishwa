@@ -12,7 +12,7 @@ import { PageEvent } from '@angular/material/paginator';
 })
 export class RoleListComponent implements OnInit {
   roles: Role[] = [];
-  displayedColumns: string[] = ['roleName', 'status', 'isDefault', 'permissions', 'actions'];
+  displayedColumns: string[] = ['roleName', 'status', 'permissions', 'actions'];
   isLoading = false;
   
   // Pagination
@@ -100,12 +100,13 @@ export class RoleListComponent implements OnInit {
     return role.permissionDto?.length || role.permissions?.length || 0;
   }
 
-  getStatusClass(status: string): string {
-    return status?.toLowerCase() === 'active' ? 'status-active' : 'status-inactive';
+  /** Display status from API: isDeleted false = Active, true = Inactive */
+  getDisplayStatus(role: Role): string {
+    return role.isDeleted === false ? 'Active' : 'Inactive';
   }
 
-  getDefaultClass(isDefault: string): string {
-    return isDefault?.toUpperCase() === 'Y' ? 'default-yes' : 'default-no';
+  getStatusClass(role: Role): string {
+    return role.isDeleted === false ? 'status-active' : 'status-inactive';
   }
 
   goBack(): void {

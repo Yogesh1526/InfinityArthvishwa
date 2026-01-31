@@ -1,0 +1,46 @@
+<mat-card class="user-view-card">
+  <div class="header-section">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2><mat-icon color="primary">person</mat-icon> User Details</h2>
+    <button mat-raised-button color="primary" (click)="editUser()" class="edit-button" *ngIf="user">
+      <mat-icon>edit</mat-icon>
+      Edit User
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading...</p>
+  </div>
+
+  <div class="detail-section" *ngIf="!isLoading && user">
+    <div class="detail-row">
+      <span class="label">Username</span>
+      <span class="value">{{ user.userName }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Full Name</span>
+      <span class="value">{{ user.name || '-' }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Email</span>
+      <span class="value">{{ user.email || '-' }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Status</span>
+      <span class="status-badge" [ngClass]="getStatusClass(user)">{{ getDisplayStatus(user) }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Roles</span>
+      <span class="value">{{ getRoleNames() }}</span>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && !user">
+    <mat-icon>person_off</mat-icon>
+    <p>User not found.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">Back to Users</button>
+  </div>
+</mat-card>

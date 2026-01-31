@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ClientDocumentService } from 'src/app/services/client-document.service';
 import { ToastService } from 'src/app/services/toast.service';
@@ -79,6 +79,7 @@ export class LoanApplicationWizardComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private fb: FormBuilder,
     private http: HttpClient,
     private personalService: PersonalDetailsService,
@@ -95,8 +96,15 @@ export class LoanApplicationWizardComponent implements OnInit {
       if (id) {
         // The route parameter is now customerId
         this.customerId = id;
-        // Try to load stored loanAccountNumber from localStorage first
-        this.loadStoredLoanAccountNumber();
+        // Priority 1: Use loanAccount from URL query params (e.g. from Add New Loan redirect)
+        const loanAccountFromUrl = this.route.snapshot.queryParamMap.get('loanAccount');
+        if (loanAccountFromUrl && (loanAccountFromUrl.startsWith('AP') || loanAccountFromUrl.startsWith('GL'))) {
+          this.loanApplicationId = loanAccountFromUrl;
+          localStorage.setItem(`loanAccountNumber_${this.customerId}`, loanAccountFromUrl);
+        } else {
+          // Priority 2: Load from localStorage
+          this.loadStoredLoanAccountNumber();
+        }
         this.fetchLoanAccountNo();
       }
     });
@@ -117,17 +125,23 @@ export class LoanApplicationWizardComponent implements OnInit {
   /**
    * Fetch loanAccountNo from getAllCustomerDetails API using customerId
    * This is the only API called on initial load
+   * Preserves loanApplicationId from URL query param (loanAccount) when present
    */
   fetchLoanAccountNo(): void {
+    const hadValidLoanAccount = this.loanApplicationId && (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'));
+
     this.personalService.getAllCustomerDetails().subscribe({
       next: (response) => {
         const customers = response?.data || [];
         const customer = customers.find((c: any) => c.customerId === this.customerId);
         if (customer) {
-          if (customer.loanAccountNo) {
-            this.loanApplicationId = customer.loanAccountNo;
-          } else {
-            this.loanApplicationId = this.customerId;
+          // Only update loanApplicationId from API if we didn't already have one from URL/localStorage
+          if (!hadValidLoanAccount) {
+            if (customer.loanAccountNo) {
+              this.loanApplicationId = customer.loanAccountNo;
+            } else {
+              this.loanApplicationId = this.customerId;
+            }
           }
           // Store numeric ID for APIs that need it
           this.customerNumericId = customer.id || 0;
@@ -135,8 +149,9 @@ export class LoanApplicationWizardComponent implements OnInit {
           const nameParts = [customer.firstName, customer.middleName, customer.lastName].filter(Boolean);
           this.customerName = nameParts.length > 0 ? nameParts.join(' ') : 'N/A';
         } else {
-          // If not found, try to use customerId as fallback
-          this.loanApplicationId = this.customerId;
+          if (!hadValidLoanAccount) {
+            this.loanApplicationId = this.customerId;
+          }
           this.customerNumericId = 0;
           this.customerName = 'N/A';
         }
@@ -145,8 +160,9 @@ export class LoanApplicationWizardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error fetching customer details:', err);
-        // Fallback to customerId if API fails
-        this.loanApplicationId = this.customerId;
+        if (!hadValidLoanAccount) {
+          this.loanApplicationId = this.customerId;
+        }
         this.customerNumericId = 0;
         this.customerName = 'N/A';
         // Still try to check steps
@@ -246,7 +262,10 @@ export class LoanApplicationWizardComponent implements OnInit {
         catchError(() => of({ data: [] }))
       );
       
-      // Step 16: Cash Split - no API call, completion handled by component
+      // Step 16: Cash Split
+      apiCalls[16] = this.personalService.getAllCashSplitDetails(this.customerId, accountNumber).pipe(
+        catchError(() => of({ data: [] }))
+      );
       
       // Step 17: Expected Closure Date (was step 16)
       apiCalls[17] = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
@@ -259,8 +278,9 @@ export class LoanApplicationWizardComponent implements OnInit {
       );
     }
     
-    // Step 19: Loan Agreement Document - check localStorage
-    const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
+    // Step 19: Loan Agreement Document - check localStorage (use accountNumber or loanApplicationId for key)
+    const accNumForDoc = accountNumber || this.loanApplicationId || '';
+    const docGenerated = !!localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accNumForDoc}`);
     this.stepCompletionStatus[19] = !!docGenerated;
     this.checkedSteps.add(19);
     
@@ -444,8 +464,9 @@ export class LoanApplicationWizardComponent implements OnInit {
           );
         }
         break;
-      case 19: // Loan Agreement Document - check localStorage only
-        const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accountNumber}`);
+      case 19: // Loan Agreement Document - check localStorage only (use accountNumber or loanApplicationId)
+        const accForDoc = accountNumber || this.loanApplicationId || '';
+        const docGenerated = localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accForDoc}`);
         this.stepCompletionStatus[stepIndex] = !!docGenerated;
         this.checkedSteps.add(stepIndex);
         this.stepCompletionStatus = [...this.stepCompletionStatus];
@@ -532,27 +553,19 @@ export class LoanApplicationWizardComponent implements OnInit {
       case 14: // Packet Allotment (was step 13)
       case 15: // Tare Weight (was step 14)
         return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
-      case 16: // Cash Split
-        return !!(result?.data && Array.isArray(result.data) && result.data.length > 0);
+      case 16: // Cash Split - handle both { data: [...] } and direct array response
+        const cashData = result?.data ?? result;
+        return !!(Array.isArray(cashData) && cashData.length > 0);
       case 17: // Expected Closure Date (was step 16)
         if (result?.data) {
           return !!(result.data.id || result.data.id === 0);
         }
         return !!(result?.id || result?.id === 0);
-      case 18: // Loan Application Approval (was step 17)
-        // Check if approval files exist - handle both response formats
-        if (result?.code === 200 && result?.data) {
-          const fileData = result.data;
-          return !!(fileData['CAM-Gold-File-Name'] || fileData['Credit-Summary-File-Name']);
-        }
-        // Fallback: check if data exists directly (for error handling cases)
-        if (result?.data) {
-          const fileData = result.data;
-          return !!(fileData['CAM-Gold-File-Name'] || fileData['Credit-Summary-File-Name']);
-        }
-        // Check if result itself contains the file data
-        if (result && (result['CAM-Gold-File-Name'] || result['Credit-Summary-File-Name'])) {
-          return true;
+      case 18: // Loan Application Approval (was step 17) - handle various API response formats
+        const approvalData = result?.data ?? result;
+        if (approvalData && typeof approvalData === 'object') {
+          return !!(approvalData['CAM-Gold-File-Name'] || approvalData['Credit-Summary-File-Name'] ||
+            approvalData['camGoldFileName'] || approvalData['creditSummaryFileName']);
         }
         return false;
       case 19: // Loan Agreement Document (was step 18)
@@ -809,33 +822,27 @@ export class LoanApplicationWizardComponent implements OnInit {
   }
 
   submitAll(): void {
-    if (this.mainForm?.invalid) {
-      this.toastService.showWarning('Please complete all required fields.');
+    // Verify all required steps are completed
+    const pendingStepIndex = this.getFirstPendingStepIndex();
+    if (pendingStepIndex !== -1) {
+      const pendingStepName = this.steps[pendingStepIndex]?.label || `Step ${pendingStepIndex + 1}`;
+      this.toastService.showError(`Please complete "${pendingStepName}" before submitting.`);
       return;
     }
 
-    const formValue = this.mainForm?.value || {};
-    const formData = new FormData();
+    this.toastService.showSuccess('All steps completed successfully!');
+    this.router.navigate(['/loan-info-details']);
+  }
 
-    for (const sectionKey in formValue) {
-      const section = formValue[sectionKey];
-      for (const fieldKey in section) {
-        const val = section[fieldKey];
-        if (val instanceof File) {
-          formData.append(fieldKey, val);
-        } else {
-          formData.append(fieldKey, val ?? '');
-        }
+  /**
+   * Returns the index of the first step that is not completed, or -1 if all steps are done.
+   */
+  private getFirstPendingStepIndex(): number {
+    for (let i = 0; i < this.steps.length; i++) {
+      if (!this.isStepCompleted(i)) {
+        return i;
       }
     }
-
-    this.http.post('/api/loan-application', formData).subscribe({
-      next: () => {
-        this.toastService.showSuccess('Application submitted successfully!');
-      },
-      error: () => {
-        this.toastService.showError('Submission failed. Please try again.');
-      }
-    });
+    return -1;
   }
 }

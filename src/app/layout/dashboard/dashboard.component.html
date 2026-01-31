@@ -4,7 +4,7 @@
     <div class="header-content">
       <div class="header-title">
         <h1>Dashboard</h1>
-        <p class="header-subtitle">Welcome back! Here's what's happening with your banking operations today.</p>
+        <p class="header-subtitle">Welcome back! Here's what's happening with your gold loan applications today.</p>
       </div>
       <div class="header-actions">
         <button mat-stroked-button>
@@ -43,12 +43,12 @@
     <div class="charts-section">
       <!-- Main Charts Row -->
       <div class="charts-row">
-        <!-- Revenue Distribution Chart -->
+        <!-- Loan Status Distribution -->
         <mat-card class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title">
               <mat-icon>pie_chart</mat-icon>
-              <span>Revenue Distribution</span>
+              <span>Loan Status Distribution</span>
             </div>
             <button mat-icon-button (click)="openChartDialog('donut')" matTooltip="Expand Chart">
               <mat-icon>open_in_full</mat-icon>
@@ -59,12 +59,12 @@
           </div>
         </mat-card>
 
-        <!-- Business Performance Chart -->
+        <!-- Monthly Loan Applications -->
         <mat-card class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title">
               <mat-icon>bar_chart</mat-icon>
-              <span>Business Performance</span>
+              <span>Monthly Loan Applications</span>
             </div>
             <button mat-icon-button (click)="openChartDialog('bar')" matTooltip="Expand Chart">
               <mat-icon>open_in_full</mat-icon>
@@ -78,12 +78,12 @@
 
       <!-- Secondary Charts Row -->
       <div class="charts-row">
-        <!-- Sales Trends Chart -->
+        <!-- Monthly Disbursement Trend -->
         <mat-card class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title">
               <mat-icon>show_chart</mat-icon>
-              <span>Sales Trends</span>
+              <span>Monthly Disbursement (₹)</span>
             </div>
             <button mat-icon-button (click)="openChartDialog('line')" matTooltip="Expand Chart">
               <mat-icon>open_in_full</mat-icon>
@@ -94,12 +94,12 @@
           </div>
         </mat-card>
 
-        <!-- Customer Segmentation Chart -->
+        <!-- Customer Segmentation -->
         <mat-card class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title">
               <mat-icon>people</mat-icon>
-              <span>Customer Segmentation</span>
+              <span>New vs Returning Customers</span>
             </div>
             <button mat-icon-button (click)="openChartDialog('pie')" matTooltip="Expand Chart">
               <mat-icon>open_in_full</mat-icon>
@@ -107,6 +107,24 @@
           </div>
           <div class="chart-container">
             <echarts [options]="pieChart" class="chart"></echarts>
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Third Row - Loan Amount Distribution -->
+      <div class="charts-row">
+        <mat-card class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">
+              <mat-icon>account_balance_wallet</mat-icon>
+              <span>Loan Amount Distribution</span>
+            </div>
+            <button mat-icon-button (click)="openChartDialog('amountBand')" matTooltip="Expand Chart">
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+          <div class="chart-container">
+            <echarts [options]="amountBandChart" class="chart"></echarts>
           </div>
         </mat-card>
       </div>
@@ -121,7 +139,7 @@
           <span>Quick Actions</span>
         </div>
         <div class="quick-actions-list">
-          <button mat-stroked-button class="action-button" *ngFor="let action of quickActions">
+          <button mat-stroked-button class="action-button" *ngFor="let action of quickActions" (click)="onQuickAction(action.action)">
             <mat-icon>{{ action.icon }}</mat-icon>
             <span>{{ action.label }}</span>
           </button>
@@ -156,7 +174,7 @@
         <mat-icon>receipt_long</mat-icon>
         <span>Recent Loan Applications</span>
       </div>
-      <button mat-button color="primary">View All</button>
+      <button mat-button color="primary" (click)="viewAllApplications()">View All</button>
     </div>
     <div class="table-wrapper">
       <table class="applications-table">
@@ -187,7 +205,7 @@
             </td>
             <td class="date">{{ application.date }}</td>
             <td>
-              <button mat-icon-button matTooltip="View Details">
+              <button mat-icon-button matTooltip="View Details" (click)="viewApplicationDetails(application)">
                 <mat-icon>visibility</mat-icon>
               </button>
             </td>

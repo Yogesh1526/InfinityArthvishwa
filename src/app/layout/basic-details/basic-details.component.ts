@@ -93,13 +93,9 @@ export class BasicDetailsComponent implements OnInit {
   loadCustomerForEdit(id: string) {
     this.apiService.getById(id).subscribe({
       next: (res) => {
-        // Handle response where data can be an array or object
         let data = res.data;
-        
-        // If data is an array, get the first element or find by id
         if (Array.isArray(data)) {
           if (data.length > 0) {
-            // Try to find customer by id, otherwise use first element
             data = data.find((c: any) => c.id === Number(id) || c.customerId === id) || data[0];
           } else {
             this.toast.showError('Customer not found');
@@ -108,7 +104,6 @@ export class BasicDetailsComponent implements OnInit {
         }
         
         if (data) {
-          // Patch form with existing data
           this.customerForm.patchValue({
             firstName: data.firstName,
             middleName: data.middleName,
@@ -131,13 +126,9 @@ export class BasicDetailsComponent implements OnInit {
           });
  
           this.id = data.id;
-          // Store full customer data for update
           this.customer = data;
-          // Store loanAccountNo for navigation (handle both tempLoanAccountNumber and loanAccountNo)
           this.loanAccountNo = data.tempLoanAccountNumber || data.loanAccountNo || null;
-          // Store customerId for update API
           this.customerId = data.customerId || id;
-          // Show advanced details if externalId or clientType exists
           this.showAdvanceDetails = !!(data.externalId || data.clientType);
         }
       },
@@ -211,8 +202,13 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res.code === 201 || res.code === 200 || res?.success) {
             this.toast.showSuccess('Customer updated successfully!');
-            // Navigate to loan-info-details after successful update
-            this.router.navigate(['/loan-info-details']);
+            // Navigate to customer profile after successful update
+            const cid = this.customerId || body?.customerId || res?.data?.customerId;
+            if (cid) {
+              this.router.navigate(['/customer-profile', cid]);
+            } else {
+              this.router.navigate(['/loan-info-details']);
+            }
           } else {
             this.toast.showError(res?.message || 'Update failed');
           }
@@ -238,10 +234,15 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res.code === 201 || res.code === 200) {
             this.toast.showSuccess('Customer saved successfully!');
-            // Reset form and navigate to loan-info-details
+            // Reset form and navigate to customer profile if customerId available, else loan-info-details
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });
-            this.router.navigate(['/loan-info-details']);
+            const cid = res?.data?.customerId || res?.data?.id;
+            if (cid) {
+              this.router.navigate(['/customer-profile', String(cid)]);
+            } else {
+              this.router.navigate(['/loan-info-details']);
+            }
           } else {
             this.toast.showError(res?.message || 'Unexpected error occurred.');
           }

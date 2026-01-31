@@ -1,0 +1,38 @@
+<mat-card class="role-view-card">
+  <div class="header-section">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2><mat-icon color="primary">admin_panel_settings</mat-icon> Role Details</h2>
+    <button mat-raised-button color="primary" (click)="editRole()" class="edit-button" *ngIf="role">
+      <mat-icon>edit</mat-icon>
+      Edit Role
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading...</p>
+  </div>
+
+  <div class="detail-section" *ngIf="!isLoading && role">
+    <div class="detail-row">
+      <span class="label">Role Name</span>
+      <span class="value">{{ role.roleName }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Status</span>
+      <span class="status-badge" [ngClass]="getStatusClass(role)">{{ getDisplayStatus(role) }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Permissions</span>
+      <span class="value">{{ getPermissionCount() }} permission(s)</span>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && !role">
+    <mat-icon>admin_panel_settings</mat-icon>
+    <p>Role not found.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">Back to Roles</button>
+  </div>
+</mat-card>
