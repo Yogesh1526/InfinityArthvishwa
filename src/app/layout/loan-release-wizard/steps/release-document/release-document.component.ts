@@ -1,15 +1,12 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
 
-interface ReleaseDocument {
-  id: string;
+interface ReleaseDoc {
+  id: number;
   name: string;
-  description: string;
-  icon: string;
-  status: 'pending' | 'generating' | 'generated' | 'error';
-  downloadUrl?: string;
-  generatedAt?: Date;
+  status: 'PENDING' | 'GENERATING' | 'SUCCESS';
+  fileName?: string;
 }
 
 @Component({
@@ -17,262 +14,204 @@ interface ReleaseDocument {
   templateUrl: './release-document.component.html',
   styleUrls: ['./release-document.component.css']
 })
-export class ReleaseDocumentComponent implements OnInit {
+export class ReleaseDocumentComponent implements OnInit, OnChanges {
   @Input() customerId!: string;
   @Input() loanAccountNumber!: string;
   @Input() customerName!: string;
   @Input() paymentData: any;
   @Output() stepCompleted = new EventEmitter<void>();
 
-  documents: ReleaseDocument[] = [];
-  isGeneratingAll = false;
-  allDocumentsGenerated = false;
+  documents: ReleaseDoc[] = [];
+  isLoading = false;
+  isGenerating = false;
 
   constructor(
     private personalService: PersonalDetailsService,
     private toastService: ToastService
   ) {}
 
+  /** localStorage key */
+  private get storageKey(): string {
+    return `releaseDoc_${this.customerId}_${this.loanAccountNumber}`;
+  }
+
   ngOnInit(): void {
-    this.initDocuments();
+    this.loadFromLocalStorage();
   }
 
-  /**
-   * Initialize document list
-   */
-  initDocuments(): void {
-    this.documents = [
-      {
-        id: 'release_certificate',
-        name: 'Loan Release Certificate',
-        description: 'Official certificate confirming loan closure and release of pledged items',
-        icon: 'verified',
-        status: 'pending'
-      },
-      {
-        id: 'noc',
-        name: 'No Objection Certificate (NOC)',
-        description: 'Certificate stating no dues remain against the customer',
-        icon: 'fact_check',
-        status: 'pending'
-      },
-      {
-        id: 'gold_release',
-        name: 'Gold Release Form',
-        description: 'Authorization form for release of pledged gold items',
-        icon: 'receipt_long',
-        status: 'pending'
-      },
-      {
-        id: 'payment_receipt',
-        name: 'Final Payment Receipt',
-        description: 'Receipt for the final payment made towards loan closure',
-        icon: 'receipt',
-        status: 'pending'
-      },
-      {
-        id: 'account_closure',
-        name: 'Account Closure Statement',
-        description: 'Detailed statement showing complete transaction history',
-        icon: 'summarize',
-        status: 'pending'
-      }
-    ];
-  }
-
-  /**
-   * Generate a single document
-   */
-  generateDocument(doc: ReleaseDocument): void {
-    if (doc.status === 'generating' || doc.status === 'generated') {
-      return;
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['customerId'] || changes['loanAccountNumber']) && !changes['customerId']?.firstChange) {
+      this.loadFromLocalStorage();
     }
-
-    doc.status = 'generating';
-
-    // Simulate document generation - In production, this would call actual API
-    setTimeout(() => {
-      doc.status = 'generated';
-      doc.generatedAt = new Date();
-      doc.downloadUrl = this.generateMockPdfUrl(doc.id);
-      this.toastService.showSuccess(`${doc.name} generated successfully!`);
-      this.checkAllDocumentsGenerated();
-    }, 1500 + Math.random() * 1000);
-
-    // Actual API call would be:
-    // this.personalService.generateReleaseDocument(this.customerId, this.loanAccountNumber, doc.id).subscribe({
-    //   next: (res) => { ... },
-    //   error: (err) => { ... }
-    // });
   }
 
   /**
-   * Generate all documents
+   * Load document status from localStorage (no API call on init)
    */
-  generateAllDocuments(): void {
-    if (this.isGeneratingAll) {
-      return;
-    }
+  loadFromLocalStorage(): void {
+    const storedFileName = localStorage.getItem(this.storageKey);
 
-    this.isGeneratingAll = true;
-    const pendingDocs = this.documents.filter(d => d.status === 'pending');
-
-    if (pendingDocs.length === 0) {
-      this.isGeneratingAll = false;
-      this.toastService.showInfo('All documents are already generated.');
-      return;
-    }
-
-    // Generate documents sequentially with delay
-    let index = 0;
-    const generateNext = () => {
-      if (index < pendingDocs.length) {
-        const doc = pendingDocs[index];
-        doc.status = 'generating';
-
-        setTimeout(() => {
-          doc.status = 'generated';
-          doc.generatedAt = new Date();
-          doc.downloadUrl = this.generateMockPdfUrl(doc.id);
-          index++;
-          generateNext();
-        }, 1000 + Math.random() * 500);
-      } else {
-        this.isGeneratingAll = false;
-        this.toastService.showSuccess('All documents generated successfully!');
-        this.checkAllDocumentsGenerated();
-      }
-    };
-
-    generateNext();
-  }
-
-  /**
-   * Generate mock PDF URL (in production, this would come from API)
-   */
-  private generateMockPdfUrl(docId: string): string {
-    return `#document-${docId}-${this.loanAccountNumber}`;
-  }
-
-  /**
-   * Download a document
-   */
-  downloadDocument(doc: ReleaseDocument): void {
-    if (doc.status !== 'generated' || !doc.downloadUrl) {
-      this.toastService.showWarning('Please generate the document first.');
-      return;
-    }
-
-    // In production, this would trigger actual file download
-    this.toastService.showInfo(`Downloading ${doc.name}...`);
-    
-    // Simulate download
-    setTimeout(() => {
-      this.toastService.showSuccess(`${doc.name} downloaded successfully!`);
-    }, 1000);
-  }
-
-  /**
-   * Download all documents as ZIP
-   */
-  downloadAllDocuments(): void {
-    const generatedDocs = this.documents.filter(d => d.status === 'generated');
-    
-    if (generatedDocs.length === 0) {
-      this.toastService.showWarning('No documents available to download. Please generate documents first.');
-      return;
-    }
-
-    this.toastService.showInfo('Preparing documents for download...');
-    
-    // In production, this would create a ZIP file with all documents
-    setTimeout(() => {
-      this.toastService.showSuccess('All documents downloaded successfully!');
-    }, 1500);
-  }
-
-  /**
-   * Print a document
-   */
-  printDocument(doc: ReleaseDocument): void {
-    if (doc.status !== 'generated') {
-      this.toastService.showWarning('Please generate the document first.');
-      return;
-    }
-
-    this.toastService.showInfo(`Preparing ${doc.name} for printing...`);
-    
-    // In production, this would open print dialog
-    setTimeout(() => {
-      window.print();
-    }, 500);
-  }
-
-  /**
-   * Check if all documents are generated
-   */
-  private checkAllDocumentsGenerated(): void {
-    this.allDocumentsGenerated = this.documents.every(d => d.status === 'generated');
-    if (this.allDocumentsGenerated) {
+    if (storedFileName) {
+      this.documents = [{
+        id: 1,
+        name: 'Full Release Document',
+        status: 'SUCCESS',
+        fileName: storedFileName
+      }];
       this.stepCompleted.emit();
+      // Also persist wizard step
+      this.persistWizardStep();
+    } else {
+      this.documents = [{
+        id: 1,
+        name: 'Full Release Document',
+        status: 'PENDING'
+      }];
     }
   }
 
   /**
-   * Validate step before navigation
+   * Generate document — calls GET generate-pdf API
+   */
+  generateDocument(): void {
+    if (!this.customerId || !this.loanAccountNumber) {
+      this.toastService.showWarning('Missing customer or loan account information.');
+      return;
+    }
+
+    this.isGenerating = true;
+    this.documents[0].status = 'GENERATING';
+
+    this.personalService.generateFullReleaseDoc(this.customerId, this.loanAccountNumber).subscribe({
+      next: (res: any) => {
+        this.isGenerating = false;
+
+        // Try to extract fileName from response
+        const fileName = res?.fileName || res?.data?.fileName || res?.loanReleaseFileName || res?.data?.loanReleaseFileName;
+
+        if (fileName) {
+          this.documents[0] = {
+            id: 1,
+            name: 'Full Release Document',
+            status: 'SUCCESS',
+            fileName: fileName
+          };
+
+          localStorage.setItem(this.storageKey, fileName);
+          this.toastService.showSuccess('Release Document generated successfully!');
+          this.stepCompleted.emit();
+          this.persistWizardStep();
+
+          // Auto open in new tab
+          this.viewDocument(this.documents[0]);
+        } else {
+          // If no fileName in response, still mark as success (the download API uses customerId/loanAccountNumber)
+          this.documents[0] = {
+            id: 1,
+            name: 'Full Release Document',
+            status: 'SUCCESS',
+            fileName: 'release_doc'
+          };
+
+          localStorage.setItem(this.storageKey, 'release_doc');
+          this.toastService.showSuccess('Release Document generated successfully!');
+          this.stepCompleted.emit();
+          this.persistWizardStep();
+
+          // Auto download
+          this.downloadDocument(this.documents[0], true);
+        }
+      },
+      error: (err: any) => {
+        this.isGenerating = false;
+        this.documents[0].status = 'PENDING';
+        const errorMsg = err?.error?.message || 'Failed to generate document. Please try again.';
+        this.toastService.showError(errorMsg);
+      }
+    });
+  }
+
+  /**
+   * View document — opens in new tab
+   */
+  viewDocument(doc: ReleaseDoc): void {
+    if (doc.status !== 'SUCCESS') {
+      this.toastService.showWarning('Please generate the document first.');
+      return;
+    }
+    this.downloadDocument(doc, true);
+  }
+
+  /**
+   * Download document — calls GET download API (returns blob)
+   */
+  downloadDocument(doc: ReleaseDoc, openInNewTab: boolean = false): void {
+    if (doc.status !== 'SUCCESS') {
+      this.toastService.showWarning('Please generate the document first.');
+      return;
+    }
+
+    this.isLoading = true;
+
+    this.personalService.downloadFullReleaseDoc(this.customerId, this.loanAccountNumber).subscribe({
+      next: (blob: Blob) => {
+        this.isLoading = false;
+
+        const url = window.URL.createObjectURL(blob);
+
+        if (openInNewTab) {
+          window.open(url, '_blank');
+          this.toastService.showSuccess('Opening document...');
+        } else {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = doc.fileName || `Release_Document_${this.loanAccountNumber}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+          }, 100);
+
+          this.toastService.showSuccess('Downloading document...');
+        }
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.toastService.showError(`Failed to ${openInNewTab ? 'view' : 'download'} document. Please try again.`);
+      }
+    });
+  }
+
+  /**
+   * Persist wizard step completion to localStorage
+   */
+  private persistWizardStep(): void {
+    if (this.customerId && this.loanAccountNumber) {
+      localStorage.setItem(`wizard_step_3_${this.customerId}_${this.loanAccountNumber}`, 'true');
+    }
+  }
+
+  /**
+   * Validate step
    */
   validateStep(): boolean {
-    if (!this.allDocumentsGenerated) {
-      this.toastService.showWarning('Please generate all required documents before completing the release.');
+    if (this.documents[0]?.status !== 'SUCCESS') {
+      this.toastService.showWarning('Please generate the release document before completing.');
       return false;
     }
     return true;
   }
 
   /**
-   * Get status icon for document
+   * Get status icon
    */
   getStatusIcon(status: string): string {
     switch (status) {
-      case 'generating': return 'hourglass_empty';
-      case 'generated': return 'check_circle';
-      case 'error': return 'error';
-      default: return 'description';
+      case 'SUCCESS': return 'check_circle';
+      case 'GENERATING': return 'sync';
+      default: return 'pending';
     }
-  }
-
-  /**
-   * Get status class for document
-   */
-  getStatusClass(status: string): string {
-    return `status-${status}`;
-  }
-
-  /**
-   * Format date for display
-   */
-  formatDate(date: Date | undefined): string {
-    if (!date) return '-';
-    return date.toLocaleString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  /**
-   * Get count of generated documents
-   */
-  get generatedCount(): number {
-    return this.documents.filter(d => d.status === 'generated').length;
-  }
-
-  /**
-   * Get progress percentage
-   */
-  get progressPercentage(): number {
-    return (this.generatedCount / this.documents.length) * 100;
   }
 }

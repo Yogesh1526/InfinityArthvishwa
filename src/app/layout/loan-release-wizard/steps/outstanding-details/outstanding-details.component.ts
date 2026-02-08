@@ -5,6 +5,8 @@ import { ToastService } from 'src/app/services/toast.service';
 interface OutstandingData {
   loanAccountNumber: string;
   customerId: string;
+  totalScanctionedAmount: number;
+  tillDateInterestAmount: number;
   totalOutstandingAmount: number;
   dailyInterestRate: number;
   schemeName: string;

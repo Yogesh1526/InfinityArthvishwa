@@ -1,117 +1,76 @@
-<div class="login-container">
-  <div class="login-panel">
-    <div class="login-image">
-      <div class="login-image-content">
-        <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv Logo" class="login-logo" />
-        <h1 class="brand-title">Dhanprerana Finserv</h1>
-        <p class="brand-tagline">Empowering Financial Growth</p>
-        <div class="brand-features">
-          <div class="feature-item">
-            <mat-icon>security</mat-icon>
-            <span>Secure & Encrypted</span>
+<div class="page">
+  <div class="card">
+    <!-- Left - Form -->
+    <div class="card-form">
+      <div class="form-inner">
+        <h1>Welcome Back!</h1>
+        <p class="desc">Sign in to your Dhanprerana Finserv CRM</p>
+
+        <form #loginForm="ngForm" (ngSubmit)="onSubmit()" (keydown.enter)="onKeyPress($event)">
+          <!-- Username -->
+          <div class="group">
+            <label>Username</label>
+            <div class="field" [class.active]="usernameFocused" [class.err]="errors.username">
+              <mat-icon class="field-ic">person_outline</mat-icon>
+              <input type="text" name="username" [(ngModel)]="username" required autocomplete="username"
+                placeholder="Enter your username" [disabled]="isLoading || isLocked"
+                (focus)="usernameFocused = true" (blur)="usernameFocused = false; validateForm()" />
+            </div>
+            <small *ngIf="errors.username">{{ errors.username }}</small>
           </div>
-          <div class="feature-item">
-            <mat-icon>speed</mat-icon>
-            <span>Fast & Reliable</span>
+
+          <!-- Password -->
+          <div class="group">
+            <label>Password</label>
+            <div class="field" [class.active]="passwordFocused" [class.err]="errors.password">
+              <mat-icon class="field-ic">lock_outline</mat-icon>
+              <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required
+                autocomplete="current-password" placeholder="Enter your password"
+                [disabled]="isLoading || isLocked"
+                (focus)="passwordFocused = true" (blur)="passwordFocused = false; validateForm()" />
+              <button type="button" class="eye" (click)="togglePasswordVisibility()" tabindex="-1">
+                <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+            <small *ngIf="errors.password">{{ errors.password }}</small>
           </div>
-          <div class="feature-item">
-            <mat-icon>support_agent</mat-icon>
-            <span>24/7 Support</span>
+
+          <!-- Options -->
+          <div class="options">
+            <label class="check"><input type="checkbox" /><span>Remember me</span></label>
+            <a href="javascript:void(0)">Forgot password?</a>
           </div>
-        </div>
+
+          <!-- Alerts -->
+          <div class="alert red" *ngIf="isLocked && lockoutTime">Account locked. Try again later.</div>
+          <div class="alert amber" *ngIf="!isLocked && loginAttempts > 0 && loginAttempts < maxLoginAttempts">{{ maxLoginAttempts - loginAttempts }} attempt(s) remaining</div>
+          <div class="alert red" *ngIf="loginFailed && !isLocked">Invalid credentials. Please try again.</div>
+
+          <!-- Submit -->
+          <button type="submit" class="submit" [disabled]="isLoading || isLocked || !username.trim() || !password">
+            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+            {{ isLoading ? 'Signing in...' : 'Login' }}
+          </button>
+        </form>
+
+        <p class="bottom-link">Don't have an account? <a routerLink="/register">Sign up</a></p>
       </div>
     </div>
-    <div class="login-form">
-      <div class="form-header">
-        <h2>Welcome Back</h2>
-        <p class="subtitle">Sign in to access your account</p>
+
+    <!-- Right - Logo Panel -->
+    <div class="card-brand">
+      <div class="brand-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
       </div>
-
-      <form #loginForm="ngForm" (ngSubmit)="onSubmit()" (keydown.enter)="onKeyPress($event)">
-        <!-- Username Field -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <mat-icon matPrefix>person</mat-icon>
-          <input 
-            matInput 
-            name="username" 
-            [(ngModel)]="username" 
-            required
-            autocomplete="username"
-            [disabled]="isLoading || isLocked"
-            (blur)="validateForm()"
-            [class.mat-form-field-invalid]="errors.username" />
-          <mat-error *ngIf="errors.username">{{ errors.username }}</mat-error>
-        </mat-form-field>
-
-        <!-- Password Field -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <mat-icon matPrefix>lock</mat-icon>
-          <input 
-            matInput 
-            [type]="showPassword ? 'text' : 'password'" 
-            name="password" 
-            [(ngModel)]="password" 
-            required
-            autocomplete="current-password"
-            [disabled]="isLoading || isLocked"
-            (blur)="validateForm()"
-            [class.mat-form-field-invalid]="errors.password" />
-          <button 
-            mat-icon-button 
-            matSuffix 
-            type="button"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="'Hide password'"
-            [attr.aria-pressed]="showPassword"
-            tabindex="-1">
-            <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          <mat-error *ngIf="errors.password">{{ errors.password }}</mat-error>
-        </mat-form-field>
-
-        <!-- Lockout Warning -->
-        <div *ngIf="isLocked && lockoutTime" class="lockout-warning">
-          <mat-icon>lock</mat-icon>
-          <span>Account temporarily locked. Please try again later.</span>
+      <div class="brand-content">
+        <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv" class="big-logo" />
+        <h2>Dhanprerana Finserv</h2>
+        <p>Empowering Financial Growth</p>
+        <div class="brand-dots">
+          <span></span><span></span><span></span>
         </div>
-
-        <!-- Login Attempts Warning -->
-        <div *ngIf="!isLocked && loginAttempts > 0 && loginAttempts < maxLoginAttempts" class="attempts-warning">
-          <mat-icon>warning</mat-icon>
-          <span>{{ maxLoginAttempts - loginAttempts }} attempt(s) remaining</span>
-        </div>
-
-        <!-- Submit Button -->
-        <button 
-          mat-raised-button 
-          color="primary" 
-          type="submit"
-          class="full-width login-button"
-          [disabled]="isLoading || isLocked || !username.trim() || !password">
-          <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
-          <mat-icon *ngIf="!isLoading">login</mat-icon>
-          <span>{{ isLoading ? 'Logging in...' : 'Login' }}</span>
-        </button>
-
-        <!-- Error Message -->
-        <div *ngIf="loginFailed && !isLocked" class="error-message">
-          <mat-icon>error_outline</mat-icon>
-          <span>Invalid credentials. Please try again.</span>
-        </div>
-      </form>
-
-      <!-- Register Link -->
-      <div class="register-link">
-        <span>Don't have an account?</span>
-        <a routerLink="/register">Register</a>
-      </div>
-
-      <!-- Security Notice -->
-      <div class="security-notice">
-        <mat-icon>lock</mat-icon>
-        <span>Your session is secure and encrypted</span>
       </div>
     </div>
   </div>

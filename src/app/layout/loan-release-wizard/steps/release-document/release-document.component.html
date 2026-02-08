@@ -1,172 +1,147 @@
 <div class="release-container">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-left">
-      <h2>Release Documents</h2>
-      <p>Generate and download loan release documents</p>
-    </div>
-    <div class="header-actions">
-      <button 
-        mat-stroked-button 
-        color="primary"
-        [disabled]="isGeneratingAll || allDocumentsGenerated"
-        (click)="generateAllDocuments()">
-        <mat-spinner *ngIf="isGeneratingAll" diameter="18"></mat-spinner>
-        <mat-icon *ngIf="!isGeneratingAll">auto_awesome</mat-icon>
-        {{ isGeneratingAll ? 'Generating...' : 'Generate All' }}
-      </button>
-      <button 
-        mat-flat-button 
-        color="primary"
-        [disabled]="generatedCount === 0"
-        (click)="downloadAllDocuments()">
-        <mat-icon>download</mat-icon>
-        Download All
-      </button>
-    </div>
+  <!-- Header Section -->
+  <div class="header-section">
+    <h2>
+      <mat-icon color="primary">description</mat-icon>
+      Release Documents
+    </h2>
+    <p class="subtitle">Generate and download loan release document</p>
   </div>
 
-  <!-- Progress Bar -->
-  <div class="progress-section">
-    <div class="progress-info">
-      <span>Progress</span>
-      <span class="progress-count">{{ generatedCount }} of {{ documents.length }} documents</span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" [style.width.%]="progressPercentage"></div>
-    </div>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Processing...</p>
   </div>
 
-  <!-- Customer Info -->
-  <mat-card class="info-summary-card">
-    <mat-card-content>
-      <div class="info-grid">
-        <div class="info-item">
-          <mat-icon>person</mat-icon>
-          <div>
-            <span class="label">Customer</span>
-            <span class="value">{{ customerName || 'N/A' }}</span>
+  <!-- Content -->
+  <div *ngIf="!isLoading">
+    <!-- Customer Info -->
+    <mat-card class="info-summary-card">
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <mat-icon>person</mat-icon>
+            <div>
+              <span class="label">Customer</span>
+              <span class="value">{{ customerName || 'N/A' }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <mat-icon>badge</mat-icon>
+            <div>
+              <span class="label">Customer ID</span>
+              <span class="value">{{ customerId }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <mat-icon>account_balance</mat-icon>
+            <div>
+              <span class="label">Loan Account</span>
+              <span class="value mono">{{ loanAccountNumber }}</span>
+            </div>
+          </div>
+          <div class="info-item" *ngIf="paymentData">
+            <mat-icon>check_circle</mat-icon>
+            <div>
+              <span class="label">Payment</span>
+              <span class="value text-success">Completed</span>
+            </div>
           </div>
         </div>
-        <div class="info-item">
-          <mat-icon>badge</mat-icon>
-          <div>
-            <span class="label">Customer ID</span>
-            <span class="value">{{ customerId }}</span>
-          </div>
-        </div>
-        <div class="info-item">
-          <mat-icon>account_balance</mat-icon>
-          <div>
-            <span class="label">Loan Account</span>
-            <span class="value mono">{{ loanAccountNumber }}</span>
-          </div>
-        </div>
-        <div class="info-item" *ngIf="paymentData">
-          <mat-icon>check_circle</mat-icon>
-          <div>
-            <span class="label">Payment</span>
-            <span class="value text-success">Completed</span>
-          </div>
-        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Documents Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <h3>
+          <mat-icon>folder_open</mat-icon>
+          Documents
+        </h3>
       </div>
-    </mat-card-content>
-  </mat-card>
 
-  <!-- Documents List -->
-  <div class="documents-section">
-    <h3 class="section-title">Documents</h3>
-    
-    <div class="documents-list">
-      <mat-card *ngFor="let doc of documents" class="document-card" [class]="'status-' + doc.status">
-        <mat-card-content>
-          <div class="doc-main">
-            <div class="doc-icon" [class]="'icon-' + doc.status">
-              <mat-icon>{{ doc.icon }}</mat-icon>
+      <div class="documents-list">
+        <div class="document-item" *ngFor="let doc of documents">
+          <div class="document-info">
+            <div class="document-icon">
+              <mat-icon>picture_as_pdf</mat-icon>
             </div>
-            <div class="doc-info">
-              <h4>{{ doc.name }}</h4>
-              <p>{{ doc.description }}</p>
-              <span class="doc-time" *ngIf="doc.generatedAt">
-                <mat-icon>schedule</mat-icon>
-                Generated: {{ formatDate(doc.generatedAt) }}
-              </span>
+            <div class="document-details">
+              <div class="document-name">{{ doc.name }}</div>
+              <div class="document-status" [ngClass]="'status-' + doc.status.toLowerCase()">
+                <mat-icon class="status-icon" [class.spinning]="doc.status === 'GENERATING'">
+                  {{ getStatusIcon(doc.status) }}
+                </mat-icon>
+                <span>{{ doc.status === 'GENERATING' ? 'Generating...' : doc.status }}</span>
+              </div>
             </div>
           </div>
-          
-          <div class="doc-actions">
-            <!-- Pending -->
-            <button 
-              *ngIf="doc.status === 'pending'"
-              mat-stroked-button 
+
+          <div class="document-actions">
+            <!-- Generate Button (shown when PENDING) -->
+            <button
+              mat-raised-button
               color="primary"
-              (click)="generateDocument(doc)">
+              *ngIf="doc.status === 'PENDING'"
+              (click)="generateDocument()"
+              [disabled]="isGenerating"
+              class="generate-button">
               <mat-icon>play_arrow</mat-icon>
-              Generate
+              Generate Document
             </button>
 
-            <!-- Generating -->
-            <div *ngIf="doc.status === 'generating'" class="generating-indicator">
-              <mat-spinner diameter="20"></mat-spinner>
+            <!-- Generating State -->
+            <div *ngIf="doc.status === 'GENERATING'" class="generating-state">
+              <mat-spinner diameter="24"></mat-spinner>
               <span>Generating...</span>
             </div>
 
-            <!-- Generated -->
-            <div *ngIf="doc.status === 'generated'" class="generated-actions">
-              <button mat-icon-button color="primary" matTooltip="Download" (click)="downloadDocument(doc)">
-                <mat-icon>download</mat-icon>
+            <!-- View/Download Actions (shown when SUCCESS) -->
+            <ng-container *ngIf="doc.status === 'SUCCESS'">
+              <button mat-stroked-button color="primary" (click)="viewDocument(doc)" class="view-button">
+                <mat-icon>open_in_new</mat-icon>
+                View
               </button>
-              <button mat-icon-button color="primary" matTooltip="Print" (click)="printDocument(doc)">
-                <mat-icon>print</mat-icon>
+              <button mat-icon-button [matMenuTriggerFor]="docMenu" class="menu-button">
+                <mat-icon>more_vert</mat-icon>
               </button>
-              <button mat-icon-button matTooltip="Regenerate" (click)="doc.status = 'pending'">
-                <mat-icon>refresh</mat-icon>
-              </button>
-            </div>
+              <mat-menu #docMenu="matMenu">
+                <button mat-menu-item (click)="viewDocument(doc)">
+                  <mat-icon>visibility</mat-icon>
+                  <span>View</span>
+                </button>
+                <button mat-menu-item (click)="downloadDocument(doc)">
+                  <mat-icon>download</mat-icon>
+                  <span>Download</span>
+                </button>
+                <button mat-menu-item (click)="doc.status = 'PENDING'">
+                  <mat-icon>refresh</mat-icon>
+                  <span>Regenerate</span>
+                </button>
+              </mat-menu>
+            </ng-container>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Completion State -->
-  <mat-card class="completion-card" *ngIf="allDocumentsGenerated">
-    <mat-card-content>
-      <div class="completion-header">
-        <div class="completion-icon">
-          <mat-icon>task_alt</mat-icon>
-        </div>
-        <div class="completion-text">
-          <h3>All Documents Generated</h3>
-          <p>All required release documents have been generated successfully.</p>
-        </div>
+    <!-- Info Section (when PENDING) -->
+    <div class="info-card" *ngIf="documents[0]?.status === 'PENDING'">
+      <mat-icon>info</mat-icon>
+      <div class="info-content">
+        <p>Click the <strong>"Generate Document"</strong> button to create the Full Release Document. Once generated, you can view or download the PDF.</p>
       </div>
+    </div>
 
-      <div class="checklist">
-        <div class="checklist-item">
-          <mat-icon>check_circle</mat-icon>
-          <span>Outstanding amount cleared</span>
-        </div>
-        <div class="checklist-item">
-          <mat-icon>check_circle</mat-icon>
-          <span>Payment verified</span>
-        </div>
-        <div class="checklist-item">
-          <mat-icon>check_circle</mat-icon>
-          <span>All documents ready</span>
-        </div>
+    <!-- Success Section (when SUCCESS) -->
+    <div class="success-card" *ngIf="documents[0]?.status === 'SUCCESS'">
+      <mat-icon>check_circle</mat-icon>
+      <div class="success-content">
+        <h3>Document Generated Successfully!</h3>
+        <p>The Release Document has been generated. You can view or download it using the buttons above.</p>
+        <p class="completion-note">Click <strong>"Complete Release"</strong> to finalize the loan release process.</p>
       </div>
-
-      <div class="completion-note">
-        <mat-icon>info</mat-icon>
-        <span>Click "Complete Release" to finalize the loan release process.</span>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- Incomplete Warning -->
-  <div class="incomplete-alert" *ngIf="!allDocumentsGenerated && generatedCount > 0">
-    <mat-icon>warning</mat-icon>
-    <span>{{ documents.length - generatedCount }} document(s) remaining. Generate all documents to complete.</span>
+    </div>
   </div>
 </div>

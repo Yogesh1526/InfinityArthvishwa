@@ -16,6 +16,8 @@ export class LoginComponent implements OnInit {
   showPassword = false;
   loginFailed = false;
   isLoading = false;
+  usernameFocused = false;
+  passwordFocused = false;
   returnUrl: string = '/dashboard';
   loginAttempts = 0;
   maxLoginAttempts = 5;

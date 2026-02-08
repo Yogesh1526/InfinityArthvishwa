@@ -547,5 +547,19 @@ export class PersonalDetailsService {
       responseType: 'blob'
     });
   }
+
+  // Release Document APIs
+  generateFullReleaseDoc(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/generate-full-release-doc/generate-pdf/${customerId}/${loanAccountNumber}`
+    );
+  }
+
+  downloadFullReleaseDoc(customerId: string, loanAccountNumber: string): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/generate-full-release-doc/download/${customerId}/${loanAccountNumber}`,
+      { responseType: 'blob' }
+    );
+  }
 }
 

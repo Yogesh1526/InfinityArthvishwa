@@ -90,22 +90,22 @@
           <mat-card-content>
             <div class="breakdown-list">
               <div class="breakdown-row">
-                <span class="breakdown-label">Total Outstanding Amount</span>
-                <span class="breakdown-value">{{ formatCurrency(outstandingData.totalOutstandingAmount) }}</span>
+                <span class="breakdown-label">Total Sanctioned Amount</span>
+                <span class="breakdown-value">{{ formatCurrency(outstandingData.totalScanctionedAmount) }}</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-label">Till Date Interest Amount</span>
+                <span class="breakdown-value">{{ formatCurrency(outstandingData.tillDateInterestAmount) }}</span>
               </div>
               <div class="breakdown-row">
                 <span class="breakdown-label">Daily Interest Rate</span>
                 <span class="breakdown-value">{{ outstandingData.dailyInterestRate }}%</span>
               </div>
-              <div class="breakdown-row" *ngIf="accruedInterest > 0">
-                <span class="breakdown-label">Accrued Interest ({{ daysElapsed }} days)</span>
-                <span class="breakdown-value">{{ formatCurrency(accruedInterest) }}</span>
-              </div>
               
               <div class="breakdown-divider"></div>
               
               <div class="breakdown-row total-row">
-                <span class="breakdown-label">Total Payable</span>
+                <span class="breakdown-label">Total Outstanding Amount</span>
                 <span class="breakdown-value total-value">{{ formatCurrency(outstandingData.totalOutstandingAmount) }}</span>
               </div>
             </div>
