@@ -1,0 +1,270 @@
+<div class="authorization-wrapper">
+  <!-- Loading -->
+  <div class="loader" *ngIf="isLoading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <span>Loading...</span>
+  </div>
+
+  <div class="main-content" *ngIf="!isLoading">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="step-indicator">
+        <div class="step-number" [class.completed]="isReadOnly">
+          <span *ngIf="!isReadOnly">1</span>
+          <mat-icon *ngIf="isReadOnly">check</mat-icon>
+        </div>
+        <div class="step-info">
+          <span class="step-title">Release Authorization</span>
+          <span class="step-desc">{{ isReadOnly ? 'Verified & Saved' : 'Verify collector identity' }}</span>
+        </div>
+      </div>
+      <div class="status-badges">
+        <div class="saved-badge" *ngIf="isReadOnly">
+          <mat-icon>check_circle</mat-icon>
+          <span>Saved</span>
+        </div>
+        <div class="timestamp">
+          <mat-icon>access_time</mat-icon>
+          {{ isReadOnly ? getSavedDate() : currentDateTime }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Info Banner -->
+    <div class="saved-banner" *ngIf="isReadOnly">
+      <mat-icon>verified</mat-icon>
+      <div class="saved-banner-content">
+        <strong>Authorization details already saved</strong>
+        <span>Saved by {{ savedData?.createdBy || 'System' }} on {{ getSavedDate() }}</span>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Left Section - Verification -->
+      <div class="verification-section">
+        <!-- Photo Comparison Cards -->
+        <div class="photo-comparison">
+          <!-- Borrower Profile Card -->
+          <div class="profile-card borrower-card">
+            <div class="card-badge">
+              <mat-icon>person</mat-icon>
+              Borrower Profile
+            </div>
+            <div class="card-photo">
+              <img [src]="profilePreview || 'assets/default-profile.png'" alt="Borrower">
+            </div>
+            <div class="card-details">
+              <div class="detail-item">
+                <span class="detail-label">Name</span>
+                <span class="detail-value">{{ getFullName() || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Loan A/C</span>
+                <span class="detail-value">{{ loanAccountNumber || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Mobile</span>
+                <span class="detail-value">{{ customer?.mobileNumber || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- VS Divider -->
+          <div class="vs-divider">
+            <span>VS</span>
+          </div>
+
+          <!-- Live Photo Card -->
+          <div class="profile-card live-card" [class.has-photo]="releasePhotoPreview" [class.error]="showPhotoError" [class.readonly]="isReadOnly">
+            <div class="card-badge live">
+              <mat-icon>photo_camera</mat-icon>
+              Live Capture
+              <span class="mandatory" *ngIf="!isReadOnly">*</span>
+              <mat-icon class="check-icon" *ngIf="isReadOnly">check_circle</mat-icon>
+            </div>
+
+            <!-- Editable: No photo yet -->
+            <div class="card-photo capture-area" *ngIf="!releasePhotoPreview && !isReadOnly" (click)="openWebcam()">
+              <div class="capture-prompt">
+                <mat-icon>add_a_photo</mat-icon>
+                <span>Click to Capture</span>
+              </div>
+            </div>
+
+            <!-- Photo captured or loaded from API -->
+            <div class="card-photo has-image" *ngIf="releasePhotoPreview && releasePhotoPreview !== 'saved'">
+              <img [src]="releasePhotoPreview" alt="Captured">
+              <div class="photo-actions" *ngIf="!isReadOnly">
+                <button mat-icon-button (click)="openWebcam()"><mat-icon>refresh</mat-icon></button>
+                <button mat-icon-button (click)="removePhoto()"><mat-icon>delete</mat-icon></button>
+              </div>
+              <div class="capture-status" *ngIf="!isReadOnly">
+                <mat-icon>check_circle</mat-icon> Captured
+              </div>
+              <div class="capture-status verified" *ngIf="isReadOnly">
+                <mat-icon>verified</mat-icon> Verified
+              </div>
+            </div>
+
+            <!-- Read-only: Photo failed to load, show placeholder -->
+            <div class="card-photo saved-photo" *ngIf="isReadOnly && releasePhotoPreview === 'saved'">
+              <div class="saved-photo-info">
+                <mat-icon>verified</mat-icon>
+                <span>Photo Verified</span>
+                <small>{{ savedData?.fileName }}</small>
+              </div>
+            </div>
+
+            <div class="card-details" *ngIf="!releasePhotoPreview && !isReadOnly">
+              <p class="capture-hint">Capture photo of person collecting pledged items</p>
+            </div>
+            <div class="card-details" *ngIf="releasePhotoPreview || isReadOnly">
+              <p class="capture-success">Photo verified successfully</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="photo-error-msg" *ngIf="showPhotoError && !isReadOnly">
+          <mat-icon>error</mat-icon>
+          <span>Live photo is required to proceed</span>
+        </div>
+      </div>
+
+      <!-- Right Section - Form -->
+      <div class="form-section">
+        <!-- Collector Type -->
+        <div class="collector-type-box" [class.readonly]="isReadOnly">
+          <div class="box-title">Who is collecting?</div>
+          <div class="type-options">
+            <div class="type-option" 
+                 [class.active]="relationWithBorrower === 'self'"
+                 (click)="!isReadOnly && (relationWithBorrower = 'self') && onRelationChange()"
+                 [class.disabled]="isReadOnly">
+              <div class="option-icon self"><mat-icon>person</mat-icon></div>
+              <span>Self</span>
+            </div>
+            <div class="type-option disabled"
+                 [class.active]="relationWithBorrower !== 'self'">
+              <div class="option-icon other"><mat-icon>group</mat-icon></div>
+              <span>Someone Else</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Self Message -->
+        <div class="self-message" *ngIf="relationWithBorrower === 'self'">
+          <mat-icon>verified_user</mat-icon>
+          <div>
+            <strong>Self Collection</strong>
+            <p>Borrower is personally collecting. {{ isReadOnly ? 'Verified.' : 'Capture photo and proceed.' }}</p>
+          </div>
+        </div>
+
+        <!-- Third Party Form / Read-Only Details -->
+        <div class="third-party-box" *ngIf="relationWithBorrower !== 'self'">
+          <div class="box-title">Collector Details</div>
+          
+          <!-- Relation Chips -->
+          <div class="relation-chips">
+            <div class="chip" *ngFor="let opt of relationOptions" 
+                 [class.selected]="relationWithBorrower === opt.value"
+                 (click)="!isReadOnly && (relationWithBorrower = opt.value)"
+                 [class.disabled]="isReadOnly"
+                 [hidden]="opt.value === 'self'">
+              {{ opt.label }}
+            </div>
+          </div>
+
+          <!-- Form Fields -->
+          <div class="form-fields">
+            <div class="field-row">
+              <div class="field">
+                <label>Full Name *</label>
+                <input type="text" [(ngModel)]="authorizerName" placeholder="Enter name" [readonly]="isReadOnly" [class.readonly]="isReadOnly">
+              </div>
+              <div class="field">
+                <label>Mobile *</label>
+                <input type="tel" [(ngModel)]="authorizerMobile" placeholder="10-digit number" maxlength="10" [readonly]="isReadOnly" [class.readonly]="isReadOnly">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>ID Type *</label>
+                <select [(ngModel)]="authorizerIdType" [disabled]="isReadOnly" [class.readonly]="isReadOnly">
+                  <option value="">Select</option>
+                  <option *ngFor="let id of idTypeOptions" [value]="id.value">{{ id.label }}</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>ID Number *</label>
+                <input type="text" [(ngModel)]="authorizerIdNumber" placeholder="Enter ID number" [readonly]="isReadOnly" [class.readonly]="isReadOnly">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Details Summary (shown in read-only mode for Self collection) -->
+        <div class="saved-details-card" *ngIf="isReadOnly && savedData">
+          <div class="box-title">
+            <mat-icon>info</mat-icon>
+            Saved Authorization Details
+          </div>
+          <div class="saved-details-grid">
+            <div class="saved-detail-item">
+              <span class="saved-label">Full Name</span>
+              <span class="saved-value">{{ savedData.fullName || 'N/A' }}</span>
+            </div>
+            <div class="saved-detail-item">
+              <span class="saved-label">Mobile</span>
+              <span class="saved-value">{{ savedData.mobileNumber || 'N/A' }}</span>
+            </div>
+            <div class="saved-detail-item">
+              <span class="saved-label">Collected By</span>
+              <span class="saved-value">{{ savedData.collectedBy || 'N/A' }}</span>
+            </div>
+            <div class="saved-detail-item">
+              <span class="saved-label">Collector Details</span>
+              <span class="saved-value">{{ savedData.collectorDetails || 'N/A' }}</span>
+            </div>
+            <div class="saved-detail-item" *ngIf="savedData.idType">
+              <span class="saved-label">ID Type</span>
+              <span class="saved-value">{{ savedData.idType }}</span>
+            </div>
+            <div class="saved-detail-item" *ngIf="savedData.idNumber">
+              <span class="saved-label">ID Number</span>
+              <span class="saved-value">{{ savedData.idNumber }}</span>
+            </div>
+            <div class="saved-detail-item" *ngIf="savedData.remark">
+              <span class="saved-label">Remark</span>
+              <span class="saved-value">{{ savedData.remark }}</span>
+            </div>
+            <div class="saved-detail-item">
+              <span class="saved-label">Saved On</span>
+              <span class="saved-value">{{ getSavedDate() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks (only in editable mode) -->
+        <div class="remarks-box" *ngIf="!isReadOnly">
+          <label>Remarks <span>(Optional)</span></label>
+          <textarea [(ngModel)]="remarks" placeholder="Any additional notes..."></textarea>
+        </div>
+
+        <!-- Submit Button (only in editable mode) -->
+        <button class="submit-btn" *ngIf="!isReadOnly" [class.enabled]="isPhotoUploaded" (click)="confirmAuthorization()" [disabled]="!isPhotoUploaded">
+          <span>{{ isPhotoUploaded ? 'Confirm & Continue' : 'Capture Photo to Continue' }}</span>
+          <mat-icon>{{ isPhotoUploaded ? 'arrow_forward' : 'photo_camera' }}</mat-icon>
+        </button>
+
+        <!-- Already Saved Message -->
+        <div class="already-saved-btn" *ngIf="isReadOnly">
+          <mat-icon>check_circle</mat-icon>
+          <span>Authorization Completed - Click Next to Continue</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

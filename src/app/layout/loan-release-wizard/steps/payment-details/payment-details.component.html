@@ -1,0 +1,244 @@
+<div class="payment-container">
+  <!-- Payment Form -->
+  <div class="payment-content" *ngIf="!isPaymentProcessed && !isSaved">
+    <!-- Left Panel - Form -->
+    <div class="form-panel">
+      <div class="panel-header">
+        <h2>Payment Details</h2>
+        <p>Enter payment information to complete loan closure</p>
+      </div>
+
+      <form [formGroup]="paymentForm">
+        <!-- Payment Mode -->
+        <div class="form-group">
+          <label class="form-label">Payment Mode <span class="required">*</span></label>
+          <div class="payment-mode-grid">
+            <div 
+              *ngFor="let mode of paymentModes" 
+              class="mode-option"
+              [class.selected]="paymentForm.get('paymentMode')?.value === mode.value"
+              (click)="paymentForm.get('paymentMode')?.setValue(mode.value)">
+              <mat-icon>
+                {{ mode.value === 'CASH' ? 'payments' : 
+                   mode.value === 'NEFT' ? 'account_balance' : 
+                   mode.value === 'UPI' ? 'smartphone' : 
+                   mode.value === 'CHEQUE' ? 'description' : 
+                   mode.value === 'DD' ? 'receipt' : 'language' }}
+              </mat-icon>
+              <span>{{ mode.label }}</span>
+            </div>
+          </div>
+          <mat-error *ngIf="isFieldInvalid('paymentMode')" class="field-error">Please select a payment mode</mat-error>
+        </div>
+
+        <!-- Payment Date & Amount Row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Payment Date <span class="required">*</span></label>
+            <mat-form-field appearance="outline">
+              <input matInput type="date" formControlName="paymentDate">
+              <mat-error *ngIf="isFieldInvalid('paymentDate')">Required</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount (INR) <span class="required">*</span></label>
+            <div class="amount-input-wrapper">
+              <span class="currency-symbol">₹</span>
+              <mat-form-field appearance="outline" class="amount-field">
+                <input matInput type="number" formControlName="paymentAmount" placeholder="Enter amount" class="amount-input">
+                <mat-error *ngIf="isFieldInvalid('paymentAmount')">Valid amount required</mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Fields Based on Payment Mode -->
+        <ng-container *ngIf="paymentForm.get('paymentMode')?.value">
+          <!-- Bank Name -->
+          <div class="form-group" *ngIf="['NEFT', 'ONLINE', 'CHEQUE', 'DD'].includes(paymentForm.get('paymentMode')?.value)">
+            <label class="form-label">Bank Name <span class="required">*</span></label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="bankName" placeholder="Enter bank name">
+              <mat-error *ngIf="isFieldInvalid('bankName')">Bank name is required</mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Transaction Reference -->
+          <div class="form-group" *ngIf="['NEFT', 'ONLINE', 'UPI'].includes(paymentForm.get('paymentMode')?.value)">
+            <label class="form-label">Transaction Reference / UTR <span class="required">*</span></label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="transactionReference" placeholder="Enter reference number">
+              <mat-error *ngIf="isFieldInvalid('transactionReference')">Reference is required</mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- UPI ID -->
+          <div class="form-group" *ngIf="paymentForm.get('paymentMode')?.value === 'UPI'">
+            <label class="form-label">UPI ID <span class="required">*</span></label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="upiId" placeholder="name@upi">
+              <mat-error *ngIf="isFieldInvalid('upiId')">UPI ID is required</mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Cheque/DD Fields -->
+          <div class="form-row" *ngIf="['CHEQUE', 'DD'].includes(paymentForm.get('paymentMode')?.value)">
+            <div class="form-group">
+              <label class="form-label">{{ paymentForm.get('paymentMode')?.value === 'DD' ? 'DD' : 'Cheque' }} Number <span class="required">*</span></label>
+              <mat-form-field appearance="outline">
+                <input matInput formControlName="chequeNumber" placeholder="Enter number">
+                <mat-error *ngIf="isFieldInvalid('chequeNumber')">Required</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ paymentForm.get('paymentMode')?.value === 'DD' ? 'DD' : 'Cheque' }} Date <span class="required">*</span></label>
+              <mat-form-field appearance="outline">
+                <input matInput type="date" formControlName="chequeDate">
+                <mat-error *ngIf="isFieldInvalid('chequeDate')">Required</mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Remarks -->
+        <div class="form-group">
+          <label class="form-label">Remarks <span class="optional">(Optional)</span></label>
+          <mat-form-field appearance="outline">
+            <textarea matInput formControlName="remarks" rows="3" placeholder="Any additional notes..."></textarea>
+          </mat-form-field>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Panel - Summary -->
+    <div class="summary-panel">
+      <!-- Outstanding Amount Card -->
+      <div class="outstanding-card">
+        <div class="outstanding-header">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span>Amount Due</span>
+        </div>
+        <div class="outstanding-amount">
+          {{ formatCurrency(outstandingData?.totalOutstanding || 0) }}
+        </div>
+        <div class="outstanding-note">Total outstanding for loan closure</div>
+      </div>
+
+      <!-- Payment Summary -->
+      <div class="summary-card" *ngIf="paymentForm.get('paymentAmount')?.value">
+        <h4>Payment Summary</h4>
+        
+        <div class="summary-row">
+          <span>Outstanding Amount</span>
+          <span>{{ formatCurrency(outstandingData?.totalOutstanding || 0) }}</span>
+        </div>
+        
+        <div class="summary-row">
+          <span>Payment Amount</span>
+          <span class="payment-amount">{{ formatCurrency(paymentForm.get('paymentAmount')?.value || 0) }}</span>
+        </div>
+        
+        <div class="summary-divider"></div>
+        
+        <div class="summary-row result" [class.positive]="getDifferenceAmount() >= 0" [class.negative]="getDifferenceAmount() < 0">
+          <span>{{ getDifferenceAmount() >= 0 ? 'Excess Amount' : 'Shortfall' }}</span>
+          <span>{{ formatCurrency(Math.abs(getDifferenceAmount())) }}</span>
+        </div>
+
+        <!-- Warning/Info Messages -->
+        <div class="summary-message warning" *ngIf="getDifferenceAmount() < 0">
+          <mat-icon>error</mat-icon>
+          <span>Insufficient amount. Please pay full outstanding.</span>
+        </div>
+
+        <div class="summary-message info" *ngIf="getDifferenceAmount() > 0">
+          <mat-icon>info</mat-icon>
+          <span>Excess will be refunded to customer.</span>
+        </div>
+      </div>
+
+      <!-- Process Button -->
+      <button 
+        mat-flat-button 
+        class="process-btn"
+        [disabled]="isLoading || !isAmountMatching() || paymentForm.invalid"
+        (click)="processPayment()">
+        <mat-spinner *ngIf="isLoading" diameter="22"></mat-spinner>
+        <ng-container *ngIf="!isLoading">
+          <mat-icon>lock</mat-icon>
+          Process Payment
+        </ng-container>
+      </button>
+
+      <!-- Help Text -->
+      <div class="help-text">
+        <mat-icon>help_outline</mat-icon>
+        <span>Payment will be verified and recorded in the system</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success State (after fresh save or loaded from API) -->
+  <div class="success-container" *ngIf="isPaymentProcessed || isSaved">
+    <div class="success-content">
+      <div class="success-animation">
+        <div class="success-circle">
+          <mat-icon>check</mat-icon>
+        </div>
+      </div>
+      
+      <h2>Payment Successful!</h2>
+      <p>Payment has been processed and verified successfully.</p>
+
+      <!-- Receipt -->
+      <div class="receipt">
+        <div class="receipt-header">
+          <mat-icon>receipt_long</mat-icon>
+          <span>Payment Receipt</span>
+        </div>
+        
+        <div class="receipt-body">
+          <div class="receipt-row">
+            <span class="receipt-label">Customer ID</span>
+            <span class="receipt-value mono">{{ savedData?.customerId || customerId }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Loan Account</span>
+            <span class="receipt-value mono">{{ savedData?.loanAccountNumber || loanAccountNumber }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Payment Mode</span>
+            <span class="receipt-value">{{ savedData?.paymentMode || getPaymentModeLabel() }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Payment Type</span>
+            <span class="receipt-value">{{ savedData?.paymentType || 'Total Repayment' }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Payment Status</span>
+            <span class="receipt-value status-success">
+              <mat-icon class="status-icon">check_circle</mat-icon>
+              {{ savedData?.paymentStatus || 'SUCCESS' }}
+            </span>
+          </div>
+          <div class="receipt-row highlight">
+            <span class="receipt-label">Amount Paid</span>
+            <span class="receipt-value amount">{{ formatCurrency(savedData?.repaymentAmount || paymentForm.get('paymentAmount')?.value) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Already Saved Bar -->
+      <div class="already-saved-bar" *ngIf="isSaved">
+        <mat-icon>check_circle</mat-icon>
+        <span>Payment Details Confirmed - Click Next to Continue</span>
+      </div>
+
+      <!-- Next Step -->
+      <div class="next-step" *ngIf="!isSaved">
+        <mat-icon>arrow_forward</mat-icon>
+        <span>Click <strong>Next</strong> to generate release documents</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -10,6 +10,7 @@ import { WorklistComponent } from './layout/worklist/worklist.component';
 import { BasicDetailsComponent } from './layout/basic-details/basic-details.component';
 import { LoanInfoComponent } from './layout/loan-info/loan-info.component';
 import { LoanApplicationWizardComponent } from './layout/loan-application-wizard/loan-application-wizard.component';
+import { LoanReleaseWizardComponent } from './layout/loan-release-wizard/loan-release-wizard.component';
 import { LoanInfoDetailsTableComponent } from './pages/loan-info-details-table/loan-info-details-table.component';
 import { CustomerProfileComponent } from './layout/customer-profile/customer-profile.component';
 import { RoleListComponent } from './layout/roles-permissions/role-list/role-list.component';
@@ -95,6 +96,11 @@ const routes: Routes = [
       { 
         path: 'loan-wizard/:id', 
         component: LoanApplicationWizardComponent,
+        canActivate: [AuthGuard]
+      },
+      { 
+        path: 'loan-release/:id', 
+        component: LoanReleaseWizardComponent,
         canActivate: [AuthGuard]
       },
       { 

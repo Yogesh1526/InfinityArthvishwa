@@ -49,6 +49,12 @@ import { GoldRateComponent } from './gold-rate/gold-rate.component';
 import { UserListComponent } from './user-management/user-list/user-list.component';
 import { UserFormComponent } from './user-management/user-form/user-form.component';
 import { UserViewComponent } from './user-management/user-view/user-view.component';
+// Loan Release Wizard Components
+import { LoanReleaseWizardComponent } from './loan-release-wizard/loan-release-wizard.component';
+import { ReleaseAuthorizationComponent } from './loan-release-wizard/steps/release-authorization/release-authorization.component';
+import { OutstandingDetailsComponent } from './loan-release-wizard/steps/outstanding-details/outstanding-details.component';
+import { PaymentDetailsComponent } from './loan-release-wizard/steps/payment-details/payment-details.component';
+import { ReleaseDocumentComponent } from './loan-release-wizard/steps/release-document/release-document.component';
 
 
 
@@ -96,7 +102,13 @@ import { UserViewComponent } from './user-management/user-view/user-view.compone
     DisbursementDetailsComponent,
     LoanAgreementDocumentComponent,
     ScannedDocumentComponent,
-    WebcamComponent
+    WebcamComponent,
+    // Loan Release Wizard
+    LoanReleaseWizardComponent,
+    ReleaseAuthorizationComponent,
+    OutstandingDetailsComponent,
+    PaymentDetailsComponent,
+    ReleaseDocumentComponent
   ],
   imports: [
     CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,WebcamModule,
@@ -113,6 +125,7 @@ import { UserViewComponent } from './user-management/user-view/user-view.compone
     BasicDetailsComponent,
     LoanInfoComponent,
     LoanApplicationWizardComponent,
+    LoanReleaseWizardComponent,
     CustomerProfileComponent,
     RoleListComponent,
     RoleFormComponent,

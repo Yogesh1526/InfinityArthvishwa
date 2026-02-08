@@ -1,0 +1,170 @@
+<div class="outstanding-container">
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading outstanding details...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content" *ngIf="!isLoading && outstandingData">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h2>Outstanding Details</h2>
+        <p>{{ isSaved ? 'Details reviewed & saved' : 'Review the outstanding balance for loan closure' }}</p>
+      </div>
+      <div class="saved-badge" *ngIf="isSaved">
+        <mat-icon>check_circle</mat-icon>
+        <span>Saved</span>
+      </div>
+    </div>
+
+    <!-- Saved Banner -->
+    <div class="saved-banner" *ngIf="isSaved">
+      <mat-icon>verified</mat-icon>
+      <div class="saved-banner-content">
+        <strong>Outstanding details already saved & confirmed</strong>
+        <span>Saved by {{ outstandingData?.createdBy || 'System' }} on {{ formatDate(outstandingData?.createdDate) }}</span>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="two-column-layout">
+      <!-- Left Column - Loan Info -->
+      <div class="column">
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>account_balance</mat-icon>
+              Loan Information
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="label">Loan Account No.</span>
+                <span class="value mono">{{ outstandingData.loanAccountNumber }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Customer ID</span>
+                <span class="value mono">{{ outstandingData.customerId }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Scheme Name</span>
+                <span class="value">{{ outstandingData.schemeName || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Daily Interest Rate</span>
+                <span class="value">{{ outstandingData.dailyInterestRate }}%</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Loan Tenure</span>
+                <span class="value">{{ outstandingData.loanTenure || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Loan Start Date</span>
+                <span class="value">{{ formatDate(outstandingData.loanStartDate) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Loan End Date (Closure)</span>
+                <span class="value">{{ formatDate(loanEndDate) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Days Elapsed</span>
+                <span class="value">{{ daysElapsed }} days</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Right Column - Outstanding Breakdown -->
+      <div class="column">
+        <mat-card class="info-card breakdown-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>receipt_long</mat-icon>
+              Outstanding Breakdown
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="breakdown-list">
+              <div class="breakdown-row">
+                <span class="breakdown-label">Total Sanctioned Amount</span>
+                <span class="breakdown-value">{{ formatCurrency(outstandingData.totalScanctionedAmount) }}</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-label">Till Date Interest Amount</span>
+                <span class="breakdown-value">{{ formatCurrency(outstandingData.tillDateInterestAmount) }}</span>
+              </div>
+              <div class="breakdown-row">
+                <span class="breakdown-label">Daily Interest Rate</span>
+                <span class="breakdown-value">{{ outstandingData.dailyInterestRate }}%</span>
+              </div>
+              
+              <div class="breakdown-divider"></div>
+              
+              <div class="breakdown-row total-row">
+                <span class="breakdown-label">Total Outstanding Amount</span>
+                <span class="breakdown-value total-value">{{ formatCurrency(outstandingData.totalOutstandingAmount) }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Created Info -->
+        <div class="created-info" *ngIf="outstandingData.createdBy">
+          <mat-icon>info_outline</mat-icon>
+          <span>Created by <strong>{{ outstandingData.createdBy }}</strong> on {{ formatDate(outstandingData.createdDate) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Note -->
+    <div class="info-note">
+      <mat-icon>info</mat-icon>
+      <div class="note-content">
+        <p>The outstanding amount is calculated as of today. Interest is calculated on a daily basis until the date of closure.</p>
+      </div>
+    </div>
+
+    <!-- Confirmation (editable mode) -->
+    <mat-card class="confirmation-card" *ngIf="!isSaved">
+      <mat-card-content>
+        <mat-checkbox 
+          [(ngModel)]="isConfirmed" 
+          color="primary"
+          (change)="isConfirmed && confirmOutstanding()">
+          I have reviewed and confirm the outstanding details are correct
+        </mat-checkbox>
+        
+        <button 
+          mat-flat-button 
+          color="primary" 
+          class="confirm-btn"
+          [disabled]="isConfirmed"
+          (click)="confirmOutstanding()">
+          <mat-icon>{{ isConfirmed ? 'check' : 'verified' }}</mat-icon>
+          {{ isConfirmed ? 'Confirmed' : 'Confirm & Save' }}
+        </button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Already Saved (read-only mode) -->
+    <div class="already-saved-bar" *ngIf="isSaved">
+      <mat-icon>check_circle</mat-icon>
+      <span>Outstanding Details Confirmed - Click Next to Continue</span>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div class="empty-state" *ngIf="!isLoading && !outstandingData">
+    <mat-icon>error_outline</mat-icon>
+    <h3>Unable to Load Details</h3>
+    <p>Could not load outstanding details for this loan account.</p>
+    <button mat-stroked-button color="primary" (click)="loadOutstandingDetails()">
+      <mat-icon>refresh</mat-icon>
+      Retry
+    </button>
+  </div>
+</div>
