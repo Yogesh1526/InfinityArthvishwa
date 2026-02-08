@@ -201,8 +201,26 @@
               </div>
             </div>
             <div class="loan-card-footer">
-              <span class="view-link">View details</span>
-              <mat-icon>arrow_forward</mat-icon>
+              <div class="footer-actions">
+                <button 
+                  mat-stroked-button 
+                  color="primary" 
+                  class="view-btn"
+                  (click)="viewLoan(loan.loanAccountNumber || loan.loanAccountNo || loan.id); $event.stopPropagation()">
+                  <mat-icon>visibility</mat-icon>
+                  View
+                </button>
+                <button 
+                  mat-raised-button 
+                  color="warn" 
+                  class="release-btn"
+                  *ngIf="canReleaseLoan(loan)"
+                  (click)="releaseLoan(loan); $event.stopPropagation()"
+                  matTooltip="Release this loan and return pledged items">
+                  <mat-icon>lock_open</mat-icon>
+                  Release
+                </button>
+              </div>
             </div>
           </div>
         </div>

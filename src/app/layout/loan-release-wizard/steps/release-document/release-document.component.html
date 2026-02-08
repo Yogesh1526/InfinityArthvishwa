@@ -1,0 +1,172 @@
+<div class="release-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Release Documents</h2>
+      <p>Generate and download loan release documents</p>
+    </div>
+    <div class="header-actions">
+      <button 
+        mat-stroked-button 
+        color="primary"
+        [disabled]="isGeneratingAll || allDocumentsGenerated"
+        (click)="generateAllDocuments()">
+        <mat-spinner *ngIf="isGeneratingAll" diameter="18"></mat-spinner>
+        <mat-icon *ngIf="!isGeneratingAll">auto_awesome</mat-icon>
+        {{ isGeneratingAll ? 'Generating...' : 'Generate All' }}
+      </button>
+      <button 
+        mat-flat-button 
+        color="primary"
+        [disabled]="generatedCount === 0"
+        (click)="downloadAllDocuments()">
+        <mat-icon>download</mat-icon>
+        Download All
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-section">
+    <div class="progress-info">
+      <span>Progress</span>
+      <span class="progress-count">{{ generatedCount }} of {{ documents.length }} documents</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+    </div>
+  </div>
+
+  <!-- Customer Info -->
+  <mat-card class="info-summary-card">
+    <mat-card-content>
+      <div class="info-grid">
+        <div class="info-item">
+          <mat-icon>person</mat-icon>
+          <div>
+            <span class="label">Customer</span>
+            <span class="value">{{ customerName || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="info-item">
+          <mat-icon>badge</mat-icon>
+          <div>
+            <span class="label">Customer ID</span>
+            <span class="value">{{ customerId }}</span>
+          </div>
+        </div>
+        <div class="info-item">
+          <mat-icon>account_balance</mat-icon>
+          <div>
+            <span class="label">Loan Account</span>
+            <span class="value mono">{{ loanAccountNumber }}</span>
+          </div>
+        </div>
+        <div class="info-item" *ngIf="paymentData">
+          <mat-icon>check_circle</mat-icon>
+          <div>
+            <span class="label">Payment</span>
+            <span class="value text-success">Completed</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Documents List -->
+  <div class="documents-section">
+    <h3 class="section-title">Documents</h3>
+    
+    <div class="documents-list">
+      <mat-card *ngFor="let doc of documents" class="document-card" [class]="'status-' + doc.status">
+        <mat-card-content>
+          <div class="doc-main">
+            <div class="doc-icon" [class]="'icon-' + doc.status">
+              <mat-icon>{{ doc.icon }}</mat-icon>
+            </div>
+            <div class="doc-info">
+              <h4>{{ doc.name }}</h4>
+              <p>{{ doc.description }}</p>
+              <span class="doc-time" *ngIf="doc.generatedAt">
+                <mat-icon>schedule</mat-icon>
+                Generated: {{ formatDate(doc.generatedAt) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="doc-actions">
+            <!-- Pending -->
+            <button 
+              *ngIf="doc.status === 'pending'"
+              mat-stroked-button 
+              color="primary"
+              (click)="generateDocument(doc)">
+              <mat-icon>play_arrow</mat-icon>
+              Generate
+            </button>
+
+            <!-- Generating -->
+            <div *ngIf="doc.status === 'generating'" class="generating-indicator">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Generating...</span>
+            </div>
+
+            <!-- Generated -->
+            <div *ngIf="doc.status === 'generated'" class="generated-actions">
+              <button mat-icon-button color="primary" matTooltip="Download" (click)="downloadDocument(doc)">
+                <mat-icon>download</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" matTooltip="Print" (click)="printDocument(doc)">
+                <mat-icon>print</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Regenerate" (click)="doc.status = 'pending'">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Completion State -->
+  <mat-card class="completion-card" *ngIf="allDocumentsGenerated">
+    <mat-card-content>
+      <div class="completion-header">
+        <div class="completion-icon">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+        <div class="completion-text">
+          <h3>All Documents Generated</h3>
+          <p>All required release documents have been generated successfully.</p>
+        </div>
+      </div>
+
+      <div class="checklist">
+        <div class="checklist-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Outstanding amount cleared</span>
+        </div>
+        <div class="checklist-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>Payment verified</span>
+        </div>
+        <div class="checklist-item">
+          <mat-icon>check_circle</mat-icon>
+          <span>All documents ready</span>
+        </div>
+      </div>
+
+      <div class="completion-note">
+        <mat-icon>info</mat-icon>
+        <span>Click "Complete Release" to finalize the loan release process.</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Incomplete Warning -->
+  <div class="incomplete-alert" *ngIf="!allDocumentsGenerated && generatedCount > 0">
+    <mat-icon>warning</mat-icon>
+    <span>{{ documents.length - generatedCount }} document(s) remaining. Generate all documents to complete.</span>
+  </div>
+</div>

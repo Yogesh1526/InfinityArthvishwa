@@ -511,5 +511,41 @@ export class PersonalDetailsService {
   getScanDocument(customerId: string, loanAccountNumber: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/disbusment-details/getScanDocument/${customerId}/${loanAccountNumber}`, { responseType: 'blob' });
   }
+
+  // Release Authorization APIs
+  saveReleaseAuthorization(requestJson: any, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('requestJson', JSON.stringify(requestJson));
+    formData.append('file', file);
+    return this.http.post(`${this.baseUrl}/release-authorization/authorize-release-person-details`, formData);
+  }
+
+  getReleaseAuthorizationDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/release-authorization/get-authorize-release-person-details/${customerId}/${loanAccountNumber}`);
+  }
+
+  // Outstanding Loan Amount APIs
+  getOutstandingLoanAmountDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/outstanding-loan-amount/getOutstandingLoanAmountDetails/${customerId}/${loanAccountNumber}`);
+  }
+
+  saveOutstandingLoanAmountDetails(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/outstanding-loan-amount/SaveOutstandingLoanAmountDetails`, payload);
+  }
+
+  // Repayment Details APIs
+  saveRepaymentDetails(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/repayment-details/svae-repayment-details`, payload);
+  }
+
+  getRepaymentDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/repayment-details/get-repayment-details/${customerId}/${loanAccountNumber}`);
+  }
+
+  getReleaseAuthorizationPhoto(customerId: string, loanAccountNumber: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/release-authorization/photo/${customerId}/${loanAccountNumber}`, {
+      responseType: 'blob'
+    });
+  }
 }
 

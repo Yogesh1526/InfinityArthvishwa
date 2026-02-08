@@ -1,0 +1,88 @@
+<div class="wizard-layout">
+  <!-- Sidebar -->
+  <aside class="wizard-sidebar">
+    <div class="logo">
+      <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv Logo" />
+    </div>
+    
+    <div class="wizard-info">
+      <span class="wizard-label">Loan Release</span>
+      <span class="loan-number" *ngIf="loanAccountNumber">{{ loanAccountNumber }}</span>
+    </div>
+
+    <mat-nav-list>
+      <mat-list-item
+        *ngFor="let step of steps; let i = index"
+        (click)="goToStep(i)"
+        [class.active]="i === activeStep"
+        [class.completed]="isStepCompleted(i)"
+        [class.disabled]="!canNavigateToStep(i)"
+        [style.cursor]="canNavigateToStep(i) ? 'pointer' : 'not-allowed'"
+        [style.opacity]="canNavigateToStep(i) ? '1' : '0.5'"
+      >
+        <mat-icon matListIcon>
+          {{ isStepCompleted(i) ? 'check_circle' : (i === activeStep ? 'radio_button_checked' : 'radio_button_unchecked') }}
+        </mat-icon>
+        <span class="step-label">{{ step.label }}</span>
+      </mat-list-item>
+    </mat-nav-list>
+  </aside>
+
+  <!-- Main Content -->
+  <section class="wizard-main">
+    <!-- Step Content -->
+    <div class="wizard-step-content">
+      <ng-container [ngSwitch]="activeStep">
+        <app-release-authorization 
+          #releaseAuthorizationRef 
+          *ngSwitchCase="0" 
+          [customerId]="customerId" 
+          [loanAccountNumber]="loanAccountNumber"
+          (stepCompleted)="markStepCompleted(0)"
+          (authorizationDataLoaded)="onAuthorizationDataLoaded($event)">
+        </app-release-authorization>
+
+        <app-outstanding-details 
+          #outstandingDetailsRef 
+          *ngSwitchCase="1" 
+          [customerId]="customerId" 
+          [loanAccountNumber]="loanAccountNumber"
+          (stepCompleted)="markStepCompleted(1)"
+          (dataLoaded)="onOutstandingDataLoaded($event)">
+        </app-outstanding-details>
+
+        <app-payment-details 
+          #paymentDetailsRef 
+          *ngSwitchCase="2" 
+          [customerId]="customerId" 
+          [loanAccountNumber]="loanAccountNumber"
+          [outstandingData]="outstandingData"
+          (stepCompleted)="markStepCompleted(2)"
+          (paymentCompleted)="onPaymentCompleted($event)">
+        </app-payment-details>
+
+        <app-release-document 
+          #releaseDocumentRef 
+          *ngSwitchCase="3" 
+          [customerId]="customerId" 
+          [loanAccountNumber]="loanAccountNumber"
+          [customerName]="customerName"
+          [paymentData]="paymentData"
+          (stepCompleted)="markStepCompleted(3)">
+        </app-release-document>
+      </ng-container>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="wizard-footer">
+      <button mat-stroked-button (click)="goBack()">
+        <mat-icon>close</mat-icon>
+        Cancel
+      </button>
+      <div class="footer-spacer"></div>
+      <button mat-stroked-button (click)="prev()" [disabled]="activeStep === 0">Previous</button>
+      <button mat-flat-button color="primary" (click)="next()" *ngIf="!isLastStep()">Next</button>
+      <button mat-raised-button color="accent" (click)="completeRelease()" *ngIf="isLastStep()">Complete Release</button>
+    </div>
+  </section>
+</div>

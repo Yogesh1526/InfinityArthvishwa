@@ -125,6 +125,34 @@ export class CustomerProfileComponent implements OnInit {
     }
   }
 
+  /**
+   * Check if a loan can be released (only active/disbursed loans)
+   */
+  canReleaseLoan(loan: any): boolean {
+    const status = (loan.loanStatus || loan.status || '').toUpperCase();
+    return status === 'ACTIVE' || status === 'DISBURSED';
+  }
+
+  /**
+   * Navigate to loan release wizard
+   */
+  releaseLoan(loan: any): void {
+    if (!this.customerId) return;
+    
+    const loanAccountNumber = loan.loanAccountNumber || loan.loanAccountNo || loan.id;
+    if (!loanAccountNumber) {
+      this.toastService.showError('Loan account number not found');
+      return;
+    }
+
+    // Store loan account number in localStorage for the release wizard
+    localStorage.setItem(`loanAccountNumber_${this.customerId}`, loanAccountNumber);
+
+    this.router.navigate(['/loan-release', this.customerId], {
+      queryParams: { loanAccount: loanAccountNumber }
+    });
+  }
+
   getLoanStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
       'active': 'status-active',
