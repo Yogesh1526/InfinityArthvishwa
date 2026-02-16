@@ -10,9 +10,24 @@
         <p class="subtitle">Review and update stone weight and purity for second valuation</p>
       </div>
     </div>
-    <div class="status-badge" [ngClass]="{'updated': isValuationSaved, 'has-items': jewelleryItems.length > 0 && !isValuationSaved, 'no-items': jewelleryItems.length === 0}">
-      <mat-icon>{{ isValuationSaved ? 'check_circle' : (jewelleryItems.length > 0 ? 'edit_note' : 'pending') }}</mat-icon>
-      <span>{{ isValuationSaved ? 'Updated' : (jewelleryItems.length > 0 ? 'Ready to Review' : 'Awaiting First Valuation') }}</span>
+    <div
+      class="status-badge"
+      [ngClass]="{
+        updated: isValuationSaved,
+        'has-items': jewelleryItems.length > 0 && !isValuationSaved,
+        'no-items': jewelleryItems.length === 0,
+      }"
+    >
+      <mat-icon>{{
+        isValuationSaved ? 'check_circle' : jewelleryItems.length > 0 ? 'edit_note' : 'pending'
+      }}</mat-icon>
+      <span>{{
+        isValuationSaved
+          ? 'Updated'
+          : jewelleryItems.length > 0
+            ? 'Ready to Review'
+            : 'Awaiting First Valuation'
+      }}</span>
     </div>
   </div>
 
@@ -33,7 +48,7 @@
       </div>
       <div class="card-content">
         <span class="card-label">Gross Weight</span>
-        <span class="card-value">{{ totalGrossWeight | number:'1.2-2' }} <small>g</small></span>
+        <span class="card-value">{{ totalGrossWeight | number: '1.2-2' }} <small>g</small></span>
       </div>
     </div>
     <div class="summary-card stone-card">
@@ -42,7 +57,7 @@
       </div>
       <div class="card-content">
         <span class="card-label">Stone Weight</span>
-        <span class="card-value">{{ totalStoneWeight | number:'1.2-2' }} <small>g</small></span>
+        <span class="card-value">{{ totalStoneWeight | number: '1.2-2' }} <small>g</small></span>
       </div>
     </div>
     <div class="summary-card net-card">
@@ -51,7 +66,7 @@
       </div>
       <div class="card-content">
         <span class="card-label">Net Weight</span>
-        <span class="card-value">{{ totalNetWeight | number:'1.2-2' }} <small>g</small></span>
+        <span class="card-value">{{ totalNetWeight | number: '1.2-2' }} <small>g</small></span>
       </div>
     </div>
     <div class="summary-card purity-card">
@@ -60,7 +75,9 @@
       </div>
       <div class="card-content">
         <span class="card-label">Net Purity Weight</span>
-        <span class="card-value">{{ totalNetPurityWeight | number:'1.2-2' }} <small>g</small></span>
+        <span class="card-value"
+          >{{ totalNetPurityWeight | number: '1.2-2' }} <small>g</small></span
+        >
       </div>
     </div>
   </div>
@@ -76,14 +93,16 @@
           Editable Fields
         </span>
       </div>
-      <p class="section-description">Update stone weight, karat, and purity percentage for each item. Net weight and net purity weight are auto-calculated.</p>
+      <p class="section-description">
+        Update stone weight, karat, and purity percentage for each item. Net weight and net purity
+        weight are auto-calculated.
+      </p>
     </div>
-    
+
     <form [formGroup]="form">
       <!-- Desktop Table -->
       <div class="table-container desktop-view">
         <table mat-table [dataSource]="jewelleryItems" class="jewellery-table">
-  
           <!-- Jewellery Name -->
           <ng-container matColumnDef="jewelleryName">
             <th mat-header-cell *matHeaderCellDef>
@@ -101,7 +120,7 @@
               <strong>TOTAL</strong>
             </td>
           </ng-container>
-  
+
           <!-- Quantity -->
           <ng-container matColumnDef="quantity">
             <th mat-header-cell *matHeaderCellDef>
@@ -117,7 +136,7 @@
               <strong>{{ totalQuantity }}</strong>
             </td>
           </ng-container>
-  
+
           <!-- Gross Weight -->
           <ng-container matColumnDef="grossWeight">
             <th mat-header-cell *matHeaderCellDef>
@@ -127,13 +146,13 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item" class="readonly-cell">
-              <span>{{ item.grossWeight | number:'1.2-2' }}</span>
+              <span>{{ item.grossWeight | number: '1.2-2' }}</span>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell">
-              <strong>{{ totalGrossWeight | number:'1.2-2' }}</strong>
+              <strong>{{ totalGrossWeight | number: '1.2-2' }}</strong>
             </td>
           </ng-container>
-  
+
           <!-- Stone Weight (Editable) -->
           <ng-container matColumnDef="stoneWeight">
             <th mat-header-cell *matHeaderCellDef>
@@ -144,26 +163,47 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item; let i = index" class="editable-cell">
-              <mat-form-field appearance="outline" class="table-input-field" [class.error-field]="itemErrors[i].stoneWeight || getFormControl(i, 'stoneWeight')?.hasError('required')">
-                <input 
-                  matInput 
-                  type="number" 
+              <mat-form-field
+                appearance="outline"
+                class="table-input-field"
+                [class.error-field]="
+                  itemErrors[i].stoneWeight ||
+                  getFormControl(i, 'stoneWeight')?.hasError('required')
+                "
+              >
+                <input
+                  matInput
+                  type="number"
                   step="0.01"
                   min="0"
-                  [formControl]="getFormControl(i, 'stoneWeight')" 
-                  placeholder="0.00" />
-                <mat-hint *ngIf="item.grossWeight > 0">Max: &lt;{{ getMaxStoneWeight(i) | number:'1.2-2' }}g</mat-hint>
-                <mat-error *ngIf="getFormControl(i, 'stoneWeight')?.hasError('required') && getFormControl(i, 'stoneWeight')?.touched">
+                  [formControl]="getFormControl(i, 'stoneWeight')"
+                  placeholder="0.00"
+                />
+                <mat-hint *ngIf="item.grossWeight > 0"
+                  >Max: &lt;{{ getMaxStoneWeight(i) | number: '1.2-2' }}g</mat-hint
+                >
+                <mat-error
+                  *ngIf="
+                    getFormControl(i, 'stoneWeight')?.hasError('required') &&
+                    getFormControl(i, 'stoneWeight')?.touched
+                  "
+                >
                   Stone weight is required
                 </mat-error>
-                <mat-error *ngIf="itemErrors[i].stoneWeight && !getFormControl(i, 'stoneWeight')?.hasError('required')">{{ itemErrors[i].stoneWeight }}</mat-error>
+                <mat-error
+                  *ngIf="
+                    itemErrors[i].stoneWeight &&
+                    !getFormControl(i, 'stoneWeight')?.hasError('required')
+                  "
+                  >{{ itemErrors[i].stoneWeight }}</mat-error
+                >
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell">
-              <strong>{{ totalStoneWeight | number:'1.2-2' }}</strong>
+              <strong>{{ totalStoneWeight | number: '1.2-2' }}</strong>
             </td>
           </ng-container>
-  
+
           <!-- Net Weight -->
           <ng-container matColumnDef="netWeight">
             <th mat-header-cell *matHeaderCellDef>
@@ -173,13 +213,13 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item" class="readonly-cell calculated-cell">
-              <span>{{ item.netWeight | number:'1.2-2' }}</span>
+              <span>{{ item.netWeight | number: '1.2-2' }}</span>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell">
-              <strong>{{ totalNetWeight | number:'1.2-2' }}</strong>
+              <strong>{{ totalNetWeight | number: '1.2-2' }}</strong>
             </td>
           </ng-container>
-  
+
           <!-- Karat (Editable) -->
           <ng-container matColumnDef="karat">
             <th mat-header-cell *matHeaderCellDef>
@@ -190,20 +230,29 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item; let i = index" class="editable-cell">
-              <mat-form-field appearance="outline" class="table-input-field karat-select" [class.error-field]="getFormControl(i, 'karat')?.hasError('required')">
+              <mat-form-field
+                appearance="outline"
+                class="table-input-field karat-select"
+                [class.error-field]="getFormControl(i, 'karat')?.hasError('required')"
+              >
                 <mat-select [formControl]="getFormControl(i, 'karat')">
                   <mat-option *ngFor="let k of karatOptions" [value]="k.value">
                     {{ k.label }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="getFormControl(i, 'karat')?.hasError('required') && getFormControl(i, 'karat')?.touched">
+                <mat-error
+                  *ngIf="
+                    getFormControl(i, 'karat')?.hasError('required') &&
+                    getFormControl(i, 'karat')?.touched
+                  "
+                >
                   Karat is required
                 </mat-error>
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
           </ng-container>
-  
+
           <!-- Purity (Editable) -->
           <ng-container matColumnDef="purity">
             <th mat-header-cell *matHeaderCellDef>
@@ -214,25 +263,43 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item; let i = index" class="editable-cell">
-              <mat-form-field appearance="outline" class="table-input-field" [class.error-field]="itemErrors[i].purity || getFormControl(i, 'purity')?.hasError('required')">
-                <input 
-                  matInput 
-                  type="number" 
+              <mat-form-field
+                appearance="outline"
+                class="table-input-field"
+                [class.error-field]="
+                  itemErrors[i].purity || getFormControl(i, 'purity')?.hasError('required')
+                "
+              >
+                <input
+                  matInput
+                  type="number"
                   step="0.01"
                   min="0"
                   max="100"
-                  [formControl]="getFormControl(i, 'purity')" 
-                  placeholder="0.00" />
-                <mat-hint *ngIf="item.karat">Range: {{ getPurityRange(item.karat).min }}% - {{ getPurityRange(item.karat).max }}%</mat-hint>
-                <mat-error *ngIf="getFormControl(i, 'purity')?.hasError('required') && getFormControl(i, 'purity')?.touched">
+                  [formControl]="getFormControl(i, 'purity')"
+                  placeholder="0.00"
+                />
+                <mat-hint *ngIf="item.karat"
+                  >Range: {{ getPurityRange(item.karat).min }}% -
+                  {{ getPurityRange(item.karat).max }}%</mat-hint
+                >
+                <mat-error
+                  *ngIf="
+                    getFormControl(i, 'purity')?.hasError('required') &&
+                    getFormControl(i, 'purity')?.touched
+                  "
+                >
                   Purity is required
                 </mat-error>
-                <mat-error *ngIf="itemErrors[i].purity && !getFormControl(i, 'purity')?.hasError('required')">{{ itemErrors[i].purity }}</mat-error>
+                <mat-error
+                  *ngIf="itemErrors[i].purity && !getFormControl(i, 'purity')?.hasError('required')"
+                  >{{ itemErrors[i].purity }}</mat-error
+                >
               </mat-form-field>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell"></td>
           </ng-container>
-  
+
           <!-- Net Purity Weight -->
           <ng-container matColumnDef="netPurityWeight">
             <th mat-header-cell *matHeaderCellDef>
@@ -242,22 +309,21 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let item" class="readonly-cell calculated-cell">
-              <span class="highlight-value">{{ item.netPurityWeight | number:'1.2-2' }}</span>
+              <span class="highlight-value">{{ item.netPurityWeight | number: '1.2-2' }}</span>
             </td>
             <td mat-footer-cell *matFooterCellDef class="footer-cell footer-highlight">
-              <strong>{{ totalNetPurityWeight | number:'1.2-2' }}</strong>
+              <strong>{{ totalNetPurityWeight | number: '1.2-2' }}</strong>
             </td>
           </ng-container>
-  
+
           <!-- Header Row -->
           <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
-  
+
           <!-- Data Rows -->
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-data-row"></tr>
-  
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-data-row"></tr>
+
           <!-- Footer Row -->
           <tr mat-footer-row *matFooterRowDef="displayedColumns" class="table-footer-row"></tr>
-  
         </table>
       </div>
 
@@ -270,7 +336,7 @@
               {{ item.jewelleryName }}
             </h4>
           </div>
-          
+
           <div class="card-body">
             <div class="info-grid">
               <div class="info-item readonly">
@@ -280,43 +346,65 @@
                 </label>
                 <span>{{ item.quantity }}</span>
               </div>
-              
+
               <div class="info-item readonly">
                 <label>
                   <mat-icon>scale</mat-icon>
                   Gross Weight (g)
                 </label>
-                <span>{{ item.grossWeight | number:'1.2-2' }}</span>
+                <span>{{ item.grossWeight | number: '1.2-2' }}</span>
               </div>
-              
+
               <div class="info-item editable">
                 <label>
                   <mat-icon>brightness_1</mat-icon>
                   Stone Weight (g)
                   <mat-icon class="edit-icon">edit</mat-icon>
                 </label>
-                <mat-form-field appearance="outline" class="mobile-input" [class.error-field]="itemErrors[i].stoneWeight || getFormControl(i, 'stoneWeight')?.hasError('required')">
-                  <input 
-                    matInput 
-                    type="number" 
+                <mat-form-field
+                  appearance="outline"
+                  class="mobile-input"
+                  [class.error-field]="
+                    itemErrors[i].stoneWeight ||
+                    getFormControl(i, 'stoneWeight')?.hasError('required')
+                  "
+                >
+                  <input
+                    matInput
+                    type="number"
                     step="0.01"
                     min="0"
-                    [formControl]="getFormControl(i, 'stoneWeight')" 
-                    placeholder="0.00" />
-                  <mat-hint *ngIf="item.grossWeight > 0">Max: &lt;{{ getMaxStoneWeight(i) | number:'1.2-2' }}g</mat-hint>
-                  <mat-error *ngIf="getFormControl(i, 'stoneWeight')?.hasError('required') && getFormControl(i, 'stoneWeight')?.touched">
+                    [formControl]="getFormControl(i, 'stoneWeight')"
+                    placeholder="0.00"
+                  />
+                  <mat-hint *ngIf="item.grossWeight > 0"
+                    >Max: &lt;{{ getMaxStoneWeight(i) | number: '1.2-2' }}g</mat-hint
+                  >
+                  <mat-error
+                    *ngIf="
+                      getFormControl(i, 'stoneWeight')?.hasError('required') &&
+                      getFormControl(i, 'stoneWeight')?.touched
+                    "
+                  >
                     Stone weight is required
                   </mat-error>
                 </mat-form-field>
-                <span class="error-text" *ngIf="itemErrors[i].stoneWeight && !getFormControl(i, 'stoneWeight')?.hasError('required')">{{ itemErrors[i].stoneWeight }}</span>
+                <span
+                  class="error-text"
+                  *ngIf="
+                    itemErrors[i].stoneWeight &&
+                    !getFormControl(i, 'stoneWeight')?.hasError('required')
+                  "
+                  >{{ itemErrors[i].stoneWeight }}</span
+                >
               </div>
-              
+
               <div class="info-item readonly calculated">
                 <label>
                   <mat-icon>straighten</mat-icon>
                   Net Weight (g)
                 </label>
-                <span>{{ item.netWeight | number:'1.2-2' }}</span>
+                <span>{{ item.netWeight | number: '1.2-2' }}</span>
               </div>
 
               <div class="info-item editable">
@@ -325,52 +413,80 @@
                   Karat
                   <mat-icon class="edit-icon">edit</mat-icon>
                 </label>
-                <mat-form-field appearance="outline" class="mobile-input" [class.error-field]="getFormControl(i, 'karat')?.hasError('required')">
+                <mat-form-field
+                  appearance="outline"
+                  class="mobile-input"
+                  [class.error-field]="getFormControl(i, 'karat')?.hasError('required')"
+                >
                   <mat-select [formControl]="getFormControl(i, 'karat')">
                     <mat-option *ngFor="let k of karatOptions" [value]="k.value">
                       {{ k.label }} ({{ k.min }}% - {{ k.max }}%)
                     </mat-option>
                   </mat-select>
-                  <mat-error *ngIf="getFormControl(i, 'karat')?.hasError('required') && getFormControl(i, 'karat')?.touched">
+                  <mat-error
+                    *ngIf="
+                      getFormControl(i, 'karat')?.hasError('required') &&
+                      getFormControl(i, 'karat')?.touched
+                    "
+                  >
                     Karat is required
                   </mat-error>
                 </mat-form-field>
               </div>
-              
+
               <div class="info-item editable">
                 <label>
                   <mat-icon>percent</mat-icon>
                   Purity (%)
                   <mat-icon class="edit-icon">edit</mat-icon>
                 </label>
-                <mat-form-field appearance="outline" class="mobile-input" [class.error-field]="itemErrors[i].purity || getFormControl(i, 'purity')?.hasError('required')">
-                  <input 
-                    matInput 
-                    type="number" 
+                <mat-form-field
+                  appearance="outline"
+                  class="mobile-input"
+                  [class.error-field]="
+                    itemErrors[i].purity || getFormControl(i, 'purity')?.hasError('required')
+                  "
+                >
+                  <input
+                    matInput
+                    type="number"
                     step="0.01"
                     min="0"
                     max="100"
-                    [formControl]="getFormControl(i, 'purity')" 
-                    placeholder="0.00" />
-                  <mat-hint *ngIf="item.karat">Range: {{ getPurityRange(item.karat).min }}% - {{ getPurityRange(item.karat).max }}%</mat-hint>
-                  <mat-error *ngIf="getFormControl(i, 'purity')?.hasError('required') && getFormControl(i, 'purity')?.touched">
+                    [formControl]="getFormControl(i, 'purity')"
+                    placeholder="0.00"
+                  />
+                  <mat-hint *ngIf="item.karat"
+                    >Range: {{ getPurityRange(item.karat).min }}% -
+                    {{ getPurityRange(item.karat).max }}%</mat-hint
+                  >
+                  <mat-error
+                    *ngIf="
+                      getFormControl(i, 'purity')?.hasError('required') &&
+                      getFormControl(i, 'purity')?.touched
+                    "
+                  >
                     Purity is required
                   </mat-error>
                 </mat-form-field>
-                <span class="error-text" *ngIf="itemErrors[i].purity && !getFormControl(i, 'purity')?.hasError('required')">{{ itemErrors[i].purity }}</span>
+                <span
+                  class="error-text"
+                  *ngIf="itemErrors[i].purity && !getFormControl(i, 'purity')?.hasError('required')"
+                  >{{ itemErrors[i].purity }}</span
+                >
               </div>
-              
+
               <div class="info-item readonly calculated">
                 <label>
                   <mat-icon>verified</mat-icon>
                   Net Purity Weight (g)
                 </label>
-                <span class="highlight-value">{{ item.netPurityWeight | number:'1.2-2' }}</span>
+                <span class="highlight-value">{{ item.netPurityWeight | number: '1.2-2' }}</span>
               </div>
             </div>
           </div>
         </div>
-        
+
         <!-- Mobile Totals -->
         <div class="mobile-totals">
           <h4>
@@ -384,19 +500,21 @@
             </div>
             <div class="total-item">
               <span class="total-label">Gross Weight:</span>
-              <span class="total-value">{{ totalGrossWeight | number:'1.2-2' }} g</span>
+              <span class="total-value">{{ totalGrossWeight | number: '1.2-2' }} g</span>
             </div>
             <div class="total-item">
               <span class="total-label">Stone Weight:</span>
-              <span class="total-value">{{ totalStoneWeight | number:'1.2-2' }} g</span>
+              <span class="total-value">{{ totalStoneWeight | number: '1.2-2' }} g</span>
             </div>
             <div class="total-item">
               <span class="total-label">Net Weight:</span>
-              <span class="total-value">{{ totalNetWeight | number:'1.2-2' }} g</span>
+              <span class="total-value">{{ totalNetWeight | number: '1.2-2' }} g</span>
             </div>
             <div class="total-item highlight-row">
               <span class="total-label">Net Purity Weight:</span>
-              <span class="total-value highlight">{{ totalNetPurityWeight | number:'1.2-2' }} g</span>
+              <span class="total-value highlight"
+                >{{ totalNetPurityWeight | number: '1.2-2' }} g</span
+              >
             </div>
           </div>
         </div>
@@ -407,15 +525,14 @@
         <div class="submit-info">
           <mat-icon>info</mat-icon>
           <span>
-            {{ hasChanges ? 'Net Weight and Net Purity Weight are automatically calculated based on your inputs.' : 'Please modify Stone Weight, Karat, or Purity to enable the update button.' }}
+            {{
+              hasChanges
+                ? 'Net Weight and Net Purity Weight are automatically calculated based on your inputs.'
+                : 'Please modify Stone Weight, Karat, or Purity to enable the update button.'
+            }}
           </span>
         </div>
-        <button 
-          mat-raised-button 
-          color="primary" 
-          (click)="submitAll()" 
-          [disabled]="isUpdateDisabled()"
-          class="submit-button">
+        <button mat-raised-button color="primary" (click)="submitAll()" class="submit-button">
           <mat-icon>save</mat-icon>
           Update Second Valuation
         </button>
