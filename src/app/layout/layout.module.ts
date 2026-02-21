@@ -55,6 +55,12 @@ import { ReleaseAuthorizationComponent } from './loan-release-wizard/steps/relea
 import { OutstandingDetailsComponent } from './loan-release-wizard/steps/outstanding-details/outstanding-details.component';
 import { PaymentDetailsComponent } from './loan-release-wizard/steps/payment-details/payment-details.component';
 import { ReleaseDocumentComponent } from './loan-release-wizard/steps/release-document/release-document.component';
+// Loan Payment Wizard Components (Part Payment & Interest Payment)
+import { LoanPaymentWizardComponent } from './loan-payment-wizard/loan-payment-wizard.component';
+import { PaymentTypeSelectionComponent } from './loan-payment-wizard/steps/payment-type-selection/payment-type-selection.component';
+import { RepaymentScheduleSummaryComponent } from './loan-payment-wizard/steps/repayment-schedule-summary/repayment-schedule-summary.component';
+import { PaymentEntryComponent } from './loan-payment-wizard/steps/payment-entry/payment-entry.component';
+import { PaymentConfirmationComponent } from './loan-payment-wizard/steps/payment-confirmation/payment-confirmation.component';
 
 
 
@@ -108,7 +114,13 @@ import { ReleaseDocumentComponent } from './loan-release-wizard/steps/release-do
     ReleaseAuthorizationComponent,
     OutstandingDetailsComponent,
     PaymentDetailsComponent,
-    ReleaseDocumentComponent
+    ReleaseDocumentComponent,
+    // Loan Payment Wizard (Part Payment & Interest Payment)
+    LoanPaymentWizardComponent,
+    PaymentTypeSelectionComponent,
+    RepaymentScheduleSummaryComponent,
+    PaymentEntryComponent,
+    PaymentConfirmationComponent
   ],
   imports: [
     CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,WebcamModule,
@@ -126,6 +138,7 @@ import { ReleaseDocumentComponent } from './loan-release-wizard/steps/release-do
     LoanInfoComponent,
     LoanApplicationWizardComponent,
     LoanReleaseWizardComponent,
+    LoanPaymentWizardComponent,
     CustomerProfileComponent,
     RoleListComponent,
     RoleFormComponent,

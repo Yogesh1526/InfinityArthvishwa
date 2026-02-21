@@ -561,5 +561,47 @@ export class PersonalDetailsService {
       { responseType: 'blob' }
     );
   }
+
+  // Part Payment & Interest Payment APIs
+  savePartOrInterestPayment(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/repayment-details/save-part-interest-payment`, payload);
+  }
+
+  getPaymentHistory(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/repayment-details/get-payment-history/${customerId}/${loanAccountNumber}`);
+  }
+
+  getPaymentDetails(customerId: string, loanAccountNumber: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/part-payment-emi-payment/paymentDetails/${customerId}/${loanAccountNumber}`);
+  }
+
+  saveRepaymentScheduleDetails(scheduleData: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/part-payment-emi-payment/SaveRepaymentScheduleDetails`, scheduleData);
+  }
+
+  payPartPaymentAndInterestAmount(payload: {
+    loanAccountNumber: string;
+    customerId: string;
+    paymentAmount: number;
+    paymentType: 'PART_PAYMENT' | 'INTEREST_PAYMENT';
+    paymentDate: string;
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/part-payment-emi-payment/payPartPaymentAndInterestAmount`, payload);
+  }
+
+  /** Get latest payment transactions for customer + loan account */
+  getLatestPayments(customerId: string, loanAccountNumber: string): Observable<any> {
+    const params = new HttpParams()
+      .set('customerId', customerId)
+      .set('loanAccountNumber', loanAccountNumber);
+    return this.http.get(`${this.baseUrl}/part-payment-emi-payment/latest`, { params });
+  }
+
+  /** Download payment receipt PDF by receipt number */
+  downloadPaymentReceipt(payemntReceiptNumber: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/part-payment-emi-payment/download/${encodeURIComponent(payemntReceiptNumber)}`, {
+      responseType: 'blob'
+    });
+  }
 }
 

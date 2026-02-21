@@ -165,6 +165,15 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
             loanPurpose: calculationData.endUse || calculationData.loanPurpose || ''
           });
           
+          // Patch loan amount and processing fees from API so they are available for display and validation
+          const disbursementAmount = calculationData.loanDisbusrsementAmount ?? calculationData.loanDisbursementAmount ?? calculationData.loanAmount;
+          if (disbursementAmount != null && disbursementAmount > 0) {
+            this.loanAmount = disbursementAmount;
+          }
+          if (calculationData.processingFees != null && calculationData.processingFees >= 0) {
+            this.processingFees = calculationData.processingFees;
+          }
+          
           this.form.disable();
           this.stepCompleted.emit();
         } else {
@@ -294,26 +303,24 @@ export class GlSchemeSelectionComponent implements OnInit, OnChanges {
   }
 
   validateStep(): boolean {
-    // Loan amount and processing fee are required
     if (!this.isDataAvailable) {
       this.toastService.showWarning('Please save the GL scheme selection first.');
       return false;
     }
     
-    // Check if loan amount and processing fee exist in the scheme data
     const schemeData = this.schemeData?.goldLoanSchemeCalculation || this.schemeData;
     if (!schemeData) {
       this.toastService.showWarning('Please complete the GL scheme selection.');
       return false;
     }
     
-    if (!schemeData.loanAmount || schemeData.loanAmount <= 0) {
+    // Only show validation when BOTH text boxes are blank (use actual UI values, not only schemeData)
+    const loanNum = Number(this.loanAmount);
+    const feesNum = Number(this.processingFees);
+    const loanAmountBlank = this.loanAmount == null || isNaN(loanNum) || loanNum <= 0;
+    const processingFeesBlank = this.processingFees == null || isNaN(feesNum) || feesNum < 0;
+    if (loanAmountBlank && processingFeesBlank) {
       this.toastService.showWarning('Loan amount is required. Please update the loan amount.');
-      return false;
-    }
-    
-    if (!schemeData.processingFees || schemeData.processingFees <= 0) {
-      this.toastService.showWarning('Processing fee is required. Please update the processing fee.');
       return false;
     }
     

@@ -1,0 +1,110 @@
+<div class="wizard-layout">
+  <!-- Sidebar -->
+  <aside class="wizard-sidebar">
+    <div class="logo">
+      <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv Logo" />
+    </div>
+    
+    <div class="wizard-info">
+      <span class="wizard-label">Loan Payment</span>
+      <span class="loan-number" *ngIf="loanAccountNumber">{{ loanAccountNumber }}</span>
+      <span class="payment-type-badge" *ngIf="paymentType">
+        {{ getPaymentTypeLabel() }}
+      </span>
+    </div>
+
+    <mat-nav-list>
+      <mat-list-item
+        *ngFor="let step of steps; let i = index"
+        (click)="goToStep(i)"
+        [class.active]="i === activeStep"
+        [class.completed]="isStepCompleted(i)"
+        [class.disabled]="!canNavigateToStep(i)"
+        [style.cursor]="canNavigateToStep(i) ? 'pointer' : 'not-allowed'"
+        [style.opacity]="canNavigateToStep(i) ? '1' : '0.5'"
+      >
+        <mat-icon matListIcon>
+          {{ isStepCompleted(i) ? 'check_circle' : (i === activeStep ? 'radio_button_checked' : 'radio_button_unchecked') }}
+        </mat-icon>
+        <span class="step-label">{{ step.label }}</span>
+      </mat-list-item>
+    </mat-nav-list>
+
+    <!-- Customer Info -->
+    <div class="customer-info" *ngIf="customerName !== 'N/A'">
+      <mat-icon>person</mat-icon>
+      <div class="customer-info-text">
+        <span class="customer-name">{{ customerName }}</span>
+        <span class="customer-id">{{ customerId }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <section class="wizard-main">
+    <div class="wizard-step-content">
+      <ng-container [ngSwitch]="activeStep">
+        <!-- Step 1: Payment Type Selection -->
+        <app-payment-type-selection 
+          #paymentTypeRef 
+          *ngSwitchCase="0"
+          [selectedType]="paymentType"
+          (typeSelected)="onPaymentTypeSelected($event)">
+        </app-payment-type-selection>
+
+        <!-- Step 2: Repayment Schedule Summary -->
+        <app-repayment-schedule-summary 
+          #repaymentScheduleRef 
+          *ngSwitchCase="1"
+          [customerId]="customerId"
+          [loanAccountNumber]="loanAccountNumber"
+          [paymentType]="paymentType"
+          (dataLoaded)="onOutstandingDataLoaded($event)"
+          (stepCompleted)="onRepaymentScheduleConfirmed()">
+        </app-repayment-schedule-summary>
+
+        <!-- Step 3: Payment Entry -->
+        <app-payment-entry 
+          #paymentEntryRef 
+          *ngSwitchCase="2"
+          [customerId]="customerId"
+          [loanAccountNumber]="loanAccountNumber"
+          [paymentType]="paymentType"
+          [outstandingData]="outstandingData"
+          (paymentCompleted)="onPaymentCompleted($event)"
+          (stepCompleted)="markStepCompleted(2)">
+        </app-payment-entry>
+
+        <!-- Step 4: Confirmation -->
+        <app-payment-confirmation 
+          #paymentConfirmationRef 
+          *ngSwitchCase="3"
+          [customerId]="customerId"
+          [loanAccountNumber]="loanAccountNumber"
+          [customerName]="customerName"
+          [paymentType]="paymentType"
+          [paymentResult]="paymentResult"
+          [outstandingData]="outstandingData"
+          (newPayment)="startNewPayment()"
+          (goHome)="finishAndGoBack()"
+          (stepCompleted)="markStepCompleted(3)">
+        </app-payment-confirmation>
+      </ng-container>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="wizard-footer">
+      <button mat-stroked-button (click)="goBack()">
+        <mat-icon>close</mat-icon>
+        Cancel
+      </button>
+      <div class="footer-spacer"></div>
+      <button mat-stroked-button (click)="prev()" [disabled]="activeStep === 0" *ngIf="!isLastStep()">Previous</button>
+      <button mat-flat-button color="primary" (click)="next()" *ngIf="!isLastStep()">Next</button>
+      <button mat-raised-button color="accent" (click)="finishAndGoBack()" *ngIf="isLastStep()">
+        <mat-icon>check</mat-icon>
+        Done
+      </button>
+    </div>
+  </section>
+</div>

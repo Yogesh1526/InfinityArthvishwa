@@ -1,0 +1,99 @@
+<div class="bank-step bank-step-confirm">
+  <header class="confirm-banner" [class.part]="paymentType === 'PART_PAYMENT'" [class.interest]="paymentType === 'INTEREST_PAYMENT'">
+    <div class="confirm-banner-inner">
+      <div class="confirm-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="confirm-text">
+        <h1>{{ getPaymentTypeLabel() }} completed</h1>
+        <p>Loan account <strong>{{ loanAccountNumber }}</strong></p>
+      </div>
+    </div>
+  </header>
+
+  <div class="confirm-body">
+    <div class="confirm-grid">
+      <div class="confirm-card">
+        <div class="confirm-card-head">
+          <mat-icon>receipt_long</mat-icon>
+          <span>Payment details</span>
+        </div>
+        <div class="confirm-card-body">
+          <dl class="confirm-dl">
+            <dt>Customer</dt>
+            <dd>{{ customerName }}</dd>
+            <dt>Customer ID</dt>
+            <dd class="mono">{{ customerId }}</dd>
+            <dt>Loan account</dt>
+            <dd class="mono">{{ loanAccountNumber }}</dd>
+            <dt>Payment type</dt>
+            <dd><span class="badge" [class.part]="paymentType === 'PART_PAYMENT'" [class.interest]="paymentType === 'INTEREST_PAYMENT'">{{ getPaymentTypeLabel() }}</span></dd>
+            <dt>Payment date</dt>
+            <dd>{{ formatDate(paymentResult?.paymentDate) }}</dd>
+            <dt>Amount paid</dt>
+            <dd class="amount">{{ formatCurrency(getAmountPaid()) }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="confirm-card">
+        <div class="confirm-card-head">
+          <mat-icon>trending_up</mat-icon>
+          <span>Payment impact</span>
+        </div>
+        <div class="confirm-card-body">
+          <ul class="confirm-impact">
+            <li><span>Principal before</span><strong>{{ formatCurrency(outstandingData?.principalOutstanding) }}</strong></li>
+            <li *ngIf="getInterestComponent()"><span>Interest cleared</span><strong class="minus">− {{ formatCurrency(getInterestComponent()) }}</strong></li>
+            <li *ngIf="getPrincipalComponent()"><span>Principal reduced</span><strong class="minus">− {{ formatCurrency(getPrincipalComponent()) }}</strong></li>
+            <li class="total"><span>New balance</span><strong class="total-val">{{ formatCurrency(getRemainingPrincipal()) }}</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="confirm-card transactions-card">
+        <div class="confirm-card-head">
+          <mat-icon>history</mat-icon>
+          <span>Recent transactions</span>
+          <span class="badge-num" *ngIf="latestTransactions.length">{{ latestTransactions.length }}</span>
+        </div>
+        <div class="confirm-card-body">
+          <div class="tx-loading" *ngIf="isLoading">
+            <mat-spinner diameter="32"></mat-spinner>
+            <span>Loading…</span>
+          </div>
+          <div class="tx-grid-2x2" *ngIf="!isLoading && latestTransactions.length > 0">
+            <div class="tx-tile" *ngFor="let tx of latestTransactions">
+              <mat-icon class="tile-icon">receipt</mat-icon>
+              <div class="tile-info">
+                <span class="tile-receipt">#{{ tx.payemntReceiptNumber }}</span>
+                <span class="tile-date">{{ formatDateTime(tx.paymentPaidDate) }}</span>
+                <span class="tile-amount">{{ formatCurrency(tx.paymentPaidAmount) }}</span>
+              </div>
+              <button mat-icon-button color="primary" class="tile-download" matTooltip="Download receipt"
+                [disabled]="downloadingReceiptId === tx.id" (click)="downloadReceipt(tx)">
+                <mat-spinner *ngIf="downloadingReceiptId === tx.id" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="downloadingReceiptId !== tx.id">download</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="tx-empty" *ngIf="!isLoading && latestTransactions.length === 0">
+            <mat-icon>inbox</mat-icon>
+            <span>No transactions</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="confirm-actions">
+      <button mat-raised-button color="primary" (click)="startNewPayment()">
+        <mat-icon>add_circle_outline</mat-icon>
+        Make another payment
+      </button>
+      <button mat-button (click)="goToCustomerProfile()">
+        <mat-icon>person_outline</mat-icon>
+        Back to customer profile
+      </button>
+    </div>
+  </div>
+</div>

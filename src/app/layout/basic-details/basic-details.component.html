@@ -102,9 +102,6 @@
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Email</mat-label>
         <input matInput formControlName="email" type="email" />
-        <mat-error *ngIf="customerForm.get('email')?.hasError('email')">
-          Please enter a valid email
-        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">

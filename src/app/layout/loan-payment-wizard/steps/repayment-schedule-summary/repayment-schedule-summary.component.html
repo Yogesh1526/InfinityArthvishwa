@@ -1,0 +1,104 @@
+<div class="bank-step bank-step-schedule">
+  <div class="step-head" *ngIf="!isLoading">
+    <span class="step-breadcrumb">Loan Payment · {{ getPaymentTypeLabel() }}</span>
+    <h1 class="step-title">Repayment schedule</h1>
+    <p class="step-desc">Review the schedule for this loan account before proceeding to payment.</p>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-spinner diameter="44"></mat-spinner>
+    <p>Loading repayment schedule…</p>
+  </div>
+
+  <div class="schedule-wrap" *ngIf="!isLoading">
+    <div class="schedule-card">
+      <div class="schedule-card-head">
+        <div class="schedule-card-title">
+          <mat-icon>calendar_today</mat-icon>
+          <span>Installment schedule</span>
+        </div>
+        <span class="schedule-count" *ngIf="scheduleData.length > 0">{{ scheduleData.length }} installment(s)</span>
+      </div>
+      <div class="schedule-card-body">
+        <div class="table-scroll" *ngIf="scheduleData.length > 0">
+          <table mat-table [dataSource]="dataSource" matSort class="schedule-table">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
+              <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+            </ng-container>
+            <ng-container matColumnDef="schemeName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Scheme</th>
+              <td mat-cell *matCellDef="let row">{{ row.schemeName || '–' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="openingPrincipal">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.openingPrincipal) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="monthlyInterestAmount">
+              <th mat-header-cell *matHeaderCellDef>Interest</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.monthlyInterestAmount) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="totalInterestDueAmount">
+              <th mat-header-cell *matHeaderCellDef>Due</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalInterestDueAmount) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="interestPayDueDate">
+              <th mat-header-cell *matHeaderCellDef>Due date</th>
+              <td mat-cell *matCellDef="let row">{{ formatDate(row.interestPayDueDate) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="paymentPaidAmount">
+              <th mat-header-cell *matHeaderCellDef>Paid</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.paymentPaidAmount) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="paymentType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">{{ row.paymentType || '–' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="interestPaidAmount">
+              <th mat-header-cell *matHeaderCellDef>Int. paid</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.interestPaidAmount) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="principlePaidAmount">
+              <th mat-header-cell *matHeaderCellDef>Prin. paid</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.principlePaidAmount) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="closingPrincipal">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Closing</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.closingPrincipal) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="paymentPaidDate">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let row">{{ formatDate(row.paymentPaidDate) }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+        <div class="empty-state" *ngIf="scheduleData.length === 0">
+          <mat-icon>description</mat-icon>
+          <p>No schedule data for this account.</p>
+          <button mat-stroked-button color="primary" (click)="refreshData()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="confirm-bar" *ngIf="scheduleData.length > 0 && !isConfirmed">
+      <mat-checkbox [(ngModel)]="isConfirmed" color="primary" (change)="isConfirmed && confirmAndProceed()">
+        I have reviewed the repayment schedule and confirm to proceed
+      </mat-checkbox>
+      <button mat-flat-button color="primary" class="btn-confirm" [disabled]="isConfirmed || isSaving" (click)="confirmAndProceed()">
+        <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
+        <mat-icon *ngIf="!isSaving">task_alt</mat-icon>
+        {{ isSaving ? 'Saving…' : (isConfirmed ? 'Confirmed' : 'Confirm & proceed') }}
+      </button>
+    </div>
+
+    <div class="confirmed-bar" *ngIf="isConfirmed">
+      <mat-icon>check_circle</mat-icon>
+      <span>Schedule reviewed. Click <strong>Next</strong> to enter payment details.</span>
+    </div>
+  </div>
+</div>

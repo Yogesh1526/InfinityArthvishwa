@@ -1,0 +1,234 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.bank-step {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 32px 24px;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.step-breadcrumb {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.step-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.step-desc {
+  margin: 8px 0 0;
+  font-size: 0.9375rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.loading-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+}
+
+.schedule-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.schedule-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.schedule-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.schedule-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.schedule-card-title mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  color: #1d4ed8;
+}
+
+.schedule-count {
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.schedule-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 100%;
+}
+
+.schedule-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+.schedule-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+}
+
+.schedule-table td {
+  font-size: 0.8125rem;
+  color: #334155;
+}
+
+.schedule-table .mat-row:hover {
+  background: #f8fafc;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  margin: 0 0 20px;
+  font-size: 0.9375rem;
+  color: #64748b;
+}
+
+.confirm-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.confirm-bar mat-checkbox {
+  flex: 1;
+}
+
+.confirm-bar ::ng-deep .mat-checkbox-label {
+  font-size: 0.9375rem;
+  color: #475569;
+}
+
+.btn-confirm {
+  min-width: 160px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.btn-confirm mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.confirmed-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #047857;
+  flex-shrink: 0;
+}
+
+.confirmed-bar mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.confirmed-bar strong {
+  color: #065f46;
+}
+
+@media (max-width: 768px) {
+  .confirm-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-confirm {
+    width: 100%;
+  }
+}

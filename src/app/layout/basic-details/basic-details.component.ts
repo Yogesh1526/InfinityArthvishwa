@@ -35,7 +35,7 @@ export class BasicDetailsComponent implements OnInit {
     ],
     altMobileNumber: [''],
     office: ['bhosari', Validators.required],  // default selected value here
-    email: ['', [Validators.required, Validators.email]],
+    email: [''],
     submittedDate: [new Date(), Validators.required],
     externalId: [''],
     clientType: [''],

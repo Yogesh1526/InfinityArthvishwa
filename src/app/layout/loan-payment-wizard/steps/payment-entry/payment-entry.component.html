@@ -1,0 +1,181 @@
+<div class="bank-step bank-step-details">
+  <ng-container *ngIf="!isPaymentProcessed; else successState">
+    <div class="step-head" *ngIf="outstandingData">
+      <span class="step-breadcrumb">Loan Payment · {{ getPaymentTypeLabel() }}</span>
+      <h1 class="step-title">Payment details</h1>
+      <p class="step-desc">Enter amount and payment mode. Maximum payable: <strong>{{ formatCurrency(getMaxAmount()) }}</strong></p>
+    </div>
+
+    <div class="summary-cards" *ngIf="outstandingData">
+      <div class="summary-card-item">
+        <span class="summary-card-label">Account</span>
+        <span class="summary-card-value mono">{{ loanAccountNumber }}</span>
+      </div>
+      <div class="summary-card-item">
+        <span class="summary-card-label">Principal</span>
+        <span class="summary-card-value">{{ formatCurrency(outstandingData?.principalOutstanding) }}</span>
+      </div>
+      <div class="summary-card-item">
+        <span class="summary-card-label">Accrued interest</span>
+        <span class="summary-card-value">{{ formatCurrency(outstandingData?.accruedInterest) }}</span>
+      </div>
+      <div class="summary-card-item highlight">
+        <span class="summary-card-label">Max payable</span>
+        <span class="summary-card-value">{{ formatCurrency(getMaxAmount()) }}</span>
+      </div>
+    </div>
+
+    <div class="details-layout">
+      <div class="details-form-card">
+        <div class="form-card-head">
+          <mat-icon>edit_note</mat-icon>
+          <span>Enter payment</span>
+        </div>
+        <div class="form-card-body">
+          <form [formGroup]="paymentForm">
+            <div class="form-section">
+              <label class="form-label">Payment mode <span class="req">*</span></label>
+              <div class="mode-grid">
+                <button type="button" *ngFor="let mode of paymentModes" class="mode-btn"
+                  [class.selected]="paymentForm.get('paymentMode')?.value === mode.value"
+                  (click)="paymentForm.get('paymentMode')?.setValue(mode.value)">
+                  <mat-icon>{{ mode.icon }}</mat-icon>
+                  <span>{{ mode.label }}</span>
+                </button>
+              </div>
+              <mat-error *ngIf="isFieldInvalid('paymentMode')" class="form-error">Select a payment mode</mat-error>
+            </div>
+
+            <div class="form-row compact">
+              <div class="form-section">
+                <label class="form-label">Payment date <span class="req">*</span></label>
+                <mat-form-field appearance="outline" class="full-width dense-field">
+                  <input matInput type="date" formControlName="paymentDate">
+                  <mat-error *ngIf="isFieldInvalid('paymentDate')">Required</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="form-section">
+                <label class="form-label">Amount (₹) <span class="req">*</span></label>
+                <mat-form-field appearance="outline" class="full-width dense-field">
+                  <input matInput type="number" formControlName="paymentAmount" placeholder="0" [max]="getMaxAmount()">
+                  <mat-error *ngIf="isFieldInvalid('paymentAmount')">Valid amount required</mat-error>
+                </mat-form-field>
+                <div class="quick-actions" *ngIf="getQuickAmountOptions().length">
+                  <button type="button" *ngFor="let option of getQuickAmountOptions()" class="quick-btn"
+                    (click)="applyQuickAmount(option.amount)">
+                    {{ option.label }} · {{ formatCurrency(option.amount) }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <ng-container *ngIf="paymentForm.get('paymentMode')?.value">
+              <div class="form-section" *ngIf="['NEFT', 'ONLINE', 'CHEQUE', 'DD'].includes(paymentForm.get('paymentMode')?.value)">
+                <label class="form-label">Bank name <span class="req">*</span></label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput formControlName="bankName" placeholder="Bank name">
+                  <mat-error *ngIf="isFieldInvalid('bankName')">Required</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="form-section" *ngIf="['NEFT', 'ONLINE', 'UPI'].includes(paymentForm.get('paymentMode')?.value)">
+                <label class="form-label">Transaction reference / UTR <span class="req">*</span></label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput formControlName="transactionReference" placeholder="Reference">
+                  <mat-error *ngIf="isFieldInvalid('transactionReference')">Required</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="form-section" *ngIf="paymentForm.get('paymentMode')?.value === 'UPI'">
+                <label class="form-label">UPI ID <span class="req">*</span></label>
+                <mat-form-field appearance="outline" class="full-width">
+                  <input matInput formControlName="upiId" placeholder="name@upi">
+                  <mat-error *ngIf="isFieldInvalid('upiId')">Required</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="form-row" *ngIf="['CHEQUE', 'DD'].includes(paymentForm.get('paymentMode')?.value)">
+                <div class="form-section">
+                  <label class="form-label">{{ paymentForm.get('paymentMode')?.value === 'DD' ? 'DD' : 'Cheque' }} number <span class="req">*</span></label>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput formControlName="chequeNumber" placeholder="Number">
+                    <mat-error *ngIf="isFieldInvalid('chequeNumber')">Required</mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="form-section">
+                  <label class="form-label">Date <span class="req">*</span></label>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <input matInput type="date" formControlName="chequeDate">
+                    <mat-error *ngIf="isFieldInvalid('chequeDate')">Required</mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </ng-container>
+
+            <div class="form-section compact">
+              <label class="form-label">Remarks <span class="opt">(optional)</span></label>
+              <mat-form-field appearance="outline" class="full-width dense-field">
+                <input matInput formControlName="remarks" placeholder="Notes">
+              </mat-form-field>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <aside class="details-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-card-head">Account summary</div>
+          <div class="sidebar-card-body">
+            <div class="sidebar-row">
+              <span>Max payable</span>
+              <strong>{{ formatCurrency(getMaxAmount()) }}</strong>
+            </div>
+            <div class="sidebar-row sub"><span>Principal</span><span>{{ formatCurrency(outstandingData?.principalOutstanding) }}</span></div>
+            <div class="sidebar-row sub"><span>Interest</span><span>{{ formatCurrency(outstandingData?.accruedInterest) }}</span></div>
+          </div>
+        </div>
+        <div class="sidebar-card" *ngIf="paymentForm.get('paymentAmount')?.value">
+          <div class="sidebar-card-head">This payment</div>
+          <div class="sidebar-card-body">
+            <div class="sidebar-row">
+              <span>Amount</span>
+              <strong class="amount-green">{{ formatCurrency(paymentForm.get('paymentAmount')?.value || 0) }}</strong>
+            </div>
+            <div class="sidebar-row"><span>→ Interest</span><span>{{ formatCurrency(getInterestSplit().interestPortion) }}</span></div>
+            <div class="sidebar-row"><span>→ Principal</span><span>{{ formatCurrency(getInterestSplit().principalPortion) }}</span></div>
+            <div class="sidebar-row result" [class.ok]="getAmountInfo().type === 'success'" [class.warn]="getAmountInfo().type === 'warning'">
+              <span>{{ getAmountInfo().label }}</span>
+              <strong>{{ formatCurrency(getAmountInfo().amount) }}</strong>
+            </div>
+            <p class="sidebar-msg error" *ngIf="!isAmountValid() && (paymentForm.get('paymentAmount')?.value || 0) > getMaxAmount()">Amount exceeds max payable.</p>
+            <p class="sidebar-msg error" *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) < (outstandingData?.accruedInterest || 0)">Pay full accrued interest first.</p>
+          </div>
+        </div>
+        <button mat-raised-button color="primary" class="btn-process"
+          [disabled]="isLoading || !isAmountValid() || paymentForm.invalid"
+          (click)="processPayment()">
+          <mat-spinner *ngIf="isLoading" diameter="22"></mat-spinner>
+          <mat-icon *ngIf="!isLoading">lock</mat-icon>
+          Process {{ getPaymentTypeLabel() }}
+        </button>
+      </aside>
+    </div>
+  </ng-container>
+
+  <ng-template #successState>
+    <div class="success-state">
+      <div class="success-card">
+        <div class="success-icon" [class.part]="paymentType === 'PART_PAYMENT'" [class.interest]="paymentType === 'INTEREST_PAYMENT'">
+          <mat-icon>check</mat-icon>
+        </div>
+        <h2>{{ getPaymentTypeLabel() }} recorded</h2>
+        <p>Click <strong>Next</strong> to view confirmation and download receipt.</p>
+        <div class="mini-receipt">
+          <div class="mini-receipt-head"><mat-icon>receipt_long</mat-icon> Payment summary</div>
+          <div class="mini-receipt-body">
+            <div class="mini-row"><span>Account</span><span class="mono">{{ loanAccountNumber }}</span></div>
+            <div class="mini-row"><span>Date</span><span>{{ paymentForm.get('paymentDate')?.value }}</span></div>
+            <div class="mini-row highlight"><span>Amount</span><strong>{{ formatCurrency(paymentForm.get('paymentAmount')?.value) }}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</div>

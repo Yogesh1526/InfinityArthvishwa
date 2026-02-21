@@ -16,7 +16,12 @@ export class CustomerProfileComponent implements OnInit {
   customer: any = null;
   loans: any[] = [];
   isLoading = false;
-  selectedTabIndex = 0; // 0: details, 1: loans, 2: documents
+  selectedTabIndex = 0; // 0: details, 1: loans, 2: payment history, 3: documents
+
+  // Payment History
+  paymentHistory: any[] = [];
+  isLoadingHistory = false;
+  paymentHistoryColumns = ['loanAccountNumber', 'paymentType', 'repaymentAmount', 'paymentMode', 'paymentDate', 'paymentStatus'];
 
   constructor(
     private route: ActivatedRoute,
@@ -51,6 +56,7 @@ export class CustomerProfileComponent implements OnInit {
           this.customer = data;
           const loanList = data.loanAccountDetailsDtoList || data.loanAccountDetailsDto || [];
           this.loans = this.mapLoanAccountDetails(loanList);
+          this.loadPaymentHistory();
         } else {
           this.toastService.showError('Customer not found');
           this.router.navigate(['/loan-info-details']);
@@ -134,6 +140,46 @@ export class CustomerProfileComponent implements OnInit {
   }
 
   /**
+   * Check if part payment or interest payment can be made on a loan
+   */
+  canMakePayment(loan: any): boolean {
+    const status = (loan.loanStatus || loan.status || '').toUpperCase();
+    return status === 'ACTIVE' || status === 'DISBURSED';
+  }
+
+  /**
+   * Navigate to loan payment wizard for part payment
+   */
+  makePartPayment(loan: any): void {
+    if (!this.customerId) return;
+    const loanAccountNumber = loan.loanAccountNumber || loan.loanAccountNo || loan.id;
+    if (!loanAccountNumber) {
+      this.toastService.showError('Loan account number not found');
+      return;
+    }
+    localStorage.setItem(`loanAccountNumber_${this.customerId}`, loanAccountNumber);
+    this.router.navigate(['/loan-payment', this.customerId], {
+      queryParams: { loanAccount: loanAccountNumber, type: 'part' }
+    });
+  }
+
+  /**
+   * Navigate to loan payment wizard for interest payment
+   */
+  makeInterestPayment(loan: any): void {
+    if (!this.customerId) return;
+    const loanAccountNumber = loan.loanAccountNumber || loan.loanAccountNo || loan.id;
+    if (!loanAccountNumber) {
+      this.toastService.showError('Loan account number not found');
+      return;
+    }
+    localStorage.setItem(`loanAccountNumber_${this.customerId}`, loanAccountNumber);
+    this.router.navigate(['/loan-payment', this.customerId], {
+      queryParams: { loanAccount: loanAccountNumber, type: 'interest' }
+    });
+  }
+
+  /**
    * Navigate to loan release wizard
    */
   releaseLoan(loan: any): void {
@@ -150,6 +196,49 @@ export class CustomerProfileComponent implements OnInit {
 
     this.router.navigate(['/loan-release', this.customerId], {
       queryParams: { loanAccount: loanAccountNumber }
+    });
+  }
+
+  /**
+   * Load payment history for all loans
+   */
+  loadPaymentHistory(): void {
+    if (!this.customerId || this.loans.length === 0) return;
+
+    this.isLoadingHistory = true;
+    // Load payment history for each loan account
+    const loanAccount = this.loans[0]?.loanAccountNumber || this.loans[0]?.loanAccountNo;
+    if (loanAccount) {
+      this.apiService.getPaymentHistory(this.customerId, loanAccount).subscribe({
+        next: (res: any) => {
+          this.isLoadingHistory = false;
+          this.paymentHistory = res?.data || [];
+        },
+        error: () => {
+          this.isLoadingHistory = false;
+          this.paymentHistory = [];
+        }
+      });
+    } else {
+      this.isLoadingHistory = false;
+    }
+  }
+
+  formatPaymentCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2
+    }).format(amount || 0);
+  }
+
+  formatPaymentDate(dateString: string | null): string {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   }
 

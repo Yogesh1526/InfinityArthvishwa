@@ -1,0 +1,43 @@
+<div class="bank-step bank-step-type">
+  <div class="step-head">
+    <span class="step-breadcrumb">Loan Payment</span>
+    <h1 class="step-title">Choose payment type</h1>
+    <p class="step-desc">Select how you would like to pay towards this loan account.</p>
+  </div>
+
+  <div class="type-options">
+    <div
+      *ngFor="let type of paymentTypes"
+      class="type-option"
+      [class.selected]="selectedType === type.value"
+      (click)="selectType(type.value)">
+      <div class="type-option-inner">
+        <div class="type-icon" [style.background]="type.color + '18'">
+          <mat-icon [style.color]="type.color">{{ type.icon }}</mat-icon>
+        </div>
+        <h3 class="type-name">{{ type.label }}</h3>
+        <p class="type-desc">{{ type.description }}</p>
+        <ul class="type-benefits">
+          <li *ngFor="let benefit of type.benefits">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ benefit }}</span>
+          </li>
+        </ul>
+        <div class="type-select-label">
+          <mat-icon *ngIf="selectedType === type.value">radio_button_checked</mat-icon>
+          <mat-icon *ngIf="selectedType !== type.value">radio_button_unchecked</mat-icon>
+          <span>{{ selectedType === type.value ? 'Selected' : 'Select' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-footer" *ngIf="selectedType">
+    <div class="footer-note">
+      <mat-icon>info_outline</mat-icon>
+      <span *ngIf="selectedType === 'PART_PAYMENT'">Part Payment allows you to pay any amount up to the outstanding principal.</span>
+      <span *ngIf="selectedType === 'INTEREST_PAYMENT'">Interest Payment clears accrued interest; any excess reduces principal.</span>
+    </div>
+    <p class="footer-cta">Click <strong>Next</strong> to review the repayment schedule.</p>
+  </div>
+</div>
