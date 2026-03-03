@@ -36,6 +36,7 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
     'openingPrincipal',
     'monthlyInterestAmount',
     'totalInterestDueAmount',
+    'monthlyRebateInterestAmount',
     'interestPayDueDate',
     'paymentPaidAmount',
     'paymentType',
@@ -93,20 +94,27 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
     });
   }
 
-  /** Derive principal outstanding, accrued interest and total from repayment schedule API data */
+  /** Derive principal outstanding, accrued (remaining) interest and total from repayment schedule API data */
   private deriveOutstandingFromSchedule(schedule: any[]): void {
     if (!schedule || schedule.length === 0) return;
 
-    const lastRow = schedule[schedule.length - 1];
     const num = (v: any) => (v != null && v !== '' ? Number(v) : 0);
 
+    // Principal outstanding = latest closing principal (fallback to opening)
+    const lastRow = schedule[schedule.length - 1];
     this.principalOutstanding = num(lastRow.closingPrincipal) || num(lastRow.openingPrincipal) || 0;
 
-    const unpaidRow = schedule.find(
-      (r) => num(r.paymentPaidAmount) === 0 || r.paymentPaidAmount == null || r.paymentPaidAmount === ''
+    // Remaining interest = total interest due (all rows) - total interest already paid
+    const totalInterestDue = schedule.reduce(
+      (sum, row) => sum + num(row.totalInterestDueAmount),
+      0
     );
-    this.accruedInterest = unpaidRow ? num(unpaidRow.totalInterestDueAmount) : 0;
+    const totalInterestPaid = schedule.reduce(
+      (sum, row) => sum + num(row.interestPaidAmount),
+      0
+    );
 
+    this.accruedInterest = Math.max(totalInterestDue - totalInterestPaid, 0);
     this.totalOutstanding = this.principalOutstanding + this.accruedInterest;
   }
 
@@ -171,7 +179,14 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
       return;
     }
     this.isSaving = true;
-    this.personalService.saveRepaymentScheduleDetails(this.scheduleData).subscribe({
+
+    // Attach totalDuePendingInterestAmount (same as accruedInterest / Interest due till date)
+    const payload = this.scheduleData.map(row => ({
+      ...row,
+      totalDuePendingInterestAmount: this.accruedInterest
+    }));
+
+    this.personalService.saveRepaymentScheduleDetails(payload).subscribe({
       next: (res: any) => {
         this.isSaving = false;
         const code = res?.code ?? res?.status;

@@ -39,8 +39,12 @@
               <td mat-cell *matCellDef="let row">{{ formatCurrency(row.monthlyInterestAmount) }}</td>
             </ng-container>
             <ng-container matColumnDef="totalInterestDueAmount">
-              <th mat-header-cell *matHeaderCellDef>Due</th>
+              <th mat-header-cell *matHeaderCellDef>Due Amount</th>
               <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalInterestDueAmount) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="monthlyRebateInterestAmount">
+              <th mat-header-cell *matHeaderCellDef>Monthly rebate</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.monthlyRebateInterestAmount) }}</td>
             </ng-container>
             <ng-container matColumnDef="interestPayDueDate">
               <th mat-header-cell *matHeaderCellDef>Due date</th>

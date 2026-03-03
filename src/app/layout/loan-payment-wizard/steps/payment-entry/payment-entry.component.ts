@@ -160,7 +160,8 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     if (this.paymentType === 'INTEREST_PAYMENT') {
       return amount >= min && amount <= this.getMaxAmount();
     }
-    return amount >= min && amount <= this.getMaxAmount();
+    // PART_PAYMENT: allow any amount >= minimum (no upper cap)
+    return amount >= min;
   }
 
   getAmountInfo(): { label: string; amount: number; type: string } {
@@ -293,10 +294,19 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     }
 
     if (!this.isAmountValid()) {
+      const amount = this.paymentForm.get('paymentAmount')?.value || 0;
+
       if (this.paymentType === 'INTEREST_PAYMENT') {
-        this.toastService.showWarning('Interest payment cannot exceed the outstanding (interest + principal) cap.');
+        const pendingInterest = this.getAccruedInterest();
+        if (amount < pendingInterest) {
+          this.toastService.showWarning(
+            `Please collect at least the pending interest of ${this.formatCurrency(pendingInterest)}.`
+          );
+        } else {
+          this.toastService.showWarning('Interest payment cannot exceed the outstanding (interest + principal) cap.');
+        }
       } else {
-        this.toastService.showWarning('Part payment amount cannot exceed the principal outstanding.');
+        this.toastService.showWarning('Please enter a payment amount greater than zero.');
       }
       return;
     }

@@ -3,7 +3,7 @@
     <div class="step-head" *ngIf="outstandingData">
       <span class="step-breadcrumb">Loan Payment · {{ getPaymentTypeLabel() }}</span>
       <h1 class="step-title">Payment details</h1>
-      <p class="step-desc">Enter amount and payment mode. Maximum payable: <strong>{{ formatCurrency(getMaxAmount()) }}</strong></p>
+      <p class="step-desc">Enter amount and payment mode for this loan account.</p>
     </div>
 
     <div class="summary-cards" *ngIf="outstandingData">
@@ -12,16 +12,18 @@
         <span class="summary-card-value mono">{{ loanAccountNumber }}</span>
       </div>
       <div class="summary-card-item">
-        <span class="summary-card-label">Principal</span>
+        <span class="summary-card-label">Net disbursed amount</span>
+        <span class="summary-card-value">
+          {{ formatCurrency(outstandingData?.totalScanctionedAmount || outstandingData?.principalOutstanding) }}
+        </span>
+      </div>
+      <div class="summary-card-item">
+        <span class="summary-card-label">Principal outstanding</span>
         <span class="summary-card-value">{{ formatCurrency(outstandingData?.principalOutstanding) }}</span>
       </div>
       <div class="summary-card-item">
-        <span class="summary-card-label">Accrued interest</span>
+        <span class="summary-card-label">Interest due (till date)</span>
         <span class="summary-card-value">{{ formatCurrency(outstandingData?.accruedInterest) }}</span>
-      </div>
-      <div class="summary-card-item highlight">
-        <span class="summary-card-label">Max payable</span>
-        <span class="summary-card-value">{{ formatCurrency(getMaxAmount()) }}</span>
       </div>
     </div>
 
@@ -57,7 +59,7 @@
               <div class="form-section">
                 <label class="form-label">Amount (₹) <span class="req">*</span></label>
                 <mat-form-field appearance="outline" class="full-width dense-field">
-                  <input matInput type="number" formControlName="paymentAmount" placeholder="0" [max]="getMaxAmount()">
+                  <input matInput type="number" formControlName="paymentAmount" placeholder="0">
                   <mat-error *ngIf="isFieldInvalid('paymentAmount')">Valid amount required</mat-error>
                 </mat-form-field>
                 <div class="quick-actions" *ngIf="getQuickAmountOptions().length">
@@ -123,12 +125,18 @@
         <div class="sidebar-card">
           <div class="sidebar-card-head">Account summary</div>
           <div class="sidebar-card-body">
-            <div class="sidebar-row">
-              <span>Max payable</span>
-              <strong>{{ formatCurrency(getMaxAmount()) }}</strong>
+            <div class="sidebar-row sub">
+              <span>Net disbursed amount</span>
+              <span>{{ formatCurrency(outstandingData?.totalScanctionedAmount || outstandingData?.principalOutstanding) }}</span>
             </div>
-            <div class="sidebar-row sub"><span>Principal</span><span>{{ formatCurrency(outstandingData?.principalOutstanding) }}</span></div>
-            <div class="sidebar-row sub"><span>Interest</span><span>{{ formatCurrency(outstandingData?.accruedInterest) }}</span></div>
+            <div class="sidebar-row sub">
+              <span>Principal outstanding</span>
+              <span>{{ formatCurrency(outstandingData?.principalOutstanding) }}</span>
+            </div>
+            <div class="sidebar-row sub">
+              <span>Interest due (till date)</span>
+              <span>{{ formatCurrency(outstandingData?.accruedInterest) }}</span>
+            </div>
           </div>
         </div>
         <div class="sidebar-card" *ngIf="paymentForm.get('paymentAmount')?.value">
@@ -144,8 +152,10 @@
               <span>{{ getAmountInfo().label }}</span>
               <strong>{{ formatCurrency(getAmountInfo().amount) }}</strong>
             </div>
-            <p class="sidebar-msg error" *ngIf="!isAmountValid() && (paymentForm.get('paymentAmount')?.value || 0) > getMaxAmount()">Amount exceeds max payable.</p>
-            <p class="sidebar-msg error" *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) < (outstandingData?.accruedInterest || 0)">Pay full accrued interest first.</p>
+            <p class="sidebar-msg error"
+               *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) < (outstandingData?.accruedInterest || 0)">
+              Pay pending interest (till date) first.
+            </p>
           </div>
         </div>
         <button mat-raised-button color="primary" class="btn-process"

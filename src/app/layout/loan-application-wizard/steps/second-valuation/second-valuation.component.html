@@ -532,7 +532,7 @@
             }}
           </span>
         </div>
-        <button mat-raised-button color="primary" (click)="submitAll()" class="submit-button">
+        <button mat-raised-button color="primary" [disabled]="isUpdateDisabled()" (click)="submitAll()" class="submit-button">
           <mat-icon>save</mat-icon>
           Update Second Valuation
         </button>
