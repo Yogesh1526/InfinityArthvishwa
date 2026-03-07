@@ -29,6 +29,8 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
   accruedInterest = 0;
   principalOutstanding = 0;
   totalOutstanding = 0;
+  /** First unpaid installment's interest (minimum acceptable interest payment) */
+  firstUnpaidInstallmentInterest = 0;
 
   displayedColumns = [
     'id',
@@ -109,13 +111,26 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
       (sum, row) => sum + num(row.totalInterestDueAmount),
       0
     );
-    const totalInterestPaid = schedule.reduce(
-      (sum, row) => sum + num(row.interestPaidAmount),
-      0
-    );
+    // Use interestPaidAmount when set; else use Paid column (paymentPaidAmount) when it's interest-only (principlePaidAmount === 0)
+    const totalInterestPaid = schedule.reduce((sum, row) => {
+      const interestPaid = num(row.interestPaidAmount);
+      const paymentPaid = num(row.paymentPaidAmount);
+      const principalPaid = num(row.principlePaidAmount);
+      if (interestPaid > 0) return sum + interestPaid;
+      if (paymentPaid > 0 && principalPaid === 0) return sum + paymentPaid; // Paid column = interest payment
+      return sum;
+    }, 0);
 
     this.accruedInterest = Math.max(totalInterestDue - totalInterestPaid, 0);
     this.totalOutstanding = this.principalOutstanding + this.accruedInterest;
+
+    // First unpaid installment interest = first row with no/little payment → use as min interest payment
+    const firstUnpaid = schedule.find(
+      (r) => num(r.paymentPaidAmount) === 0 || r.paymentPaidAmount == null || r.paymentPaidAmount === ''
+    );
+    this.firstUnpaidInstallmentInterest = firstUnpaid
+      ? num(firstUnpaid.totalInterestDueAmount) || num(firstUnpaid.monthlyInterestAmount) || 0
+      : 0;
   }
 
   private loadOutstandingDetails(): void {
@@ -136,6 +151,7 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
           if (this.scheduleData.length > 0) {
             this.deriveOutstandingFromSchedule(this.scheduleData);
           } else {
+            this.firstUnpaidInstallmentInterest = 0;
             this.principalOutstanding = data.totalOutstandingAmount != null ? Number(data.totalOutstandingAmount) : 0;
             if (data.dailyInterestRate != null && this.daysElapsed > 0) {
               this.accruedInterest =
@@ -150,6 +166,7 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
           this.outstandingData.principalOutstanding = this.principalOutstanding;
           this.outstandingData.totalOutstanding = this.totalOutstanding;
           this.outstandingData.daysElapsed = this.daysElapsed;
+          this.outstandingData.firstUnpaidInstallmentInterest = this.firstUnpaidInstallmentInterest;
 
           this.dataLoaded.emit(this.outstandingData);
         }
@@ -165,6 +182,7 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
           this.outstandingData.principalOutstanding = this.principalOutstanding;
           this.outstandingData.totalOutstanding = this.totalOutstanding;
           this.outstandingData.daysElapsed = this.daysElapsed;
+          this.outstandingData.firstUnpaidInstallmentInterest = this.firstUnpaidInstallmentInterest;
           this.dataLoaded.emit(this.outstandingData);
         } else {
           this.toastService.showError('Failed to load outstanding details. Please try again.');

@@ -136,10 +136,13 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     return this.outstandingData?.accruedInterest || 0;
   }
 
-  private getMinimumAmount(): number {
+  /** Minimum interest = first unpaid installment (e.g. first month ₹2,906); fallback to full accrued */
+  getMinimumAmount(): number {
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      const interest = this.getAccruedInterest();
-      return interest > 0 ? interest : 1;
+      const firstUnpaid = this.outstandingData?.firstUnpaidInstallmentInterest ?? 0;
+      const accrued = this.getAccruedInterest();
+      if (firstUnpaid > 0) return firstUnpaid; // must pay at least one month's interest
+      return accrued > 0 ? accrued : 1;
     }
     return 1;
   }
@@ -158,7 +161,9 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     const min = this.getMinimumAmount();
 
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      return amount >= min && amount <= this.getMaxAmount();
+      const accrued = this.getAccruedInterest();
+      // Disable if amount > interest due (till date); and must be >= first unpaid installment
+      return amount >= min && amount <= accrued;
     }
     // PART_PAYMENT: allow any amount >= minimum (no upper cap)
     return amount >= min;
@@ -297,13 +302,18 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       const amount = this.paymentForm.get('paymentAmount')?.value || 0;
 
       if (this.paymentType === 'INTEREST_PAYMENT') {
-        const pendingInterest = this.getAccruedInterest();
-        if (amount < pendingInterest) {
+        const accrued = this.getAccruedInterest();
+        const minInstallment = this.getMinimumAmount();
+        if (amount > accrued) {
           this.toastService.showWarning(
-            `Please collect at least the pending interest of ${this.formatCurrency(pendingInterest)}.`
+            `Amount cannot exceed interest due (till date) of ${this.formatCurrency(accrued)}.`
+          );
+        } else if (amount < minInstallment && minInstallment > 0) {
+          this.toastService.showWarning(
+            `Pay at least the first unpaid installment interest of ${this.formatCurrency(minInstallment)}.`
           );
         } else {
-          this.toastService.showWarning('Interest payment cannot exceed the outstanding (interest + principal) cap.');
+          this.toastService.showWarning('Enter a valid interest payment amount.');
         }
       } else {
         this.toastService.showWarning('Please enter a payment amount greater than zero.');

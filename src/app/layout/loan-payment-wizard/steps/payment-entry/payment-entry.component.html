@@ -153,8 +153,12 @@
               <strong>{{ formatCurrency(getAmountInfo().amount) }}</strong>
             </div>
             <p class="sidebar-msg error"
-               *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) < (outstandingData?.accruedInterest || 0)">
-              Pay pending interest (till date) first.
+               *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) > (outstandingData?.accruedInterest || 0)">
+              Amount cannot exceed interest due (till date).
+            </p>
+            <p class="sidebar-msg error"
+               *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) < getMinimumAmount() && getMinimumAmount() > 0">
+              Pay at least first unpaid installment interest ({{ formatCurrency(getMinimumAmount()) }}).
             </p>
           </div>
         </div>
