@@ -603,5 +603,23 @@ export class PersonalDetailsService {
       responseType: 'blob'
     });
   }
+
+  /** Get pending payment customer list (for notification / interest due report) */
+  getPaymentPendingCustomerList(): Observable<{ code: number; message: string; data: PaymentPendingItem[] }> {
+    return this.http.get<{ code: number; message: string; data: PaymentPendingItem[] }>(
+      `${this.baseUrl}/payment-pending-customer-list/getPaymentList`
+    );
+  }
+}
+
+/** Matches API: payment-pending-customer-list. Due amount = interestAmount - rebateInterestAmount */
+export interface PaymentPendingItem {
+  loanAccountNumber: string;
+  mobileNumber: string;
+  dueDate: string;
+  customerId: string;
+  interestAmount: number;
+  customerName: string;
+  rebateInterestAmount: number;
 }
 

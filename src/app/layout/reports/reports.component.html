@@ -1,0 +1,48 @@
+<div class="reports-page">
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-icon-wrap">
+        <mat-icon>insights</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Reports</h1>
+        <p class="header-subtitle">Operational and risk reports for your gold loan business. Select a report to view details.</p>
+      </div>
+    </div>
+  </header>
+
+  <mat-card class="reports-card">
+    <div class="card-header">
+      <mat-icon>folder_open</mat-icon>
+      <span>Available reports</span>
+      <span class="count-badge">{{ reports.length }} report(s)</span>
+    </div>
+
+    <div class="reports-grid">
+      <div
+        *ngFor="let report of reports"
+        class="report-tile"
+        [class.disabled]="report.comingSoon"
+        [class.clickable]="!report.comingSoon && report.route"
+        (click)="openReport(report)">
+        <div class="tile-icon" [ngClass]="report.colorClass">
+          <mat-icon>{{ report.icon }}</mat-icon>
+        </div>
+        <div class="tile-body">
+          <h3 class="tile-title">{{ report.title }}</h3>
+          <p class="tile-desc">{{ report.description }}</p>
+          <div class="tile-action">
+            <span *ngIf="report.comingSoon" class="badge-soon">
+              <mat-icon>schedule</mat-icon>
+              Coming soon
+            </span>
+            <span *ngIf="!report.comingSoon && report.route" class="badge-open">
+              <mat-icon>arrow_forward</mat-icon>
+              Open report
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+</div>

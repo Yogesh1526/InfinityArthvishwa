@@ -1,0 +1,175 @@
+<div class="pending-page">
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-icon-wrap">
+        <mat-icon>pending_actions</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Pending Payment List</h1>
+        <p class="header-subtitle">View and manage customers with pending interest or dues. One row per customer; multiple loans shown in loan details.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="loadPaymentPendingList()" [disabled]="isLoading">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="stats-strip" *ngIf="!isLoading && dataSource.data.length">
+    <div class="stat-card stat-records">
+      <mat-icon>receipt_long</mat-icon>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalRecords }}</span>
+        <span class="stat-label">Pending records</span>
+      </div>
+    </div>
+    <div class="stat-card stat-customers">
+      <mat-icon>people</mat-icon>
+      <div class="stat-content">
+        <span class="stat-value">{{ uniqueCustomers }}</span>
+        <span class="stat-label">Customers</span>
+      </div>
+    </div>
+    <div class="stat-card stat-amount">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatCurrency(totalDueAmount) }}</span>
+        <span class="stat-label">Total due</span>
+      </div>
+    </div>
+  </div>
+
+  <mat-card class="table-card">
+    <div class="table-card-header">
+      <div class="table-title">
+        <mat-icon>table_chart</mat-icon>
+        <span>Payment details</span>
+        <span class="count-badge">{{ dataSource.filteredData.length }} of {{ dataSource.data.length }} customer(s)</span>
+      </div>
+      <div class="header-right" *ngIf="!isLoading && !errorMessage && dataSource.data.length">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search</mat-label>
+          <input
+            matInput
+            [(ngModel)]="searchText"
+            (keyup)="applySearch()"
+            placeholder="Customer ID, name, mobile, loan account..."
+            autocomplete="off" />
+          <mat-icon matPrefix>search</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            *ngIf="searchText"
+            (click)="clearSearch()"
+            type="button"
+            aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="isLoading">
+      <mat-spinner diameter="44"></mat-spinner>
+      <p>Loading pending payment list…</p>
+    </div>
+
+    <div class="error-state" *ngIf="!isLoading && errorMessage">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+      <button mat-stroked-button color="primary" (click)="loadPaymentPendingList()">Retry</button>
+    </div>
+
+    <div class="no-results" *ngIf="!isLoading && !errorMessage && dataSource.data.length && dataSource.filteredData.length === 0">
+      <mat-icon>search_off</mat-icon>
+      <p>No customers match your search. Try a different customer ID, name, mobile or loan account number.</p>
+      <button mat-stroked-button (click)="clearSearch()">Clear search</button>
+    </div>
+
+    <div class="table-container" *ngIf="!isLoading && !errorMessage && dataSource.data.length && dataSource.filteredData.length; else emptyState">
+      <table mat-table [dataSource]="dataSource" matSort class="data-table">
+        <ng-container matColumnDef="srNo">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index" class="col-sr">
+            {{ (dataSource.paginator?.pageIndex ?? 0) * (dataSource.paginator?.pageSize ?? 10) + i + 1 }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="customerId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer ID</th>
+          <td mat-cell *matCellDef="let row" class="col-id">
+            <button mat-button class="link-button" (click)="viewCustomerProfile(row)">
+              {{ row.customerId }}
+            </button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="customerName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer name</th>
+          <td mat-cell *matCellDef="let row" class="col-name">{{ row.customerName || '–' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="mobileNumber">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Mobile</th>
+          <td mat-cell *matCellDef="let row" class="col-mobile">{{ row.mobileNumber || '–' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="loanCount">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Loans</th>
+          <td mat-cell *matCellDef="let row" class="col-loan-count">
+            <span class="loan-count-badge">{{ row.loanCount }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="loans">
+          <th mat-header-cell *matHeaderCellDef>Loan details</th>
+          <td mat-cell *matCellDef="let row" class="col-loans">
+            <ul class="loan-list">
+              <li class="loan-item" *ngFor="let loan of row.loans">
+                <button
+                  mat-button
+                  class="link-button loan-acc"
+                  (click)="viewLoanPayment(row, loan)">
+                  {{ loan.loanAccountNumber }}
+                </button>
+                <button
+                  mat-icon-button
+                  matTooltip="View repayment schedule"
+                  class="view-schedule-btn"
+                  (click)="openRepaymentScheduleDialog(row, loan)"
+                  aria-label="View repayment schedule">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <span class="loan-meta">{{ formatCurrency(loan.dueAmount) }}</span>
+              </li>
+            </ul>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalDueAmount">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Total due</th>
+          <td mat-cell *matCellDef="let row" class="col-amount">{{ formatCurrency(row.totalDueAmount) }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="data-row"></tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageSize]="10"
+        showFirstLastButtons
+        class="table-paginator">
+      </mat-paginator>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state" *ngIf="!isLoading && !errorMessage && !dataSource.data.length">
+        <mat-icon>inbox</mat-icon>
+        <p>No pending payment records.</p>
+      </div>
+    </ng-template>
+  </mat-card>
+</div>

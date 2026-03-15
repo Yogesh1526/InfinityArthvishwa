@@ -1,0 +1,91 @@
+<h2 mat-dialog-title>Interest Due – Current Month</h2>
+
+<mat-dialog-content class="dialog-content">
+  <p class="subtitle">
+    Showing customers whose interest due date is in the current month and whether the previous interest is paid.
+  </p>
+
+  <div class="table-wrapper" *ngIf="dataSource.data.length; else emptyState">
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 full-width-table">
+      <ng-container matColumnDef="srNo">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+        <td mat-cell *matCellDef="let row; let i = index">
+          {{ i + 1 }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="customerId">
+        <th mat-header-cell *matHeaderCellDef>Customer ID</th>
+        <td mat-cell *matCellDef="let row">
+          {{ row.customerId }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="customerName">
+        <th mat-header-cell *matHeaderCellDef>Customer</th>
+        <td mat-cell *matCellDef="let row">
+          {{ row.customerName || '–' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="goldLoanNumber">
+        <th mat-header-cell *matHeaderCellDef>Gold Loan No.</th>
+        <td mat-cell *matCellDef="let row">
+          {{ row.goldLoanNumber }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="interestDueDate">
+        <th mat-header-cell *matHeaderCellDef>Interest Due Date</th>
+        <td mat-cell *matCellDef="let row">
+          {{ formatDate(row.interestDueDate) }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="previousInterestPaid">
+        <th mat-header-cell *matHeaderCellDef>Previous Interest</th>
+        <td mat-cell *matCellDef="let row">
+          <span
+            class="status-chip"
+            [ngClass]="row.previousInterestPaid ? 'status-paid' : 'status-unpaid'"
+          >
+            {{ row.previousInterestPaid ? 'Paid' : 'Not Paid' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastInterestPaymentDate">
+        <th mat-header-cell *matHeaderCellDef>Last Int. Payment Date</th>
+        <td mat-cell *matCellDef="let row">
+          {{ formatDate(row.lastInterestPaymentDate) }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastInterestAmount">
+        <th mat-header-cell *matHeaderCellDef>Last Int. Amount</th>
+        <td mat-cell *matCellDef="let row">
+          {{ formatCurrency(row.lastInterestAmount) }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        [class.row-unpaid]="!row.previousInterestPaid"
+      ></tr>
+    </table>
+  </div>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <mat-icon>info</mat-icon>
+      <p>No customers have interest due in the current month.</p>
+    </div>
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button mat-dialog-close (click)="close()">Close</button>
+</mat-dialog-actions>
+

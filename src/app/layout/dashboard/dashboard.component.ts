@@ -60,6 +60,9 @@ export class DashboardComponent implements OnInit {
 
   recentApplications: DashboardApplication[] = [];
 
+  /** Unique customers with pending interest this month (from payment-pending API) */
+  interestDueCustomerCount = 0;
+
   constructor(
     public dialog: MatDialog,
     private router: Router,
@@ -68,6 +71,23 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+    this.loadInterestDueCount();
+  }
+
+  loadInterestDueCount(): void {
+    this.personalService.getPaymentPendingCustomerList().subscribe({
+      next: (res) => {
+        if (res?.code === 200 && Array.isArray(res?.data)) {
+          const uniqueIds = new Set((res.data as any[]).map((r: any) => r.customerId).filter(Boolean));
+          this.interestDueCustomerCount = uniqueIds.size;
+        } else {
+          this.interestDueCustomerCount = 0;
+        }
+      },
+      error: () => {
+        this.interestDueCustomerCount = 0;
+      }
+    });
   }
 
   loadDashboardData(): void {
@@ -111,7 +131,7 @@ export class DashboardComponent implements OnInit {
             customerId: c.customerId ?? c.id?.toString() ?? 'N/A',
             customerName: name,
             amount: loanAmount != null ? Number(loanAmount) : 0,
-            status: c.applicationStatus ?? (isDisbursed ? 'Active' : 'In Process') ?? 'N/A',
+            status: c.applicationStatus || (isDisbursed ? 'Active' : 'In Process'),
             date: this.formatDate(loanDateRaw)
           });
         });
@@ -137,11 +157,13 @@ export class DashboardComponent implements OnInit {
     const last6Months: string[] = [];
     const monthCounts: number[] = [];
     const disbursementByMonth: number[] = [];
+    const disbursedCountByMonth: number[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       last6Months.push(d.toLocaleString('en-US', { month: 'short' }) + ' \'' + d.getFullYear().toString().slice(-2));
       monthCounts.push(0);
       disbursementByMonth.push(0);
+      disbursedCountByMonth.push(0);
     }
 
     const statusCounts = { disbursed: 0, inProcess: 0, approved: 0, pending: 0, rejected: 0 };
@@ -200,6 +222,7 @@ export class DashboardComponent implements OnInit {
               const bucketEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0);
               if (d >= bucketStart && d <= bucketEnd) {
                 disbursementByMonth[i] += amt;
+                disbursedCountByMonth[i] += 1;
                 break;
               }
             }
@@ -280,6 +303,25 @@ export class DashboardComponent implements OnInit {
       yAxis: { type: 'value', name: 'Count', minInterval: 1 },
       series: [{ type: 'bar', data: amountValues, itemStyle: { color: '#ff9800' }, name: 'Loans' }]
     };
+
+    const pendingByMonth = last6Months.map((_, i) => Math.max(0, (monthCounts[i] || 0) - (disbursedCountByMonth[i] || 0)));
+    this.disbursedCountChart = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' }
+      },
+      legend: {
+        data: ['Disbursed', 'Pending'],
+        bottom: 0
+      },
+      grid: { top: 25, right: 20, bottom: 45, left: 50 },
+      xAxis: { type: 'category', data: last6Months, axisLabel: { rotate: 30 } },
+      yAxis: { type: 'value', name: 'Loans', minInterval: 1 },
+      series: [
+        { type: 'bar', stack: 'total', data: disbursedCountByMonth, itemStyle: { color: '#2e7d32' }, name: 'Disbursed' },
+        { type: 'bar', stack: 'total', data: pendingByMonth, itemStyle: { color: '#ff9800' }, name: 'Pending' }
+      ]
+    };
   }
 
   formatDate(dateVal: string | Date | null | undefined): string {
@@ -298,7 +340,8 @@ export class DashboardComponent implements OnInit {
       bar: this.barChart,
       line: this.lineChart,
       pie: this.pieChart,
-      amountBand: this.amountBandChart
+      amountBand: this.amountBandChart,
+      disbursedCount: this.disbursedCountChart
     };
     this.dialog.open(ChartDialogComponent, {
       width: '800px',
@@ -376,6 +419,18 @@ export class DashboardComponent implements OnInit {
     series: [{ type: 'bar', data: [0, 0, 0, 0, 0], itemStyle: { color: '#ff9800' } }]
   };
 
+  disbursedCountChart: any = {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: { data: ['Disbursed', 'Pending'], bottom: 0 },
+    grid: { top: 25, right: 20, bottom: 45, left: 50 },
+    xAxis: { type: 'category', data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+    yAxis: { type: 'value', name: 'Loans', minInterval: 1 },
+    series: [
+      { type: 'bar', stack: 'total', data: [0, 0, 0, 0, 0, 0], itemStyle: { color: '#2e7d32' }, name: 'Disbursed' },
+      { type: 'bar', stack: 'total', data: [0, 0, 0, 0, 0, 0], itemStyle: { color: '#ff9800' }, name: 'Pending' }
+    ]
+  };
+
   quickActions = [
     { label: 'New Application', icon: 'add_circle', action: 'newApplication' },
     { label: 'Add Customer', icon: 'person_add', action: 'addCustomer' },
@@ -424,10 +479,11 @@ export class DashboardComponent implements OnInit {
       type: 'success'
     },
     { 
-      title: 'Customer profile updated', 
+      titleKey: 'interestDue',
       time: '1 hour ago',
-      icon: 'edit',
-      type: 'info'
+      icon: 'notifications_active',
+      type: 'warning',
+      action: 'interestDue'
     },
     { 
       title: 'Loan approved for Jane Smith', 
@@ -442,6 +498,19 @@ export class DashboardComponent implements OnInit {
       type: 'warning'
     }
   ];
+
+  onActivityClick(activity: any): void {
+    if (activity?.action === 'interestDue') {
+      this.router.navigate(['/interest-due-current-month']);
+    }
+  }
+
+  getActivityTitle(activity: any): string {
+    if (activity?.titleKey === 'interestDue') {
+      return `Interest due for ${this.interestDueCustomerCount} customer${this.interestDueCustomerCount === 1 ? '' : 's'} this month`;
+    }
+    return activity?.title ?? '';
+  }
 
   getStatusClass(status: string): string {
     const s = (status || '').toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-');

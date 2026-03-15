@@ -22,6 +22,8 @@ import { UserListComponent } from './layout/user-management/user-list/user-list.
 import { UserFormComponent } from './layout/user-management/user-form/user-form.component';
 import { UserViewComponent } from './layout/user-management/user-view/user-view.component';
 import { RoleGuard } from './auth/role.guard';
+import { InterestDueCurrentMonthPageComponent } from './layout/interest-due-current-month-page/interest-due-current-month-page.component';
+import { ReportsComponent } from './layout/reports/reports.component';
 
 const routes: Routes = [
   // Default path redirects to login
@@ -114,9 +116,19 @@ const routes: Routes = [
         component: LoanInfoDetailsTableComponent,
         canActivate: [AuthGuard]
       },
+      {
+        path: 'interest-due-current-month',
+        component: InterestDueCurrentMonthPageComponent,
+        canActivate: [AuthGuard]
+      },
       { 
         path: 'gold-rate', 
         component: GoldRateComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'reports',
+        component: ReportsComponent,
         canActivate: [AuthGuard]
       },
       { 

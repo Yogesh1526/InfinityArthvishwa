@@ -1,7 +1,12 @@
 <header class="header">
     <div class="header-left">
-      <mat-icon class="menu-icon" (click)="toggleSidebar.emit()">menu</mat-icon>
-      <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv Logo" class="header-logo" />
+      <button mat-icon-button class="menu-btn" (click)="toggleSidebar.emit()" aria-label="Toggle menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <div class="logo-wrap">
+        <img src="assets/Images/Dhanprerna Finserv Logo_C2C.jpg" alt="Dhanprerna Finserv Logo" class="header-logo" />
+      </div>
+      <div class="header-divider" aria-hidden="true"></div>
     </div>
   
     <nav class="header-nav">
@@ -9,25 +14,17 @@
           <mat-icon>dashboard</mat-icon>
           <span>Dashboard</span>
         </a>
-        <a (click)="navigateTo('worklist')" routerLinkActive="active">
-          <mat-icon>assignment</mat-icon>
-          <span>Task</span>
-        </a>
         <a (click)="navigateTo('loan-info-details')" routerLinkActive="active">
           <mat-icon>description</mat-icon>
           <span>Loan Application</span>
         </a>
-        <a (click)="navigateTo('loan-info')" routerLinkActive="active">
-          <mat-icon>account_balance_wallet</mat-icon>
-          <span>Collection</span>
-        </a>
-        <a (click)="navigateTo('loan-wizard')" routerLinkActive="active">
-          <mat-icon>people</mat-icon>
-          <span>Customer</span>
-        </a>
         <a (click)="navigateTo('gold-rate')" routerLinkActive="active">
           <mat-icon>monetization_on</mat-icon>
           <span>Gold Rate</span>
+        </a>
+        <a (click)="navigateTo('reports')" routerLinkActive="active">
+          <mat-icon>insights</mat-icon>
+          <span>Reports</span>
         </a>
         <a *ngIf="isAdmin" (click)="navigateTo('users')" routerLinkActive="active" class="admin-link">
           <mat-icon>manage_accounts</mat-icon>
@@ -41,9 +38,15 @@
       
   
     <div class="header-right">
-      <mat-icon class="header-icon" matTooltip="Search" (click)="navigateTo('dashboard')">search</mat-icon>
-      <mat-icon class="header-icon" matTooltip="Notifications" (click)="navigateTo('dashboard')">notifications</mat-icon>
-      
+      <div class="header-actions">
+        <button mat-icon-button class="action-btn" matTooltip="Search" (click)="navigateTo('dashboard')" aria-label="Search">
+          <mat-icon>search</mat-icon>
+        </button>
+        <button mat-icon-button class="action-btn" matTooltip="Notifications" (click)="navigateTo('interest-due-current-month')" aria-label="Notifications">
+          <mat-icon>notifications</mat-icon>
+        </button>
+      </div>
+      <div class="header-divider header-divider-right" aria-hidden="true"></div>
       <!-- User Profile Menu -->
       <div class="profile-container" (click)="toggleUserMenu()">
         <div class="profile">

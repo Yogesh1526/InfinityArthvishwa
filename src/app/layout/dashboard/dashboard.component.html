@@ -111,8 +111,22 @@
         </mat-card>
       </div>
 
-      <!-- Third Row - Loan Amount Distribution -->
+      <!-- Third Row - Monthly Disbursed Loans & Loan Amount Distribution -->
       <div class="charts-row">
+        <mat-card class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">
+              <mat-icon>trending_up</mat-icon>
+              <span>Monthly Disbursed Loans</span>
+            </div>
+            <button mat-icon-button (click)="openChartDialog('disbursedCount')" matTooltip="Expand Chart">
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+          <div class="chart-container">
+            <echarts [options]="disbursedCountChart" class="chart"></echarts>
+          </div>
+        </mat-card>
         <mat-card class="chart-card">
           <div class="chart-card-header">
             <div class="chart-title">
@@ -153,12 +167,16 @@
           <span>Recent Activities</span>
         </div>
         <div class="activities-list">
-          <div class="activity-item" *ngFor="let activity of recentActivities">
+          <div
+            class="activity-item"
+            *ngFor="let activity of recentActivities"
+            (click)="onActivityClick(activity)"
+          >
             <div class="activity-icon" [ngClass]="activity.type">
               <mat-icon>{{ activity.icon }}</mat-icon>
             </div>
             <div class="activity-content">
-              <div class="activity-title">{{ activity.title }}</div>
+              <div class="activity-title">{{ getActivityTitle(activity) }}</div>
               <div class="activity-time">{{ activity.time }}</div>
             </div>
           </div>

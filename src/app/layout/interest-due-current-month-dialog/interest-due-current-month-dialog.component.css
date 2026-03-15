@@ -1,0 +1,52 @@
+.dialog-content {
+  min-width: 900px;
+}
+
+.subtitle {
+  margin-bottom: 12px;
+  color: #555;
+}
+
+.table-wrapper {
+  max-height: 450px;
+  overflow: auto;
+}
+
+.full-width-table {
+  width: 100%;
+}
+
+.status-chip {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-paid {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-unpaid {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.row-unpaid {
+  background-color: #fff7f7;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0;
+  color: #777;
+}
+
+.empty-state mat-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+

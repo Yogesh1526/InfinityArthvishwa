@@ -61,6 +61,10 @@ import { PaymentTypeSelectionComponent } from './loan-payment-wizard/steps/payme
 import { RepaymentScheduleSummaryComponent } from './loan-payment-wizard/steps/repayment-schedule-summary/repayment-schedule-summary.component';
 import { PaymentEntryComponent } from './loan-payment-wizard/steps/payment-entry/payment-entry.component';
 import { PaymentConfirmationComponent } from './loan-payment-wizard/steps/payment-confirmation/payment-confirmation.component';
+import { InterestDueCurrentMonthDialogComponent } from './interest-due-current-month-dialog/interest-due-current-month-dialog.component';
+import { InterestDueCurrentMonthPageComponent } from './interest-due-current-month-page/interest-due-current-month-page.component';
+import { RepaymentScheduleDialogComponent } from './repayment-schedule-dialog/repayment-schedule-dialog.component';
+import { ReportsComponent } from './reports/reports.component';
 
 
 
@@ -120,7 +124,11 @@ import { PaymentConfirmationComponent } from './loan-payment-wizard/steps/paymen
     PaymentTypeSelectionComponent,
     RepaymentScheduleSummaryComponent,
     PaymentEntryComponent,
-    PaymentConfirmationComponent
+    PaymentConfirmationComponent,
+    InterestDueCurrentMonthDialogComponent,
+    InterestDueCurrentMonthPageComponent,
+    RepaymentScheduleDialogComponent,
+    ReportsComponent
   ],
   imports: [
     CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,WebcamModule,

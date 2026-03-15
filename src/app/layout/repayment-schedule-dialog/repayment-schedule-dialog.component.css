@@ -1,0 +1,122 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a237e;
+}
+
+.dialog-title mat-icon {
+  color: #3949ab;
+}
+
+.mat-mdc-dialog-content {
+  padding: 20px 24px !important;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  gap: 12px;
+}
+
+.loading-state p,
+.error-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+}
+
+.error-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #c62828;
+}
+
+.schedule-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schedule-count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #5c6bc0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.schedule-table {
+  width: 100%;
+  min-width: 900px;
+  background: #fff;
+}
+
+.schedule-table th.mat-header-cell {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #3949ab;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 12px;
+  background: #f5f7ff;
+  border-bottom: 2px solid #c5cae9;
+}
+
+.schedule-table td.mat-cell {
+  font-size: 0.8125rem;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8eaf6;
+  color: #37474f;
+}
+
+.schedule-table tr.mat-row:hover {
+  background: #f5f7ff;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: #64748b;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  color: #9fa8da;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.mat-mdc-dialog-actions {
+  padding: 12px 24px 16px !important;
+  border-top: 1px solid #e2e8f0;
+}
+
+.mat-mdc-dialog-actions button:first-child {
+  margin-right: 8px;
+}
