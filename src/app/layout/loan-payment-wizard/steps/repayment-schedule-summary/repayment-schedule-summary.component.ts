@@ -133,6 +133,69 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
       : 0;
   }
 
+  /**
+   * Monthly rebate from schedule for payment / waiver UI.
+   * 1) Prefer unpaid row with due in **current month**, due date **already passed**, rebate &gt; 0 (late pay).
+   * 2) Else use unpaid row with due in **current month** and rebate &gt; 0 (e.g. pay March interest in March before due date; Feb row missing and March is the current-month line).
+   */
+  private computeScheduleSuggestedRebate(schedule: any[]): { amount: number; dueDate: string } | null {
+    const num = (v: any) => (v != null && v !== '' ? Number(v) : 0);
+    const isUnpaid = (r: any) =>
+      num(r.paymentPaidAmount) === 0 || r.paymentPaidAmount == null || r.paymentPaidAmount === '';
+
+    const unpaidRows = schedule.filter(isUnpaid);
+    if (!unpaidRows.length) return null;
+
+    const now = new Date();
+    const cy = now.getFullYear();
+    const cm = now.getMonth();
+    const todayDay = new Date(cy, cm, now.getDate());
+
+    const parseDue = (r: any): Date | null => {
+      const raw = r.interestPayDueDate;
+      if (!raw) return null;
+      const d = new Date(raw);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const inCurrentMonth = (d: Date) => d.getFullYear() === cy && d.getMonth() === cm;
+
+    type Cand = { row: any; due: Date; dueRaw: string; rebate: number };
+    const candidates: Cand[] = [];
+    for (const row of unpaidRows) {
+      const due = parseDue(row);
+      if (!due || !inCurrentMonth(due)) continue;
+      const rebate = num(row.monthlyRebateInterestAmount);
+      if (rebate <= 0) continue;
+      candidates.push({ row, due, dueRaw: String(row.interestPayDueDate), rebate });
+    }
+
+    if (!candidates.length) return null;
+
+    candidates.sort((a, b) => a.due.getTime() - b.due.getTime());
+
+    const dueDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const late = candidates.find((c) => dueDay(c.due) < todayDay);
+    const pick = late ?? candidates[0];
+
+    return { amount: pick.rebate, dueDate: pick.dueRaw };
+  }
+
+  /** Attach readonly suggested rebate fields for loan-payment interest step */
+  private enrichOutstandingWithScheduleRebate(): void {
+    if (!this.outstandingData) return;
+    if (this.scheduleData?.length > 0) {
+      const meta = this.computeScheduleSuggestedRebate(this.scheduleData);
+      this.outstandingData.scheduleSuggestedRebateAmount = meta?.amount ?? null;
+      this.outstandingData.scheduleSuggestedRebateDueDate = meta?.dueDate ?? null;
+      this.outstandingData.waiverInterestDueDate =
+        meta?.dueDate ?? this.outstandingData.waiverInterestDueDate ?? null;
+    } else {
+      this.outstandingData.scheduleSuggestedRebateAmount = null;
+      this.outstandingData.scheduleSuggestedRebateDueDate = null;
+    }
+  }
+
   private loadOutstandingDetails(): void {
     this.personalService.getOutstandingLoanAmountDetails(this.customerId, this.loanAccountNumber).subscribe({
       next: (res: any) => {
@@ -168,6 +231,7 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
           this.outstandingData.daysElapsed = this.daysElapsed;
           this.outstandingData.firstUnpaidInstallmentInterest = this.firstUnpaidInstallmentInterest;
 
+          this.enrichOutstandingWithScheduleRebate();
           this.dataLoaded.emit(this.outstandingData);
         }
         this.isLoading = false;
@@ -183,6 +247,7 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
           this.outstandingData.totalOutstanding = this.totalOutstanding;
           this.outstandingData.daysElapsed = this.daysElapsed;
           this.outstandingData.firstUnpaidInstallmentInterest = this.firstUnpaidInstallmentInterest;
+          this.enrichOutstandingWithScheduleRebate();
           this.dataLoaded.emit(this.outstandingData);
         } else {
           this.toastService.showError('Failed to load outstanding details. Please try again.');

@@ -41,12 +41,28 @@
             </mat-form-field>
           </div>
           <div class="form-group">
-            <label class="form-label">Amount (INR) <span class="required">*</span></label>
+            <label class="form-label">
+              <ng-container *ngIf="paymentForm.get('applyRebate')?.value">Amount (INR) — net due after rebate</ng-container>
+              <ng-container *ngIf="!paymentForm.get('applyRebate')?.value">Amount (INR)</ng-container>
+              <span class="required">*</span>
+            </label>
             <div class="amount-input-wrapper">
               <span class="currency-symbol">₹</span>
               <mat-form-field appearance="outline" class="amount-field">
-                <input matInput type="number" formControlName="paymentAmount" placeholder="Enter amount" class="amount-input">
-                <mat-error *ngIf="isFieldInvalid('paymentAmount')">Valid amount required</mat-error>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="paymentAmount"
+                  placeholder="Enter amount"
+                  class="amount-input"
+                  [readonly]="paymentForm.get('applyRebate')?.value"
+                  [class.readonly-rebate]="paymentForm.get('applyRebate')?.value">
+                <mat-hint *ngIf="!paymentForm.get('applyRebate')?.value">Prefilled from Total Outstanding Amount (same as step 1)</mat-hint>
+                <mat-hint *ngIf="paymentForm.get('applyRebate')?.value">Matches net amount due (sent as repayment amount)</mat-hint>
+                <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('required')">Valid amount required</mat-error>
+                <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('min')">Below minimum</mat-error>
+                <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('mustMatchNet')">Must equal net due after rebate</mat-error>
+                <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('maxAmount')">Cannot exceed total outstanding</mat-error>
               </mat-form-field>
             </div>
           </div>
@@ -107,6 +123,54 @@
             <textarea matInput formControlName="remarks" rows="3" placeholder="Any additional notes..."></textarea>
           </mat-form-field>
         </div>
+
+        <!-- Rebate (aligned with loan-payment wizard: schedule suggestion + waiver fields on save) -->
+        <div class="rebate-section">
+          <mat-checkbox formControlName="applyRebate" color="primary" class="rebate-checkbox">
+            Apply rebate / discount on outstanding
+          </mat-checkbox>
+          <p class="rebate-hint">Rebate reduces total outstanding for closure. Payment amount is set to net due after rebate.</p>
+          <p class="schedule-rebate-note" *ngIf="paymentForm.get('applyRebate')?.value && getScheduleSuggestedRebate() > 0">
+            <mat-icon>calendar_month</mat-icon>
+            From repayment schedule: due <strong>{{ formatScheduleDueShort() }}</strong> — suggested rebate
+            <strong>{{ formatCurrency(getScheduleSuggestedRebate()) }}</strong>
+            <ng-container *ngIf="isScheduleRebateReadonly()"> (read-only).</ng-container>
+          </p>
+
+          <div class="rebate-fields" *ngIf="paymentForm.get('applyRebate')?.value">
+            <div class="form-group">
+              <label class="form-label">Rebate amount (INR) <span class="required">*</span></label>
+              <div class="amount-input-wrapper">
+                <span class="currency-symbol">₹</span>
+                <mat-form-field appearance="outline" class="amount-field">
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="rebateAmount"
+                    placeholder="0.00"
+                    min="0.01"
+                    step="0.01"
+                    class="amount-input"
+                    [readonly]="isScheduleRebateReadonly()"
+                    [class.readonly-rebate]="isScheduleRebateReadonly()">
+                  <mat-hint *ngIf="!isScheduleRebateReadonly()">Enter manually if schedule did not suggest a rebate</mat-hint>
+                  <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('required')">Enter rebate amount</mat-error>
+                  <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('min')">Must be greater than 0</mat-error>
+                  <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('rebateTooHigh')">Cannot exceed total outstanding</mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reason for rebate <span class="required">*</span></label>
+              <mat-form-field appearance="outline">
+                <textarea matInput formControlName="rebateReason" rows="2" maxlength="500" placeholder="e.g. Payment on due date but recorded late; bank holidays…"></textarea>
+                <mat-hint align="end">{{ (paymentForm.get('rebateReason')?.value || '').length }} / 500</mat-hint>
+                <mat-error *ngIf="paymentForm.get('rebateReason')?.hasError('required')">Reason is required</mat-error>
+                <mat-error *ngIf="paymentForm.get('rebateReason')?.hasError('minlength')">At least 5 characters</mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
 
@@ -119,9 +183,11 @@
           <span>Amount Due</span>
         </div>
         <div class="outstanding-amount">
-          {{ formatCurrency(outstandingData?.totalOutstanding || 0) }}
+          {{ formatCurrency(getDisplayAmountDue()) }}
         </div>
-        <div class="outstanding-note">Total outstanding for loan closure</div>
+        <div class="outstanding-note" *ngIf="!paymentForm.get('applyRebate')?.value">Same as Outstanding Details — Total Outstanding Amount</div>
+        <div class="outstanding-note" *ngIf="paymentForm.get('applyRebate')?.value && getRebateAmountNumber() > 0">Net due after rebate (gross {{ formatCurrency(getTotalOutstandingAmountDue()) }})</div>
+        <div class="outstanding-note" *ngIf="paymentForm.get('applyRebate')?.value && !(getRebateAmountNumber() > 0)">Enter rebate — amount due will update to net</div>
       </div>
 
       <!-- Payment Summary -->
@@ -129,8 +195,18 @@
         <h4>Payment Summary</h4>
         
         <div class="summary-row">
-          <span>Outstanding Amount</span>
-          <span>{{ formatCurrency(outstandingData?.totalOutstanding || 0) }}</span>
+          <span>Total outstanding amount</span>
+          <span>{{ formatCurrency(getTotalOutstandingAmountDue()) }}</span>
+        </div>
+
+        <div class="summary-row rebate-line" *ngIf="paymentForm.get('applyRebate')?.value && getRebateAmountNumber() > 0">
+          <span>Rebate / discount</span>
+          <span class="rebate-val">− {{ formatCurrency(getRebateAmountNumber()) }}</span>
+        </div>
+
+        <div class="summary-row net-due" *ngIf="paymentForm.get('applyRebate')?.value && getRebateAmountNumber() > 0">
+          <span><strong>Net amount due</strong></span>
+          <span><strong>{{ formatCurrency(getNetAmountDue()) }}</strong></span>
         </div>
         
         <div class="summary-row">
@@ -148,7 +224,7 @@
         <!-- Warning/Info Messages -->
         <div class="summary-message warning" *ngIf="getDifferenceAmount() < 0">
           <mat-icon>error</mat-icon>
-          <span>Insufficient amount. Please pay full outstanding.</span>
+          <span>Insufficient amount. Pay at least the {{ paymentForm.get('applyRebate')?.value ? 'net amount due' : 'outstanding amount' }}.</span>
         </div>
 
         <div class="summary-message info" *ngIf="getDifferenceAmount() > 0">
@@ -220,6 +296,18 @@
               <mat-icon class="status-icon">check_circle</mat-icon>
               {{ savedData?.paymentStatus || 'SUCCESS' }}
             </span>
+          </div>
+          <div class="receipt-row" *ngIf="savedData?.waiverFlag === 'Yes' || savedData?.rebateAmount">
+            <span class="receipt-label">Waiver / rebate</span>
+            <span class="receipt-value">{{ savedData?.waiverFlag === 'Yes' ? 'Yes' : (savedData?.rebateAmount ? 'Yes' : 'No') }}</span>
+          </div>
+          <div class="receipt-row" *ngIf="savedData?.rebateAmount > 0">
+            <span class="receipt-label">Rebate amount</span>
+            <span class="receipt-value">{{ formatCurrency(savedData?.rebateAmount) }}</span>
+          </div>
+          <div class="receipt-row" *ngIf="savedData?.rebateReason">
+            <span class="receipt-label">Rebate reason</span>
+            <span class="receipt-value small-text">{{ savedData?.rebateReason }}</span>
           </div>
           <div class="receipt-row highlight">
             <span class="receipt-label">Amount Paid</span>

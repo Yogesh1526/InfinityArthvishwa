@@ -1,13 +1,19 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-payment-type-selection',
   templateUrl: './payment-type-selection.component.html',
   styleUrls: ['./payment-type-selection.component.css']
 })
-export class PaymentTypeSelectionComponent {
+export class PaymentTypeSelectionComponent implements OnInit {
   @Input() selectedType: 'PART_PAYMENT' | 'INTEREST_PAYMENT' | '' = '';
   @Output() typeSelected = new EventEmitter<'PART_PAYMENT' | 'INTEREST_PAYMENT'>();
+
+  ngOnInit(): void {
+    if (this.selectedType === 'PART_PAYMENT' || this.selectedType === 'INTEREST_PAYMENT') {
+      this.typeSelected.emit(this.selectedType);
+    }
+  }
 
   paymentTypes = [
     {

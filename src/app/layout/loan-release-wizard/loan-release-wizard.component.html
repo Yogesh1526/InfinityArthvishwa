@@ -33,42 +33,52 @@
     <!-- Step Content -->
     <div class="wizard-step-content">
       <ng-container [ngSwitch]="activeStep">
-        <app-release-authorization 
-          #releaseAuthorizationRef 
+        <app-outstanding-details 
+          #outstandingDetailsRef 
           *ngSwitchCase="0" 
           [customerId]="customerId" 
           [loanAccountNumber]="loanAccountNumber"
           (stepCompleted)="markStepCompleted(0)"
-          (authorizationDataLoaded)="onAuthorizationDataLoaded($event)">
-        </app-release-authorization>
+          (dataLoaded)="onOutstandingDataLoaded($event)">
+        </app-outstanding-details>
 
-        <app-outstanding-details 
-          #outstandingDetailsRef 
+        <app-release-authorization 
+          #releaseAuthorizationRef 
           *ngSwitchCase="1" 
           [customerId]="customerId" 
           [loanAccountNumber]="loanAccountNumber"
           (stepCompleted)="markStepCompleted(1)"
-          (dataLoaded)="onOutstandingDataLoaded($event)">
-        </app-outstanding-details>
+          (authorizationDataLoaded)="onAuthorizationDataLoaded($event)">
+        </app-release-authorization>
+
+        <app-repayment-schedule-summary 
+          #repaymentScheduleRef 
+          *ngSwitchCase="2"
+          [customerId]="customerId"
+          [loanAccountNumber]="loanAccountNumber"
+          [paymentType]="''"
+          (dataLoaded)="onOutstandingDataLoaded($event)"
+          (stepCompleted)="onRepaymentScheduleConfirmed()">
+        </app-repayment-schedule-summary>
 
         <app-payment-details 
           #paymentDetailsRef 
-          *ngSwitchCase="2" 
+          *ngSwitchCase="3" 
           [customerId]="customerId" 
           [loanAccountNumber]="loanAccountNumber"
           [outstandingData]="outstandingData"
-          (stepCompleted)="markStepCompleted(2)"
+          (stepCompleted)="markStepCompleted(3)"
           (paymentCompleted)="onPaymentCompleted($event)">
         </app-payment-details>
 
         <app-release-document 
           #releaseDocumentRef 
-          *ngSwitchCase="3" 
+          *ngSwitchCase="4" 
           [customerId]="customerId" 
           [loanAccountNumber]="loanAccountNumber"
           [customerName]="customerName"
           [paymentData]="paymentData"
-          (stepCompleted)="markStepCompleted(3)">
+          (stepCompleted)="markStepCompleted(4)">
         </app-release-document>
       </ng-container>
     </div>

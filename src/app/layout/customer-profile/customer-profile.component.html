@@ -157,11 +157,7 @@
         </div>
 
         <div class="loans-list" *ngIf="loans.length > 0">
-          <div 
-            class="loan-card" 
-            *ngFor="let loan of loans"
-            (click)="viewLoan(loan.loanAccountNumber || loan.loanAccountNo || loan.id)"
-            (keydown.enter)="viewLoan(loan.loanAccountNumber || loan.loanAccountNo || loan.id)">
+          <div class="loan-card" *ngFor="let loan of loans">
             <div class="loan-card-header">
               <div class="loan-account">
                 <mat-icon>account_balance</mat-icon>
@@ -176,12 +172,46 @@
                 <span class="loan-amount-label">Net Disbursed Amount</span>
                 <span class="loan-amount-value">₹{{ (loan.netDisbursedAmount ?? loan.principalAmount) | number:'1.2-2' }}</span>
               </div>
+              <div class="loan-outstanding-snapshot" *ngIf="showLoanOutstandingSnapshot(loan)">
+                <div class="snapshot-title">
+                  <mat-icon>trending_up</mat-icon>
+                  <span>Outstanding snapshot</span>
+                </div>
+                <div class="snapshot-loading" *ngIf="loanOutstandingLoading">
+                  <mat-spinner diameter="18"></mat-spinner>
+                  <span>Loading interest &amp; balance…</span>
+                </div>
+                <ng-container *ngIf="!loanOutstandingLoading">
+                  <div class="snapshot-row" *ngIf="loan.tillDateInterestAmount != null">
+                    <span class="snapshot-label">Till date interest</span>
+                    <span class="snapshot-value">₹{{ loan.tillDateInterestAmount | number:'1.2-2' }}</span>
+                  </div>
+                  <div class="snapshot-row" *ngIf="loan.totalOutstandingAmount != null">
+                    <span class="snapshot-label">Total outstanding</span>
+                    <span class="snapshot-value snapshot-value--total">₹{{ loan.totalOutstandingAmount | number:'1.2-2' }}</span>
+                  </div>
+                </ng-container>
+              </div>
               <div class="loan-info-grid">
                 <div class="loan-info-cell">
                   <mat-icon>event</mat-icon>
                   <div>
-                    <span class="cell-label">Loan Date</span>
-                    <span class="cell-value">{{ loan.loanDate | date:'dd MMM yyyy' }}</span>
+                    <span class="cell-label">Disbursal date</span>
+                    <span class="cell-value">{{ loan.disbursalDate ? (loan.disbursalDate | date:'dd MMM yyyy') : '—' }}</span>
+                  </div>
+                </div>
+                <div class="loan-info-cell">
+                  <mat-icon>event_available</mat-icon>
+                  <div>
+                    <span class="cell-label">Loan Close Date</span>
+                    <span class="cell-value">{{ loan.loanEndDate ? (loan.loanEndDate | date:'dd MMM yyyy, HH:mm:ss') : '—' }}</span>
+                  </div>
+                </div>
+                <div class="loan-info-cell">
+                  <mat-icon>category</mat-icon>
+                  <div>
+                    <span class="cell-label">Scheme</span>
+                    <span class="cell-value">{{ loan.schemeName || '—' }}</span>
                   </div>
                 </div>
                 <div class="loan-info-cell">
@@ -206,7 +236,8 @@
                   mat-stroked-button 
                   color="primary" 
                   class="view-btn"
-                  (click)="viewLoan(loan.loanAccountNumber || loan.loanAccountNo || loan.id); $event.stopPropagation()">
+                  type="button"
+                  (click)="viewLoan(loan.loanAccountNumber || loan.loanAccountNo || loan.id)">
                   <mat-icon>visibility</mat-icon>
                   View
                 </button>
@@ -252,82 +283,121 @@
       <ng-template mat-tab-label>
         <mat-icon>history</mat-icon>
         <span>Payment History</span>
-        <span class="badge-count" *ngIf="paymentHistory.length > 0">{{ paymentHistory.length }}</span>
+        <span class="badge-count" *ngIf="paymentDocumentsTotalCount > 0">{{ paymentDocumentsTotalCount }}</span>
       </ng-template>
       <div class="tab-content">
         <div class="payment-history-section">
-          <!-- Loading State -->
           <div class="loading-state" *ngIf="isLoadingHistory">
             <mat-spinner diameter="36"></mat-spinner>
-            <p>Loading payment history...</p>
+            <p>Loading documents…</p>
           </div>
 
-          <!-- Empty State -->
-          <div class="empty-state" *ngIf="!isLoadingHistory && paymentHistory.length === 0">
+          <div class="empty-state" *ngIf="!isLoadingHistory && paymentDocsByLoan.length === 0">
             <mat-icon>receipt_long</mat-icon>
-            <h3>No Payment History</h3>
-            <p>No part payments or interest payments have been made for this customer.</p>
+            <h3>No documents yet</h3>
+            <p>No release or payment receipt documents were found for this customer.</p>
           </div>
 
-          <!-- Payment History Table -->
-          <div class="history-table-container" *ngIf="!isLoadingHistory && paymentHistory.length > 0">
-            <table mat-table [dataSource]="paymentHistory" class="history-table">
-              <!-- Loan Account Column -->
-              <ng-container matColumnDef="loanAccountNumber">
-                <th mat-header-cell *matHeaderCellDef>Loan Account</th>
-                <td mat-cell *matCellDef="let row">
-                  <span class="mono-text">{{ row.loanAccountNumber }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Payment Type Column -->
-              <ng-container matColumnDef="paymentType">
-                <th mat-header-cell *matHeaderCellDef>Type</th>
-                <td mat-cell *matCellDef="let row">
-                  <span class="payment-type-chip" 
-                    [class.part]="row.paymentType === 'Part Payment'"
-                    [class.interest]="row.paymentType === 'Interest Payment'"
-                    [class.full]="row.paymentType === 'Total Repayment'">
-                    {{ row.paymentType }}
+          <mat-accordion class="loan-docs-accordion" [multi]="true" *ngIf="!isLoadingHistory && paymentDocsByLoan.length > 0">
+            <mat-expansion-panel *ngFor="let group of paymentDocsByLoan" class="loan-doc-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <span class="loan-panel-title-inner">
+                    <mat-icon>account_balance</mat-icon>
+                    <span class="loan-net-amount" *ngIf="group.netDisbursedAmount != null">
+                      {{ formatPaymentCurrency(group.netDisbursedAmount) }}
+                    </span>
+                    <span class="loan-title-sep" *ngIf="group.netDisbursedAmount != null" aria-hidden="true">·</span>
+                    <span class="loan-doc-account mono-text">{{ group.loanAccountNumber }}</span>
                   </span>
-                </td>
-              </ng-container>
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ getLoanDocSummary(group) }}
+                </mat-panel-description>
+              </mat-expansion-panel-header>
 
-              <!-- Amount Column -->
-              <ng-container matColumnDef="repaymentAmount">
-                <th mat-header-cell *matHeaderCellDef>Amount</th>
-                <td mat-cell *matCellDef="let row">
-                  <span class="amount-text">{{ formatPaymentCurrency(row.repaymentAmount) }}</span>
-                </td>
-              </ng-container>
+              <div class="loan-panel-body">
+                <div class="doc-subsection" *ngIf="group.releaseDocs.length > 0">
+                  <h4 class="doc-subsection-title">
+                    <mat-icon>lock_open</mat-icon>
+                    Release documents
+                  </h4>
+                  <div class="history-table-container doc-table-wrap">
+                    <table class="history-table doc-table">
+                      <thead>
+                        <tr>
+                          <th>Document</th>
+                          <th>Created</th>
+                          <th class="col-actions">Download</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let doc of group.releaseDocs">
+                          <td>
+                            <span class="doc-name">{{ doc.documentName }}</span>
+                            <span class="doc-meta" *ngIf="doc.createdBy"> · {{ doc.createdBy }}</span>
+                          </td>
+                          <td>{{ formatDateTime(doc.createdDate) }}</td>
+                          <td class="col-actions">
+                            <button
+                              mat-stroked-button
+                              color="primary"
+                              type="button"
+                              class="btn-dl"
+                              [disabled]="downloadingReleaseId === doc.id"
+                              (click)="$event.stopPropagation(); downloadReleaseDocument(group.loanAccountNumber, doc)">
+                              <mat-icon *ngIf="downloadingReleaseId !== doc.id">download</mat-icon>
+                              <mat-spinner *ngIf="downloadingReleaseId === doc.id" diameter="18"></mat-spinner>
+                              {{ downloadingReleaseId === doc.id ? '…' : 'Download' }}
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-              <!-- Payment Mode Column -->
-              <ng-container matColumnDef="paymentMode">
-                <th mat-header-cell *matHeaderCellDef>Mode</th>
-                <td mat-cell *matCellDef="let row">{{ row.paymentMode }}</td>
-              </ng-container>
-
-              <!-- Date Column -->
-              <ng-container matColumnDef="paymentDate">
-                <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let row">{{ formatPaymentDate(row.paymentDate || row.createdDate) }}</td>
-              </ng-container>
-
-              <!-- Status Column -->
-              <ng-container matColumnDef="paymentStatus">
-                <th mat-header-cell *matHeaderCellDef>Status</th>
-                <td mat-cell *matCellDef="let row">
-                  <span class="status-chip" [class.success]="row.paymentStatus === 'SUCCESS'">
-                    <mat-icon>{{ row.paymentStatus === 'SUCCESS' ? 'check_circle' : 'pending' }}</mat-icon>
-                    {{ row.paymentStatus }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="paymentHistoryColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: paymentHistoryColumns;"></tr>
-            </table>
-          </div>
+                <div class="doc-subsection" *ngIf="group.payments.length > 0">
+                  <h4 class="doc-subsection-title">
+                    <mat-icon>payments</mat-icon>
+                    Payment receipts
+                  </h4>
+                  <div class="history-table-container doc-table-wrap">
+                    <table class="history-table doc-table">
+                      <thead>
+                        <tr>
+                          <th>Payment date</th>
+                          <th>Amount</th>
+                          <th>Receipt #</th>
+                          <th class="col-actions">Download</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let row of group.payments">
+                          <td>{{ formatPaymentDate(row.paymentPaidDate) }}</td>
+                          <td><span class="amount-text">{{ formatPaymentCurrency(row.paymentPaidAmount) }}</span></td>
+                          <td><span class="mono-text">{{ row.payemntReceiptNumber }}</span></td>
+                          <td class="col-actions">
+                            <button
+                              mat-stroked-button
+                              color="primary"
+                              type="button"
+                              class="btn-dl"
+                              [disabled]="downloadingReceiptNumber === row.payemntReceiptNumber"
+                              (click)="$event.stopPropagation(); downloadPaymentReceiptDoc(row)">
+                              <mat-icon *ngIf="downloadingReceiptNumber !== row.payemntReceiptNumber">download</mat-icon>
+                              <mat-spinner *ngIf="downloadingReceiptNumber === row.payemntReceiptNumber" diameter="18"></mat-spinner>
+                              {{ downloadingReceiptNumber === row.payemntReceiptNumber ? '…' : 'Download' }}
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
         </div>
       </div>
     </mat-tab>
@@ -336,13 +406,121 @@
       <ng-template mat-tab-label>
         <mat-icon>folder</mat-icon>
         <span>Documents</span>
+        <span class="badge-count" *ngIf="customerDocumentsTotalCount > 0">{{ customerDocumentsTotalCount }}</span>
       </ng-template>
-      <div class="tab-content">
-        <div class="empty-state">
-          <mat-icon>folder_open</mat-icon>
-          <h3>Documents</h3>
-          <p>Document management will be available here</p>
+      <div class="tab-content documents-tab">
+        <div class="loading-state" *ngIf="isLoadingDocuments">
+          <mat-spinner diameter="36"></mat-spinner>
+          <p>Loading documents…</p>
         </div>
+
+        <ng-container *ngIf="!isLoadingDocuments">
+          <div
+            class="empty-state"
+            *ngIf="kycDocuments.length === 0 && additionalDocuments.length === 0">
+            <mat-icon>folder_open</mat-icon>
+            <h3>No documents</h3>
+            <p>No KYC or additional documents are on file for this customer.</p>
+          </div>
+
+          <div class="documents-sections" *ngIf="kycDocuments.length > 0 || additionalDocuments.length > 0">
+            <mat-card class="documents-block" *ngIf="kycDocuments.length > 0">
+              <div class="documents-block-header">
+                <mat-icon>verified_user</mat-icon>
+                <span>KYC details</span>
+                <span class="doc-count-chip">{{ kycDocuments.length }}</span>
+              </div>
+              <p class="documents-block-hint">Identity proofs uploaded during loan application (same as KYC step).</p>
+              <div class="documents-list" role="list">
+                <div class="documents-list-header documents-list-header--kyc" aria-hidden="true">
+                  <span>Document</span>
+                  <span>Identifier</span>
+                  <span class="documents-list-header-actions">Actions</span>
+                </div>
+                <div class="doc-row doc-row--kyc" *ngFor="let doc of kycDocuments" role="listitem">
+                  <div class="doc-row-cell">
+                    <span class="doc-row-mobile-label">Document</span>
+                    <span class="doc-row-value">{{ formatKycDocLabel(doc) }}</span>
+                  </div>
+                  <div class="doc-row-cell">
+                    <span class="doc-row-mobile-label">Identifier</span>
+                    <span class="doc-row-value">{{ doc.identifierNumber || '—' }}</span>
+                  </div>
+                  <div class="doc-row-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      color="primary"
+                      class="doc-action-btn"
+                      [disabled]="loadingKycKey === kycDocKey(doc)"
+                      (click)="viewKycDocument(doc)">
+                      <mat-icon *ngIf="loadingKycKey !== kycDocKey(doc)">open_in_new</mat-icon>
+                      <mat-spinner *ngIf="loadingKycKey === kycDocKey(doc)" diameter="16"></mat-spinner>
+                      View
+                    </button>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="doc-action-btn"
+                      [disabled]="loadingKycKey === kycDocKey(doc)"
+                      (click)="downloadKycDocument(doc)">
+                      <mat-icon *ngIf="loadingKycKey !== kycDocKey(doc)">download</mat-icon>
+                      Download
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card>
+
+            <mat-card class="documents-block" *ngIf="additionalDocuments.length > 0">
+              <div class="documents-block-header">
+                <mat-icon>description</mat-icon>
+                <span>Additional documents</span>
+                <span class="doc-count-chip">{{ additionalDocuments.length }}</span>
+              </div>
+              <p class="documents-block-hint">Income / address proof and other uploads (same as Additional Documents step).</p>
+              <div class="documents-list" role="list">
+                <div class="documents-list-header documents-list-header--additional" aria-hidden="true">
+                  <span>Type</span>
+                  <span>Uploaded</span>
+                  <span class="documents-list-header-actions">Actions</span>
+                </div>
+                <div class="doc-row doc-row--additional" *ngFor="let doc of additionalDocuments" role="listitem">
+                  <div class="doc-row-cell">
+                    <span class="doc-row-mobile-label">Type</span>
+                    <span class="doc-row-value">{{ formatAdditionalDocTypeLabel(doc) }}</span>
+                  </div>
+                  <div class="doc-row-cell">
+                    <span class="doc-row-mobile-label">Uploaded</span>
+                    <span class="doc-row-value">{{ formatDateTime(doc.uploadedAt || doc.createdDate) }}</span>
+                  </div>
+                  <div class="doc-row-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      color="primary"
+                      class="doc-action-btn"
+                      [disabled]="loadingAdditionalId === doc.id"
+                      (click)="viewAdditionalDocument(doc)">
+                      <mat-icon *ngIf="loadingAdditionalId !== doc.id">open_in_new</mat-icon>
+                      <mat-spinner *ngIf="loadingAdditionalId === doc.id" diameter="16"></mat-spinner>
+                      View
+                    </button>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="doc-action-btn"
+                      [disabled]="loadingAdditionalId === doc.id"
+                      (click)="downloadAdditionalDocument(doc)">
+                      <mat-icon *ngIf="loadingAdditionalId !== doc.id">download</mat-icon>
+                      Download
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </ng-container>
       </div>
     </mat-tab>
     </mat-tab-group>

@@ -216,13 +216,13 @@
   border: 1px solid #e8e8e8;
   border-radius: 12px;
   overflow: hidden;
-  cursor: pointer;
+  cursor: default;
   transition: box-shadow 0.2s, border-color 0.2s;
 }
 
 .loan-card:hover {
-  border-color: #1976d2;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+  border-color: #d0d0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .loan-card-header {
@@ -289,9 +289,75 @@
   color: #1976d2;
 }
 
+/* Till date interest / total outstanding (same API as Loan Release outstanding step) */
+.loan-outstanding-snapshot {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px dashed #e8e8e8;
+}
+
+.loan-outstanding-snapshot .snapshot-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.loan-outstanding-snapshot .snapshot-title mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #7c3aed;
+}
+
+.snapshot-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.snapshot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
+
+.snapshot-row + .snapshot-row {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.snapshot-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.snapshot-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.snapshot-value--total {
+  color: #b45309;
+  font-weight: 700;
+}
+
 .loan-info-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
@@ -553,6 +619,338 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
+}
+
+/* Payment history — accordion by loan account */
+.loan-docs-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.loan-doc-panel.mat-expansion-panel {
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  overflow: hidden;
+}
+
+.loan-doc-panel .mat-expansion-panel-header {
+  padding: 0 1rem;
+  min-height: 56px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.loan-doc-panel.mat-expanded .mat-expansion-panel-header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.loan-panel-title-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.loan-net-amount {
+  font-weight: 700;
+  color: #059669;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+}
+
+.loan-title-sep {
+  color: #cbd5e1;
+  font-weight: 400;
+  user-select: none;
+  margin: 0 0.1rem;
+}
+
+.loan-panel-title-inner mat-icon {
+  color: #3b82f6;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.loan-doc-panel ::ng-deep .mat-expansion-panel-header-title {
+  align-items: center;
+}
+
+.loan-doc-panel ::ng-deep .mat-expansion-panel-header-description {
+  flex-grow: 1;
+  justify-content: flex-end;
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.loan-doc-account {
+  font-size: 0.95rem;
+}
+
+.loan-doc-panel ::ng-deep .mat-expansion-panel-body {
+  padding: 0 1rem 1rem;
+}
+
+.loan-panel-body {
+  padding: 0.25rem 0 0;
+}
+
+.doc-subsection {
+  padding: 1rem 0 0;
+}
+
+.doc-subsection:first-child {
+  padding-top: 0.5rem;
+}
+
+.doc-subsection + .doc-subsection {
+  padding-top: 1rem;
+  border-top: 1px dashed #e2e8f0;
+  margin-top: 0.75rem;
+}
+
+.doc-subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.doc-subsection-title mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+}
+
+.doc-table-wrap {
+  margin: 0;
+}
+
+.doc-table {
+  margin: 0;
+}
+
+.doc-table th.col-actions,
+.doc-table td.col-actions {
+  width: 140px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.doc-name {
+  font-weight: 600;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.doc-meta {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.btn-dl {
+  min-width: 118px;
+}
+
+.btn-dl mat-icon,
+.btn-dl mat-spinner {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.btn-dl mat-spinner {
+  display: inline-block;
+}
+
+/* Documents tab — KYC + additional */
+.documents-tab {
+  width: 100%;
+}
+
+.documents-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.documents-block {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.documents-block-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.documents-block-header mat-icon {
+  color: #3949ab;
+}
+
+.doc-count-chip {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #e8eaf6;
+  color: #3949ab;
+}
+
+.documents-block-hint {
+  margin: 0;
+  padding: 0.75rem 1.25rem 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* Documents tab: list layout (no tables — avoids clipped actions from table/col width bugs) */
+.documents-block .documents-list {
+  margin: 1rem 1.25rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.documents-list-header {
+  display: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px 16px;
+  align-items: center;
+  padding: 10px 16px;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.documents-list-header-actions {
+  text-align: right;
+  justify-self: end;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .documents-list-header {
+    display: grid;
+  }
+}
+
+.doc-row--kyc,
+.doc-row--additional {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-top: 1px solid #e8eef3;
+}
+
+/* Header row has bottom border; skip double line under first data row */
+.documents-list-header + .doc-row {
+  border-top: none;
+}
+
+.doc-row-cell {
+  min-width: 0;
+}
+
+.doc-row-mobile-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+  .doc-row-mobile-label {
+    display: none;
+  }
+}
+
+.doc-row-value {
+  display: block;
+  font-size: 0.9375rem;
+  color: #0f172a;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.doc-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.documents-block .doc-action-btn {
+  flex: 0 0 auto;
+  min-width: auto;
+  padding: 0 12px;
+  font-size: 13px;
+  line-height: 32px;
+}
+
+.documents-block .doc-action-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.doc-row-actions mat-spinner {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (max-width: 767px) {
+  .doc-row--kyc,
+  .doc-row--additional {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .doc-row-actions {
+    justify-content: flex-start;
+    padding-top: 4px;
+  }
+}
+
+.doc-name-text {
+  font-size: 0.875rem;
+  word-break: break-word;
 }
 
 /* Responsive */

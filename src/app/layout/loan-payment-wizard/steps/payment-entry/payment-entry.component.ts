@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
 
@@ -42,7 +42,13 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['paymentType'] || changes['outstandingData']) && this.paymentForm) {
+      if (this.paymentType === 'PART_PAYMENT') {
+        this.paymentForm.patchValue({ applyRebate: false, rebateAmount: null, rebateReason: '' }, { emitEvent: false });
+      }
       this.updateAmountDefaults();
+      this.syncRebateFromScheduleIfNeeded();
+      this.updateRebateValidators();
+      this.syncPaymentAmountToEffectiveInterest();
     }
   }
 
@@ -62,30 +68,226 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       chequeDate: [''],
       upiId: [''],
       remarks: [''],
-      paymentDate: [new Date().toISOString().split('T')[0], Validators.required]
+      paymentDate: [new Date().toISOString().split('T')[0], Validators.required],
+      applyRebate: [false],
+      rebateAmount: [null as number | null],
+      rebateReason: ['']
     });
 
     this.paymentForm.get('paymentMode')?.valueChanges.subscribe(mode => {
       this.updateValidators(mode);
     });
 
+    this.paymentForm.get('applyRebate')?.valueChanges.subscribe((checked) => {
+      if (checked) {
+        const sug = this.getScheduleSuggestedRebate();
+        if (this.paymentType === 'INTEREST_PAYMENT' && sug > 0) {
+          this.paymentForm.patchValue({ rebateAmount: sug }, { emitEvent: false });
+        }
+      } else {
+        this.paymentForm.patchValue({ rebateAmount: null, rebateReason: '' }, { emitEvent: false });
+        if (this.paymentType === 'INTEREST_PAYMENT') {
+          const pay = this.paymentForm.get('paymentAmount');
+          pay?.setValue(this.getAccruedInterest(), { emitEvent: false });
+        }
+      }
+      this.updateRebateValidators();
+      this.syncPaymentAmountToEffectiveInterest();
+    });
+
+    this.paymentForm.get('rebateAmount')?.valueChanges.subscribe(() => {
+      if (this.paymentType === 'INTEREST_PAYMENT' && this.paymentForm.get('applyRebate')?.value) {
+        this.syncPaymentAmountToEffectiveInterest();
+        this.updatePaymentAmountValidators();
+      }
+    });
+
+    this.paymentForm.get('paymentAmount')?.valueChanges.subscribe(() => {
+      if (this.paymentType === 'INTEREST_PAYMENT' && this.paymentForm.get('applyRebate')?.value) {
+        this.paymentForm.get('rebateAmount')?.updateValueAndValidity({ emitEvent: false });
+      }
+    });
+
     this.updateValidators('');
     this.updateAmountDefaults();
+    this.updateRebateValidators();
+  }
+
+  /** Schedule row: monthly rebate when due passed this month (from repayment schedule API). */
+  getScheduleSuggestedRebate(): number {
+    const v = this.outstandingData?.scheduleSuggestedRebateAmount;
+    if (v == null || v === '') return 0;
+    const n = Number(v);
+    return !isNaN(n) && n > 0 ? n : 0;
+  }
+
+  getScheduleSuggestedRebateDueDate(): string | null {
+    return this.outstandingData?.scheduleSuggestedRebateDueDate || null;
+  }
+
+  /** Due date for waiver/discount line on payPartPaymentAndInterestAmount (schedule-derived or API field). */
+  getWaiverInterestDueDateForApi(): string | null {
+    const fromSchedule = this.getScheduleSuggestedRebateDueDate();
+    if (fromSchedule) return String(fromSchedule).trim() || null;
+    const raw = this.outstandingData?.waiverInterestDueDate;
+    if (raw == null || raw === '') return null;
+    return String(raw).trim() || null;
+  }
+
+  /** Read-only rebate amount when schedule supplies suggested rebate (interest payment only). */
+  isScheduleRebateReadonly(): boolean {
+    return (
+      this.paymentType === 'INTEREST_PAYMENT' &&
+      !!this.paymentForm?.get('applyRebate')?.value &&
+      this.getScheduleSuggestedRebate() > 0
+    );
+  }
+
+  private syncRebateFromScheduleIfNeeded(): void {
+    if (
+      this.paymentType !== 'INTEREST_PAYMENT' ||
+      !this.paymentForm?.get('applyRebate')?.value ||
+      this.getScheduleSuggestedRebate() <= 0
+    ) {
+      return;
+    }
+    this.paymentForm.patchValue({ rebateAmount: this.getScheduleSuggestedRebate() }, { emitEvent: false });
+  }
+
+  /**
+   * When rebate applies, amount field and API paymentAmount = effective interest due (accrued − rebate).
+   */
+  private syncPaymentAmountToEffectiveInterest(): void {
+    if (this.paymentType !== 'INTEREST_PAYMENT' || !this.paymentForm) return;
+    if (!this.paymentForm.get('applyRebate')?.value) return;
+    const payCtrl = this.paymentForm.get('paymentAmount');
+    if (!payCtrl) return;
+    let eff = this.getEffectiveAccruedInterestForPayment();
+    const maxPay = this.getMaxAmount();
+    if (eff > maxPay) eff = maxPay;
+    const rounded = Math.round(Math.max(0, eff) * 100) / 100;
+    payCtrl.setValue(rounded, { emitEvent: false });
+    payCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private updatePaymentAmountValidators(): void {
+    const paymentAmount = this.paymentForm?.get('paymentAmount');
+    if (!paymentAmount) return;
+    const apply =
+      !!this.paymentForm.get('applyRebate')?.value && this.paymentType === 'INTEREST_PAYMENT';
+
+    if (apply) {
+      const maxPay = this.getMaxAmount();
+      paymentAmount.setValidators([
+        Validators.required,
+        (c: AbstractControl): ValidationErrors | null => {
+          const v = Number(c.value) || 0;
+          const eff = this.getEffectiveAccruedInterestForPayment();
+          if (v > maxPay + 0.01) return { maxAmount: true };
+          if (Math.abs(v - eff) > 0.02) return { mustMatchEffective: true };
+          return null;
+        }
+      ]);
+    } else {
+      paymentAmount.setValidators([Validators.required, Validators.min(this.getMinimumAmount())]);
+    }
+    paymentAmount.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /** Process button — amount rules + form valid (payment is clamped after rebate so this stays consistent). */
+  canProcessPayment(): boolean {
+    if (!this.paymentForm) return false;
+    return this.isAmountValid() && this.paymentForm.valid;
+  }
+
+  /** Max rebate: interest payment → accrued interest; part payment → principal outstanding */
+  getRebateCap(): number {
+    if (this.paymentType === 'INTEREST_PAYMENT') {
+      return Math.max(0, this.getAccruedInterest());
+    }
+    return Math.max(0, this.getPrincipalOutstanding());
+  }
+
+  getRebateAmountNumber(): number {
+    if (!this.paymentForm.get('applyRebate')?.value) return 0;
+    return Number(this.paymentForm.get('rebateAmount')?.value) || 0;
+  }
+
+  /**
+   * Interest due after rebate (for validation & split). Part payment ignores rebate here.
+   */
+  getEffectiveAccruedInterestForPayment(): number {
+    const accrued = this.getAccruedInterest();
+    if (this.paymentType !== 'INTEREST_PAYMENT' || !this.paymentForm.get('applyRebate')?.value) {
+      return accrued;
+    }
+    return Math.max(0, accrued - this.getRebateAmountNumber());
+  }
+
+  private updateRebateValidators(): void {
+    if (!this.paymentForm) return;
+    const apply =
+      !!this.paymentForm.get('applyRebate')?.value && this.paymentType === 'INTEREST_PAYMENT';
+    const rebateAmountCtrl = this.paymentForm.get('rebateAmount');
+    const rebateReasonCtrl = this.paymentForm.get('rebateReason');
+    if (!rebateAmountCtrl || !rebateReasonCtrl) return;
+
+    if (apply) {
+      rebateAmountCtrl.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        (c: AbstractControl): ValidationErrors | null => {
+          const max = this.getRebateCap();
+          const v = Number(c.value);
+          if (max > 0 && v > max) return { rebateTooHigh: true };
+          return null;
+        },
+        (c: AbstractControl): ValidationErrors | null => {
+          if (this.paymentType !== 'INTEREST_PAYMENT') return null;
+          const rebate = Number(c.value) || 0;
+          const min = this.getMinimumAmount();
+          const eff = this.getAccruedInterest() - rebate;
+          if (min <= 0 || eff >= min) return null;
+          const pay = Number(this.paymentForm.get('paymentAmount')?.value) || 0;
+          if (pay >= min) return null;
+          if (Math.abs(pay - eff) < 0.02) return null;
+          return { rebateLeavesBelowMin: true };
+        }
+      ]);
+      rebateReasonCtrl.setValidators([
+        Validators.required,
+        Validators.minLength(5),
+        Validators.maxLength(500)
+      ]);
+    } else {
+      rebateAmountCtrl.clearValidators();
+      rebateReasonCtrl.clearValidators();
+      rebateAmountCtrl.setValue(null);
+      rebateReasonCtrl.setValue('');
+    }
+    rebateAmountCtrl.updateValueAndValidity({ emitEvent: false });
+    rebateReasonCtrl.updateValueAndValidity({ emitEvent: false });
+    this.updatePaymentAmountValidators();
   }
 
   private updateAmountDefaults(): void {
     const paymentAmount = this.paymentForm.get('paymentAmount');
     if (!paymentAmount) return;
 
+    const apply =
+      !!this.paymentForm.get('applyRebate')?.value && this.paymentType === 'INTEREST_PAYMENT';
     const defaultAmount =
-      this.paymentType === 'INTEREST_PAYMENT' ? this.getAccruedInterest() : paymentAmount.value;
+      this.paymentType === 'INTEREST_PAYMENT'
+        ? apply
+          ? this.getEffectiveAccruedInterestForPayment()
+          : this.getAccruedInterest()
+        : paymentAmount.value;
 
-    const validators = [Validators.required, Validators.min(this.getMinimumAmount())];
-    paymentAmount.setValidators(validators);
-    paymentAmount.updateValueAndValidity({ emitEvent: false });
+    this.updatePaymentAmountValidators();
 
     if (this.paymentType === 'INTEREST_PAYMENT') {
       paymentAmount.setValue(defaultAmount, { emitEvent: false });
+      paymentAmount.updateValueAndValidity({ emitEvent: false });
     }
   }
 
@@ -147,34 +349,40 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     return 1;
   }
 
-  /** Get maximum payable amount */
+  /** Get maximum payable amount (quick actions / apply cap) */
   getMaxAmount(): number {
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      return this.getAccruedInterest() + this.getPrincipalOutstanding();
+      return this.getEffectiveAccruedInterestForPayment() + this.getPrincipalOutstanding();
     }
     return this.getPrincipalOutstanding();
   }
 
   /** Check if entered amount is valid */
   isAmountValid(): boolean {
-    const amount = this.paymentForm.get('paymentAmount')?.value || 0;
+    const amount = Number(this.paymentForm.get('paymentAmount')?.value) || 0;
     const min = this.getMinimumAmount();
 
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      const accrued = this.getAccruedInterest();
-      // Disable if amount > interest due (till date); and must be >= first unpaid installment
-      return amount >= min && amount <= accrued;
+      const maxPay = this.getMaxAmount();
+      const apply = !!this.paymentForm.get('applyRebate')?.value;
+      if (apply) {
+        const eff = this.getEffectiveAccruedInterestForPayment();
+        return amount <= maxPay + 1e-6 && Math.abs(amount - eff) < 0.02;
+      }
+      const effectiveAccrued = this.getEffectiveAccruedInterestForPayment();
+      if (effectiveAccrued < min && amount < min) {
+        return false;
+      }
+      return amount >= min && amount <= maxPay;
     }
-    // PART_PAYMENT: allow any amount >= minimum (no upper cap)
     return amount >= min;
   }
 
   getAmountInfo(): { label: string; amount: number; type: string } {
     const amount = this.paymentForm.get('paymentAmount')?.value || 0;
-    const maxAmount = this.getMaxAmount();
 
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      const interestDue = this.getAccruedInterest();
+      const interestDue = this.getEffectiveAccruedInterestForPayment();
       const split = this.getInterestSplit();
       const remainingInterest = Math.max(interestDue - split.interestPortion, 0);
       if (remainingInterest > 0) {
@@ -202,7 +410,8 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
   getInterestSplit(): { interestPortion: number; principalPortion: number } {
     const amount = this.paymentForm.get('paymentAmount')?.value || 0;
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      const interestPortion = Math.min(amount, this.getAccruedInterest());
+      const interestCap = this.getEffectiveAccruedInterestForPayment();
+      const interestPortion = Math.min(amount, interestCap);
       const principalPortion = Math.max(amount - interestPortion, 0);
       return { interestPortion, principalPortion };
     }
@@ -211,10 +420,10 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
 
   getQuickAmountOptions(): { label: string; amount: number; description: string }[] {
     const principal = this.getPrincipalOutstanding();
-    const interest = this.getAccruedInterest();
+    const interest = this.getEffectiveAccruedInterestForPayment();
     if (this.paymentType === 'INTEREST_PAYMENT') {
       return [
-        { label: 'Interest Due', amount: interest, description: 'Clears accrued interest' },
+        { label: 'Interest Due', amount: interest, description: 'Clears accrued interest (after rebate)' },
         {
           label: 'Interest + 10%',
           amount: Math.min(interest + principal * 0.1, this.getMaxAmount()),
@@ -264,7 +473,8 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     }
 
     if (this.paymentType === 'INTEREST_PAYMENT') {
-      const interestCovered = amount >= this.getAccruedInterest();
+      const target = this.getEffectiveAccruedInterestForPayment();
+      const interestCovered = amount >= target;
       reminders.push({
         icon: 'trending_up',
         label: interestCovered ? 'Interest fully covered' : 'Interest pending',
@@ -302,11 +512,15 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       const amount = this.paymentForm.get('paymentAmount')?.value || 0;
 
       if (this.paymentType === 'INTEREST_PAYMENT') {
-        const accrued = this.getAccruedInterest();
+        const effective = this.getEffectiveAccruedInterestForPayment();
         const minInstallment = this.getMinimumAmount();
-        if (amount > accrued) {
+        if (effective < minInstallment && amount < minInstallment) {
           this.toastService.showWarning(
-            `Amount cannot exceed interest due (till date) of ${this.formatCurrency(accrued)}.`
+            'Rebate is too high: either increase the payment amount to at least the minimum installment or reduce the rebate.'
+          );
+        } else if (amount > this.getMaxAmount()) {
+          this.toastService.showWarning(
+            `Amount cannot exceed ${this.formatCurrency(this.getMaxAmount())} (interest due after rebate plus principal outstanding).`
           );
         } else if (amount < minInstallment && minInstallment > 0) {
           this.toastService.showWarning(
@@ -321,6 +535,20 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       return;
     }
 
+    const applyRebate =
+      !!this.paymentForm.get('applyRebate')?.value && this.paymentType === 'INTEREST_PAYMENT';
+    const rebateAmount = applyRebate ? Number(this.paymentForm.get('rebateAmount')?.value) || 0 : null;
+    const rebateReason = applyRebate ? (this.paymentForm.get('rebateReason')?.value || '').trim() : null;
+
+    if (applyRebate && (!rebateReason || rebateReason.length < 5)) {
+      this.toastService.showWarning('Please enter a rebate reason (at least 5 characters).');
+      return;
+    }
+    if (applyRebate && (!rebateAmount || rebateAmount <= 0)) {
+      this.toastService.showWarning('Please enter a valid rebate amount.');
+      return;
+    }
+
     this.isLoading = true;
 
     const paymentTypeLabel = this.paymentType === 'PART_PAYMENT' ? 'Part Payment' : 'Interest Payment';
@@ -329,12 +557,19 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       ? paymentDateRaw
       : `${paymentDateRaw}T00:00:00`;
 
+    const waiverDue = applyRebate ? this.getWaiverInterestDueDateForApi() : null;
+    const waiverFlag: 'Yes' | 'No' = applyRebate ? 'Yes' : 'No';
     const apiPayload = {
       loanAccountNumber: this.loanAccountNumber,
       customerId: this.customerId,
       paymentAmount: Number(this.paymentForm.get('paymentAmount')?.value),
       paymentType: this.paymentType as 'PART_PAYMENT' | 'INTEREST_PAYMENT',
-      paymentDate: paymentDateTime
+      paymentDate: paymentDateTime,
+      rebateAmount: applyRebate ? rebateAmount : null,
+      rebateReason: applyRebate ? rebateReason : null,
+      waiverFlag,
+      discountAmount: applyRebate ? rebateAmount : null,
+      waiverInterestDueDate: waiverDue
     };
 
     const split = this.getInterestSplit();
@@ -343,7 +578,8 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
         this.isLoading = false;
         this.isPaymentProcessed = true;
         const result = {
-          ...(res?.data || apiPayload),
+          ...apiPayload,
+          ...(res?.data && typeof res.data === 'object' ? res.data : {}),
           interestComponent: split.interestPortion,
           principalComponent: split.principalPortion,
           projectedPrincipalBalance: Math.max(
@@ -388,6 +624,14 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       currency: 'INR',
       minimumFractionDigits: 2
     }).format(amount || 0);
+  }
+
+  formatScheduleDueShort(): string {
+    const d = this.getScheduleSuggestedRebateDueDate();
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return '';
+    return dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   isFieldInvalid(fieldName: string): boolean {

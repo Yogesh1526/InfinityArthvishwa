@@ -65,6 +65,7 @@ import { InterestDueCurrentMonthDialogComponent } from './interest-due-current-m
 import { InterestDueCurrentMonthPageComponent } from './interest-due-current-month-page/interest-due-current-month-page.component';
 import { RepaymentScheduleDialogComponent } from './repayment-schedule-dialog/repayment-schedule-dialog.component';
 import { ReportsComponent } from './reports/reports.component';
+import { ReportExportPageComponent } from './report-export-page/report-export-page.component';
 
 
 
@@ -128,7 +129,8 @@ import { ReportsComponent } from './reports/reports.component';
     InterestDueCurrentMonthDialogComponent,
     InterestDueCurrentMonthPageComponent,
     RepaymentScheduleDialogComponent,
-    ReportsComponent
+    ReportsComponent,
+    ReportExportPageComponent
   ],
   imports: [
     CommonModule,RouterModule,MaterialModule,FormsModule,ReactiveFormsModule,HttpClientModule,WebcamModule,

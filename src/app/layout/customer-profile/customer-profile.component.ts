@@ -1,10 +1,50 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PersonalDetailsService } from '../../services/PersonalDetailsService';
+import { ClientDocumentService } from '../../services/client-document.service';
 import { ToastService } from '../../services/toast.service';
 import { LoaderService } from '../../services/loader.service';
 import { AddNewLoanDialogComponent, AddNewLoanDialogResult } from './add-new-loan-dialog/add-new-loan-dialog.component';
+
+/** Release row from paymentDocuments list API */
+export interface ReleasePaymentDocRow {
+  id: number;
+  customerId: string;
+  loanAccountNumber: string;
+  documentName: string;
+  documentType: string;
+  contentType: string;
+  createdBy: string | null;
+  createdDate: string;
+  updatedBy?: string | null;
+  updatedDate?: string | null;
+}
+
+/** Payment receipt row from paymentDocuments list API */
+export interface PaymentPaidHistoryRow {
+  id: number;
+  loanAccountNumber: string;
+  customerId: string;
+  paymentPaidDate: string;
+  paymentPaidAmount: number;
+  payemntReceiptNumber: string;
+  receiptFileName: string;
+  receiptContentType: string;
+  createdBy: string | null;
+  createdDate: string;
+}
+
+/** Documents grouped by loan for Payment History tab */
+export interface LoanPaymentDocumentsGroup {
+  loanAccountNumber: string;
+  /** From customer loan list when matched; null if unknown */
+  netDisbursedAmount: number | null;
+  releaseDocs: ReleasePaymentDocRow[];
+  payments: PaymentPaidHistoryRow[];
+}
 
 @Component({
   selector: 'app-customer-profile',
@@ -15,19 +55,32 @@ export class CustomerProfileComponent implements OnInit {
   customerId: string | null = null;
   customer: any = null;
   loans: any[] = [];
+  /** True while fetching till-date interest / outstanding per loan from getOutstandingLoanAmountDetails */
+  loanOutstandingLoading = false;
   isLoading = false;
   selectedTabIndex = 0; // 0: details, 1: loans, 2: payment history, 3: documents
 
-  // Payment History
-  paymentHistory: any[] = [];
+  // Payment History (documents API, grouped by loan account)
+  paymentDocsByLoan: LoanPaymentDocumentsGroup[] = [];
   isLoadingHistory = false;
-  paymentHistoryColumns = ['loanAccountNumber', 'paymentType', 'repaymentAmount', 'paymentMode', 'paymentDate', 'paymentStatus'];
+  downloadingReleaseId: number | null = null;
+  downloadingReceiptNumber: string | null = null;
+
+  /** KYC + additional (client) documents for Documents tab */
+  kycDocuments: any[] = [];
+  additionalDocuments: any[] = [];
+  isLoadingDocuments = false;
+  /** Loading state for KYC view/download (per doc key) */
+  loadingKycKey: string | null = null;
+  /** Loading state for additional doc view/download */
+  loadingAdditionalId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog,
     private apiService: PersonalDetailsService,
+    private clientDocumentService: ClientDocumentService,
     private toastService: ToastService,
     public loaderService: LoaderService
   ) {}
@@ -56,7 +109,9 @@ export class CustomerProfileComponent implements OnInit {
           this.customer = data;
           const loanList = data.loanAccountDetailsDtoList || data.loanAccountDetailsDto || [];
           this.loans = this.mapLoanAccountDetails(loanList);
+          this.loadOutstandingSnapshotsForLoans();
           this.loadPaymentHistory();
+          this.loadCustomerDocuments();
         } else {
           this.toastService.showError('Customer not found');
           this.router.navigate(['/loan-info-details']);
@@ -74,19 +129,86 @@ export class CustomerProfileComponent implements OnInit {
    * Maps loanAccountDetailsDtoList from API to loans format for template binding.
    */
   private mapLoanAccountDetails(loanDetails: any[]): any[] {
-    return (loanDetails || []).map((loan: any, index: number) => ({
-      id: loan.loanAccountNumber || index,
-      loanAccountNo: loan.loanAccountNumber,
-      loanAccountNumber: loan.loanAccountNumber,
-      status: loan.loanStatus,
-      loanStatus: loan.loanStatus,
-      principalAmount: loan.netDisbursedAmount ?? loan.loanAmount ?? 0,
-      netDisbursedAmount: loan.netDisbursedAmount,
-      loanDate: loan.loanDate,
-      rateOfInterest: loan.rateOfInterest ?? loan.interestRate,
-      interestRate: loan.rateOfInterest ?? loan.interestRate ?? 'N/A',
-      tenure: loan.tenure ?? 'N/A'
-    }));
+    return (loanDetails || []).map((loan: any, index: number) => {
+      const disbursalRaw =
+        loan.disbusalDate ?? loan.disbursalDate ?? loan.loanDate ?? null;
+      return {
+        id: loan.loanAccountNumber || index,
+        loanAccountNo: loan.loanAccountNumber,
+        loanAccountNumber: loan.loanAccountNumber,
+        status: loan.loanStatus,
+        loanStatus: loan.loanStatus,
+        principalAmount: loan.netDisbursedAmount ?? loan.loanAmount ?? 0,
+        netDisbursedAmount: loan.netDisbursedAmount,
+        /** API may send `disbusalDate` (typo) or `disbursalDate`; date-only ISO string */
+        disbursalDate: disbursalRaw,
+        loanDate: disbursalRaw ?? loan.loanDate,
+        /** ISO datetime string when present */
+        loanEndDate: loan.loanEndDate ?? null,
+        schemeName: loan.schemeName ?? null,
+        rateOfInterest: loan.rateOfInterest ?? loan.interestRate,
+        interestRate: loan.rateOfInterest ?? loan.interestRate ?? 'N/A',
+        tenure: loan.tenure ?? 'N/A',
+        /** Filled from loan DTO if backend sends them, else from getOutstandingLoanAmountDetails */
+        tillDateInterestAmount:
+          loan.tillDateInterestAmount ?? loan.tillDateInterest ?? null,
+        totalOutstandingAmount: loan.totalOutstandingAmount ?? null
+      };
+    });
+  }
+
+  /**
+   * Enrich each loan card with till-date interest and total outstanding (same source as Loan Release outstanding step).
+   */
+  private loadOutstandingSnapshotsForLoans(): void {
+    if (!this.customerId || this.loans.length === 0) {
+      return;
+    }
+
+    const id = this.customerId;
+    this.loanOutstandingLoading = true;
+
+    const requests = this.loans.map((loan) => {
+      const account = loan.loanAccountNumber || loan.loanAccountNo;
+      if (!account) {
+        return of(null);
+      }
+      return this.apiService.getOutstandingLoanAmountDetails(id, account).pipe(
+        catchError(() => of(null))
+      );
+    });
+
+    forkJoin(requests).subscribe({
+      next: (results: any[]) => {
+        results.forEach((res, i) => {
+          const loan = this.loans[i];
+          if (!loan) return;
+          const data = res?.code === 200 && res?.data ? res.data : null;
+          if (data) {
+            if (data.tillDateInterestAmount != null) {
+              loan.tillDateInterestAmount = data.tillDateInterestAmount;
+            }
+            if (data.totalOutstandingAmount != null) {
+              loan.totalOutstandingAmount = data.totalOutstandingAmount;
+            }
+          }
+        });
+        this.loans = [...this.loans];
+        this.loanOutstandingLoading = false;
+      },
+      error: () => {
+        this.loanOutstandingLoading = false;
+      }
+    });
+  }
+
+  /** Show outstanding snapshot row when loading or we have at least one figure */
+  showLoanOutstandingSnapshot(loan: any): boolean {
+    if (this.loanOutstandingLoading) return true;
+    return (
+      loan?.tillDateInterestAmount != null ||
+      loan?.totalOutstandingAmount != null
+    );
   }
 
   editCustomer(): void {
@@ -200,28 +322,290 @@ export class CustomerProfileComponent implements OnInit {
   }
 
   /**
-   * Load payment history for all loans
+   * Load release + payment receipt lists (/paymentDocuments/list/{customerId}), grouped by loan account.
    */
   loadPaymentHistory(): void {
-    if (!this.customerId || this.loans.length === 0) return;
+    if (!this.customerId) return;
 
     this.isLoadingHistory = true;
-    // Load payment history for each loan account
-    const loanAccount = this.loans[0]?.loanAccountNumber || this.loans[0]?.loanAccountNo;
-    if (loanAccount) {
-      this.apiService.getPaymentHistory(this.customerId, loanAccount).subscribe({
-        next: (res: any) => {
-          this.isLoadingHistory = false;
-          this.paymentHistory = res?.data || [];
-        },
-        error: () => {
-          this.isLoadingHistory = false;
-          this.paymentHistory = [];
-        }
-      });
-    } else {
-      this.isLoadingHistory = false;
+    this.apiService.getPaymentDocumentsList(this.customerId).subscribe({
+      next: (res: any) => {
+        this.isLoadingHistory = false;
+        const data = res?.data;
+        this.paymentDocsByLoan = this.buildPaymentDocsByLoan(data);
+      },
+      error: () => {
+        this.isLoadingHistory = false;
+        this.paymentDocsByLoan = [];
+        this.toastService.showError('Failed to load payment documents.');
+      }
+    });
+  }
+
+  private buildPaymentDocsByLoan(data: any): LoanPaymentDocumentsGroup[] {
+    const release: ReleasePaymentDocRow[] = data?.releasePaymentDoc ?? [];
+    const payments: PaymentPaidHistoryRow[] = data?.paymentPaidHistoryList ?? [];
+    const loanSet = new Set<string>();
+    release.forEach((r) => {
+      if (r?.loanAccountNumber) {
+        loanSet.add(r.loanAccountNumber);
+      }
+    });
+    payments.forEach((p) => {
+      if (p?.loanAccountNumber) {
+        loanSet.add(p.loanAccountNumber);
+      }
+    });
+    const sorted = Array.from(loanSet).sort();
+    return sorted.map((loanAccountNumber) => ({
+      loanAccountNumber,
+      netDisbursedAmount: this.lookupNetDisbursedAmount(loanAccountNumber),
+      releaseDocs: release.filter((r) => r.loanAccountNumber === loanAccountNumber),
+      payments: payments.filter((p) => p.loanAccountNumber === loanAccountNumber)
+    }));
+  }
+
+  private lookupNetDisbursedAmount(loanAccountNumber: string): number | null {
+    const loan = this.loans.find(
+      (l) => (l.loanAccountNumber || l.loanAccountNo) === loanAccountNumber
+    );
+    if (!loan) {
+      return null;
     }
+    const v = loan.netDisbursedAmount ?? loan.principalAmount;
+    return typeof v === 'number' && !isNaN(v) ? v : null;
+  }
+
+  get paymentDocumentsTotalCount(): number {
+    return this.paymentDocsByLoan.reduce(
+      (n, g) => n + g.releaseDocs.length + g.payments.length,
+      0
+    );
+  }
+
+  /** Same download as loan release wizard: generate-full-release-doc/download */
+  downloadReleaseDocument(loanAccountNumber: string, doc: ReleasePaymentDocRow): void {
+    if (!this.customerId) return;
+    this.downloadingReleaseId = doc.id;
+    this.apiService.downloadFullReleaseDoc(this.customerId, loanAccountNumber).subscribe({
+      next: (blob: Blob) => {
+        this.downloadingReleaseId = null;
+        if (!blob?.size) {
+          this.toastService.showError('Empty file.');
+          return;
+        }
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.documentName || `Release_${loanAccountNumber}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.toastService.showSuccess('Document downloaded.');
+      },
+      error: () => {
+        this.downloadingReleaseId = null;
+        this.toastService.showError('Failed to download release document.');
+      }
+    });
+  }
+
+  /** Same as payment confirmation: part-payment-emi-payment/download/{receiptNumber} */
+  downloadPaymentReceiptDoc(row: PaymentPaidHistoryRow): void {
+    const receiptNumber = row.payemntReceiptNumber;
+    const fileName = row.receiptFileName || `Payment_Receipt_${receiptNumber}.pdf`;
+    if (!receiptNumber) {
+      this.toastService.showWarning('Receipt number not available.');
+      return;
+    }
+    this.downloadingReceiptNumber = receiptNumber;
+    this.apiService.downloadPaymentReceipt(receiptNumber).subscribe({
+      next: (blob: Blob) => {
+        this.downloadingReceiptNumber = null;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.toastService.showSuccess('Receipt downloaded.');
+      },
+      error: () => {
+        this.downloadingReceiptNumber = null;
+        this.toastService.showError('Failed to download receipt.');
+      }
+    });
+  }
+
+  /** Summary line in accordion header (e.g. "2 releases · 3 receipts"). */
+  getLoanDocSummary(group: LoanPaymentDocumentsGroup): string {
+    const r = group.releaseDocs.length;
+    const p = group.payments.length;
+    const parts: string[] = [];
+    if (r > 0) {
+      parts.push(`${r} release${r > 1 ? ' docs' : ' doc'}`);
+    }
+    if (p > 0) {
+      parts.push(`${p} receipt${p > 1 ? 's' : ''}`);
+    }
+    return parts.length ? parts.join(' · ') : 'No documents';
+  }
+
+  get customerDocumentsTotalCount(): number {
+    return this.kycDocuments.length + this.additionalDocuments.length;
+  }
+
+  /**
+   * KYC: `getAllKycDocuments` — same as loan wizard KYC step.
+   * Additional: `getAllClientDocument` — same as Additional Documents step.
+   */
+  loadCustomerDocuments(): void {
+    if (!this.customerId) return;
+    this.isLoadingDocuments = true;
+    forkJoin({
+      kyc: this.apiService.getAllKycDocuments(this.customerId).pipe(catchError(() => of({ data: [] }))),
+      additional: this.clientDocumentService.getAllClientDocuments(this.customerId).pipe(
+        catchError(() => of({ data: [] }))
+      )
+    }).subscribe({
+      next: ({ kyc, additional }) => {
+        this.isLoadingDocuments = false;
+        this.kycDocuments = Array.isArray(kyc?.data) ? kyc.data : [];
+        const addRaw = additional?.data ?? additional;
+        this.additionalDocuments = Array.isArray(addRaw) ? addRaw : [];
+      },
+      error: () => {
+        this.isLoadingDocuments = false;
+        this.kycDocuments = [];
+        this.additionalDocuments = [];
+      }
+    });
+  }
+
+  kycDocKey(doc: any): string {
+    return String(doc?.id ?? `${doc.documentType}_${doc.side}`);
+  }
+
+  formatKycDocLabel(doc: any): string {
+    const dt = doc.documentType || 'Document';
+    const side = doc.side && String(doc.side).toUpperCase() !== 'NA' ? ` · ${doc.side}` : '';
+    return `${dt}${side}`;
+  }
+
+  formatAdditionalDocTypeLabel(doc: any): string {
+    const t = doc.documentType || '';
+    if (!t) return '—';
+    const map: Record<string, string> = {
+      incomeProof: 'Income proof',
+      addressProof: 'Address proof',
+      other: 'Other',
+      otherDocument: 'Other'
+    };
+    return map[t] || t;
+  }
+
+  private saveBlobDownload(blob: Blob, fileName: string, successMsg: string): void {
+    if (blob.type === 'application/json') {
+      this.toastService.showError('Could not download file.');
+      return;
+    }
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    this.toastService.showSuccess(successMsg);
+  }
+
+  /** Open KYC file in new tab — `getDocumentByType` (same as KYC wizard). */
+  viewKycDocument(doc: any): void {
+    if (!this.customerId) return;
+    const key = this.kycDocKey(doc);
+    this.loadingKycKey = key;
+    this.apiService.getDocumentByType(this.customerId, doc.documentType, doc.side || 'NA').subscribe({
+      next: (blob: Blob) => {
+        this.loadingKycKey = null;
+        if (blob.type === 'application/json' || blob.size < 20) {
+          this.toastService.showError('Could not open document.');
+          return;
+        }
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener');
+        setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+      },
+      error: () => {
+        this.loadingKycKey = null;
+        this.toastService.showError('Failed to open document.');
+      }
+    });
+  }
+
+  downloadKycDocument(doc: any): void {
+    if (!this.customerId) return;
+    const key = this.kycDocKey(doc);
+    this.loadingKycKey = key;
+    this.apiService.getDocumentByType(this.customerId, doc.documentType, doc.side || 'NA').subscribe({
+      next: (blob: Blob) => {
+        this.loadingKycKey = null;
+        const name = doc.fileName || `kyc_${doc.documentType}_${doc.side || 'file'}`;
+        this.saveBlobDownload(blob, name, 'Document downloaded.');
+      },
+      error: () => {
+        this.loadingKycKey = null;
+        this.toastService.showError('Failed to download document.');
+      }
+    });
+  }
+
+  /** `downloadClientDocument` blob — same as Additional Documents wizard. */
+  viewAdditionalDocument(doc: any): void {
+    if (!this.customerId || doc?.id == null) return;
+    this.loadingAdditionalId = doc.id;
+    this.clientDocumentService.getClientDocument(this.customerId, doc.id).subscribe({
+      next: (blob: Blob) => {
+        this.loadingAdditionalId = null;
+        if (blob.type === 'application/json') {
+          this.toastService.showError('Could not open document.');
+          return;
+        }
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener');
+        setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+      },
+      error: () => {
+        this.loadingAdditionalId = null;
+        this.toastService.showError('Failed to open document.');
+      }
+    });
+  }
+
+  downloadAdditionalDocument(doc: any): void {
+    if (!this.customerId || doc?.id == null) return;
+    this.loadingAdditionalId = doc.id;
+    this.clientDocumentService.getClientDocument(this.customerId, doc.id).subscribe({
+      next: (blob: Blob) => {
+        this.loadingAdditionalId = null;
+        const name = doc.fileName || `document_${doc.id}`;
+        this.saveBlobDownload(blob, name, 'Document downloaded.');
+      },
+      error: () => {
+        this.loadingAdditionalId = null;
+        this.toastService.showError('Failed to download document.');
+      }
+    });
+  }
+
+  formatDateTime(dateString: string | null | undefined): string {
+    if (!dateString) return '—';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   formatPaymentCurrency(amount: number): string {

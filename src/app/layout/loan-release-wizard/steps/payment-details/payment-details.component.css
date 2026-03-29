@@ -598,6 +598,80 @@ mat-form-field {
   }
 }
 
+/* Rebate section */
+.rebate-section {
+  margin-top: 8px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed #c7d2fe;
+  background: linear-gradient(135deg, #fafbff 0%, #f8fafc 100%);
+}
+
+.rebate-checkbox {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.rebate-hint {
+  margin: 8px 0 0 28px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.schedule-rebate-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0 28px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.45;
+}
+
+.schedule-rebate-note mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #2563eb;
+}
+
+.readonly-rebate {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.rebate-fields {
+  margin-top: 16px;
+  padding-top: 8px;
+}
+
+.summary-row.rebate-line .rebate-val {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.summary-row.net-due {
+  padding: 8px 0;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  margin: 4px 0 8px;
+}
+
+.receipt-value.small-text {
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  max-width: 100%;
+  text-align: right;
+}
+
 @media (max-width: 640px) {
   .form-panel {
     padding: 24px;

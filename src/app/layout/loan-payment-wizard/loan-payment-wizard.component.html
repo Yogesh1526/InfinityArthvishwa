@@ -44,24 +44,24 @@
   <section class="wizard-main">
     <div class="wizard-step-content">
       <ng-container [ngSwitch]="activeStep">
-        <!-- Step 1: Payment Type Selection -->
-        <app-payment-type-selection 
-          #paymentTypeRef 
-          *ngSwitchCase="0"
-          [selectedType]="paymentType"
-          (typeSelected)="onPaymentTypeSelected($event)">
-        </app-payment-type-selection>
-
-        <!-- Step 2: Repayment Schedule Summary -->
+        <!-- Step 1: Repayment schedule first (then payment type, then payment entry) -->
         <app-repayment-schedule-summary 
           #repaymentScheduleRef 
-          *ngSwitchCase="1"
+          *ngSwitchCase="0"
           [customerId]="customerId"
           [loanAccountNumber]="loanAccountNumber"
           [paymentType]="paymentType"
           (dataLoaded)="onOutstandingDataLoaded($event)"
           (stepCompleted)="onRepaymentScheduleConfirmed()">
         </app-repayment-schedule-summary>
+
+        <!-- Step 2: Payment type after schedule -->
+        <app-payment-type-selection 
+          #paymentTypeRef 
+          *ngSwitchCase="1"
+          [selectedType]="paymentType"
+          (typeSelected)="onPaymentTypeSelected($event)">
+        </app-payment-type-selection>
 
         <!-- Step 3: Payment Entry -->
         <app-payment-entry 

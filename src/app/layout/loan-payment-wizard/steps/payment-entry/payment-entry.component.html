@@ -57,12 +57,28 @@
                 </mat-form-field>
               </div>
               <div class="form-section">
-                <label class="form-label">Amount (₹) <span class="req">*</span></label>
+                <label class="form-label">
+                  <ng-container *ngIf="paymentType === 'INTEREST_PAYMENT' && paymentForm.get('applyRebate')?.value">Amount — effective interest due (₹)</ng-container>
+                  <ng-container *ngIf="paymentType !== 'INTEREST_PAYMENT' || !paymentForm.get('applyRebate')?.value">Amount (₹)</ng-container>
+                  <span class="req">*</span>
+                </label>
                 <mat-form-field appearance="outline" class="full-width dense-field">
-                  <input matInput type="number" formControlName="paymentAmount" placeholder="0">
-                  <mat-error *ngIf="isFieldInvalid('paymentAmount')">Valid amount required</mat-error>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="paymentAmount"
+                    placeholder="0"
+                    [readonly]="paymentType === 'INTEREST_PAYMENT' && paymentForm.get('applyRebate')?.value"
+                    [class.readonly-rebate]="paymentType === 'INTEREST_PAYMENT' && paymentForm.get('applyRebate')?.value">
+                  <mat-hint *ngIf="paymentType === 'INTEREST_PAYMENT' && paymentForm.get('applyRebate')?.value">
+                    Matches interest due after rebate (sent as payment amount).
+                  </mat-hint>
+                  <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('required')">Valid amount required</mat-error>
+                  <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('min')">Below minimum for this payment</mat-error>
+                  <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('mustMatchEffective')">Must equal effective interest after rebate</mat-error>
+                  <mat-error *ngIf="paymentForm.get('paymentAmount')?.hasError('maxAmount')">Exceeds maximum allowed</mat-error>
                 </mat-form-field>
-                <div class="quick-actions" *ngIf="getQuickAmountOptions().length">
+                <div class="quick-actions" *ngIf="getQuickAmountOptions().length && !(paymentType === 'INTEREST_PAYMENT' && paymentForm.get('applyRebate')?.value)">
                   <button type="button" *ngFor="let option of getQuickAmountOptions()" class="quick-btn"
                     (click)="applyQuickAmount(option.amount)">
                     {{ option.label }} · {{ formatCurrency(option.amount) }}
@@ -117,6 +133,48 @@
                 <input matInput formControlName="remarks" placeholder="Notes">
               </mat-form-field>
             </div>
+
+            <div class="rebate-section" *ngIf="paymentType === 'INTEREST_PAYMENT'">
+              <mat-checkbox formControlName="applyRebate" color="primary" class="rebate-checkbox">
+                Apply rebate / discount (interest)
+              </mat-checkbox>
+              <p class="rebate-hint">Rebate reduces interest due (till date). You can still pay full till-date interest; any amount above effective interest after rebate can go to principal, within the usual limits.</p>
+              <p class="schedule-rebate-note" *ngIf="paymentForm.get('applyRebate')?.value && getScheduleSuggestedRebate() > 0">
+                <mat-icon>calendar_month</mat-icon>
+                From repayment schedule: due <strong>{{ formatScheduleDueShort() }}</strong> — monthly rebate
+                <strong>{{ formatCurrency(getScheduleSuggestedRebate()) }}</strong> (read-only).
+              </p>
+              <div class="rebate-fields" *ngIf="paymentForm.get('applyRebate')?.value">
+                <div class="form-section">
+                  <label class="form-label">Rebate amount (₹) <span class="req">*</span></label>
+                  <mat-form-field appearance="outline" class="full-width dense-field">
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="rebateAmount"
+                      placeholder="0.00"
+                      min="0.01"
+                      step="0.01"
+                      [readonly]="isScheduleRebateReadonly()"
+                      [class.readonly-rebate]="isScheduleRebateReadonly()">
+                    <mat-hint *ngIf="!isScheduleRebateReadonly()">Enter manually if schedule did not suggest a rebate</mat-hint>
+                    <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('required')">Enter rebate amount</mat-error>
+                    <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('min')">Must be &gt; 0</mat-error>
+                    <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('rebateTooHigh')">Exceeds maximum for this payment type</mat-error>
+                    <mat-error *ngIf="paymentForm.get('rebateAmount')?.hasError('rebateLeavesBelowMin')">Leaves interest due below minimum installment</mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="form-section">
+                  <label class="form-label">Reason for rebate <span class="req">*</span></label>
+                  <mat-form-field appearance="outline" class="full-width dense-field">
+                    <textarea matInput formControlName="rebateReason" rows="2" maxlength="500" placeholder="e.g. Holiday adjustment, value-date mismatch…"></textarea>
+                    <mat-hint align="end">{{ (paymentForm.get('rebateReason')?.value || '').length }} / 500</mat-hint>
+                    <mat-error *ngIf="paymentForm.get('rebateReason')?.hasError('required')">Required</mat-error>
+                    <mat-error *ngIf="paymentForm.get('rebateReason')?.hasError('minlength')">At least 5 characters</mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       </div>
@@ -137,6 +195,14 @@
               <span>Interest due (till date)</span>
               <span>{{ formatCurrency(outstandingData?.accruedInterest) }}</span>
             </div>
+            <div class="sidebar-row sub rebate-sidebar" *ngIf="paymentForm.get('applyRebate')?.value && getRebateAmountNumber() > 0">
+              <span>Rebate</span>
+              <span class="rebate-neg">− {{ formatCurrency(getRebateAmountNumber()) }}</span>
+            </div>
+            <div class="sidebar-row sub net" *ngIf="paymentType === 'INTEREST_PAYMENT' && paymentForm.get('applyRebate')?.value && getRebateAmountNumber() > 0">
+              <span>Effective interest due</span>
+              <span>{{ formatCurrency(getEffectiveAccruedInterestForPayment()) }}</span>
+            </div>
           </div>
         </div>
         <div class="sidebar-card" *ngIf="paymentForm.get('paymentAmount')?.value">
@@ -153,8 +219,8 @@
               <strong>{{ formatCurrency(getAmountInfo().amount) }}</strong>
             </div>
             <p class="sidebar-msg error"
-               *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) > (outstandingData?.accruedInterest || 0)">
-              Amount cannot exceed interest due (till date).
+               *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) > getMaxAmount()">
+              Amount cannot exceed interest due after rebate plus principal outstanding ({{ formatCurrency(getMaxAmount()) }}).
             </p>
             <p class="sidebar-msg error"
                *ngIf="paymentType === 'INTEREST_PAYMENT' && (paymentForm.get('paymentAmount')?.value || 0) < getMinimumAmount() && getMinimumAmount() > 0">
@@ -163,7 +229,7 @@
           </div>
         </div>
         <button mat-raised-button color="primary" class="btn-process"
-          [disabled]="isLoading || !isAmountValid() || paymentForm.invalid"
+          [disabled]="isLoading || !canProcessPayment()"
           (click)="processPayment()">
           <mat-spinner *ngIf="isLoading" diameter="22"></mat-spinner>
           <mat-icon *ngIf="!isLoading">lock</mat-icon>
@@ -186,6 +252,9 @@
           <div class="mini-receipt-body">
             <div class="mini-row"><span>Account</span><span class="mono">{{ loanAccountNumber }}</span></div>
             <div class="mini-row"><span>Date</span><span>{{ paymentForm.get('paymentDate')?.value }}</span></div>
+            <div class="mini-row" *ngIf="paymentForm.get('applyRebate')?.value && getRebateAmountNumber() > 0">
+              <span>Rebate</span><span>{{ formatCurrency(getRebateAmountNumber()) }}</span>
+            </div>
             <div class="mini-row highlight"><span>Amount</span><strong>{{ formatCurrency(paymentForm.get('paymentAmount')?.value) }}</strong></div>
           </div>
         </div>

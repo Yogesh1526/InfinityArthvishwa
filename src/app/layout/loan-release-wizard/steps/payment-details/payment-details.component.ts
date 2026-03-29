@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
 
@@ -8,7 +8,7 @@ import { ToastService } from 'src/app/services/toast.service';
   templateUrl: './payment-details.component.html',
   styleUrls: ['./payment-details.component.css']
 })
-export class PaymentDetailsComponent implements OnInit {
+export class PaymentDetailsComponent implements OnInit, OnChanges {
   @Input() customerId!: string;
   @Input() loanAccountNumber!: string;
   @Input() outstandingData: any;
@@ -49,10 +49,109 @@ export class PaymentDetailsComponent implements OnInit {
   }
 
   /**
+   * Same figure as Outstanding Details "Total Outstanding Amount" (API field), not schedule-table-derived totals.
+   */
+  getTotalOutstandingAmountDue(): number {
+    const d = this.outstandingData;
+    if (!d) return 0;
+    const raw = d.totalOutstandingAmount ?? d.totalOutstanding;
+    const n = Number(raw);
+    return !isNaN(n) && n >= 0 ? n : 0;
+  }
+
+  /** Amount Due card: net after rebate when rebate applies, else gross total outstanding. */
+  getDisplayAmountDue(): number {
+    if (this.paymentForm?.get('applyRebate')?.value && this.getRebateAmountNumber() > 0) {
+      return this.getNetAmountDue();
+    }
+    return this.getTotalOutstandingAmountDue();
+  }
+
+  /** Schedule row suggestion (from repayment schedule step / outstanding payload). */
+  getScheduleSuggestedRebate(): number {
+    const v = this.outstandingData?.scheduleSuggestedRebateAmount;
+    if (v == null || v === '') return 0;
+    const n = Number(v);
+    return !isNaN(n) && n > 0 ? n : 0;
+  }
+
+  getScheduleSuggestedRebateDueDate(): string | null {
+    return this.outstandingData?.scheduleSuggestedRebateDueDate || null;
+  }
+
+  getWaiverInterestDueDateForApi(): string | null {
+    const fromSchedule = this.getScheduleSuggestedRebateDueDate();
+    if (fromSchedule) return String(fromSchedule).trim() || null;
+    const raw = this.outstandingData?.waiverInterestDueDate;
+    if (raw == null || raw === '') return null;
+    return String(raw).trim() || null;
+  }
+
+  isScheduleRebateReadonly(): boolean {
+    return (
+      !!this.paymentForm?.get('applyRebate')?.value &&
+      this.getScheduleSuggestedRebate() > 0
+    );
+  }
+
+  private syncRebateFromScheduleIfNeeded(): void {
+    if (!this.paymentForm?.get('applyRebate')?.value || this.getScheduleSuggestedRebate() <= 0) {
+      return;
+    }
+    this.paymentForm.patchValue({ rebateAmount: this.getScheduleSuggestedRebate() }, { emitEvent: false });
+  }
+
+  /**
+   * When rebate applies, payment amount = net due after discount (same idea as loan-payment wizard).
+   */
+  private syncPaymentAmountToNetAfterRebate(): void {
+    if (!this.paymentForm?.get('applyRebate')?.value) return;
+    const payCtrl = this.paymentForm.get('paymentAmount');
+    if (!payCtrl) return;
+    const gross = this.getTotalOutstandingAmountDue();
+    let net = this.getNetAmountDue();
+    if (net > gross) net = gross;
+    const rounded = Math.round(Math.max(0, net) * 100) / 100;
+    payCtrl.setValue(rounded, { emitEvent: false });
+    payCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['outstandingData'] && this.paymentForm) {
+      this.syncRebateFromScheduleIfNeeded();
+      this.updateRebateValidators();
+      this.syncPaymentAmountToNetAfterRebate();
+    }
+  }
+
+  private updatePaymentAmountValidators(): void {
+    const paymentAmount = this.paymentForm?.get('paymentAmount');
+    if (!paymentAmount) return;
+    const apply = !!this.paymentForm.get('applyRebate')?.value;
+
+    if (apply) {
+      const gross = this.getTotalOutstandingAmountDue();
+      paymentAmount.setValidators([
+        Validators.required,
+        (c: AbstractControl): ValidationErrors | null => {
+          const v = Number(c.value) || 0;
+          const net = this.getNetAmountDue();
+          if (v > gross + 0.01) return { maxAmount: true };
+          if (Math.abs(v - net) > 0.02) return { mustMatchNet: true };
+          return null;
+        }
+      ]);
+    } else {
+      paymentAmount.setValidators([Validators.required, Validators.min(1)]);
+    }
+    paymentAmount.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /**
    * Initialize the payment form
    */
   initForm(): void {
-    const totalAmount = this.outstandingData?.totalOutstanding || 0;
+    const totalAmount = this.getTotalOutstandingAmountDue();
 
     this.paymentForm = this.fb.group({
       paymentMode: ['', Validators.required],
@@ -63,12 +162,89 @@ export class PaymentDetailsComponent implements OnInit {
       chequeDate: [''],
       upiId: [''],
       remarks: [''],
-      paymentDate: [new Date().toISOString().split('T')[0], Validators.required]
+      paymentDate: [new Date().toISOString().split('T')[0], Validators.required],
+      applyRebate: [false],
+      rebateAmount: [null as number | null],
+      rebateReason: ['']
     });
 
     this.paymentForm.get('paymentMode')?.valueChanges.subscribe(mode => {
       this.updateValidators(mode);
     });
+
+    this.paymentForm.get('applyRebate')?.valueChanges.subscribe((checked) => {
+      if (checked) {
+        const sug = this.getScheduleSuggestedRebate();
+        if (sug > 0) {
+          this.paymentForm.patchValue({ rebateAmount: sug }, { emitEvent: false });
+        }
+      } else {
+        this.paymentForm.patchValue({ rebateAmount: null, rebateReason: '' }, { emitEvent: false });
+        this.paymentForm
+          .get('paymentAmount')
+          ?.setValue(this.getTotalOutstandingAmountDue(), { emitEvent: false });
+      }
+      this.updateRebateValidators();
+      this.syncPaymentAmountToNetAfterRebate();
+    });
+
+    this.paymentForm.get('rebateAmount')?.valueChanges.subscribe(() => {
+      if (this.paymentForm.get('applyRebate')?.value) {
+        this.syncPaymentAmountToNetAfterRebate();
+        this.updatePaymentAmountValidators();
+      }
+    });
+
+    this.paymentForm.get('paymentAmount')?.valueChanges.subscribe(() => {
+      if (this.paymentForm.get('applyRebate')?.value) {
+        this.paymentForm.get('rebateAmount')?.updateValueAndValidity({ emitEvent: false });
+      }
+    });
+
+    this.updateRebateValidators();
+  }
+
+  /** Amount customer must pay after rebate (net due for closure). */
+  getNetAmountDue(): number {
+    const base = this.getTotalOutstandingAmountDue();
+    if (!this.paymentForm.get('applyRebate')?.value) {
+      return base;
+    }
+    const rebate = Number(this.paymentForm.get('rebateAmount')?.value) || 0;
+    return Math.max(0, base - rebate);
+  }
+
+  private updateRebateValidators(): void {
+    const apply = !!this.paymentForm.get('applyRebate')?.value;
+    const rebateAmountCtrl = this.paymentForm.get('rebateAmount');
+    const rebateReasonCtrl = this.paymentForm.get('rebateReason');
+    if (!rebateAmountCtrl || !rebateReasonCtrl) return;
+
+    if (apply) {
+      rebateAmountCtrl.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        (c: AbstractControl): ValidationErrors | null => {
+          const max = this.getTotalOutstandingAmountDue();
+          const v = Number(c.value);
+          if (max > 0 && v > max) return { rebateTooHigh: true };
+          return null;
+        }
+      ]);
+      rebateReasonCtrl.setValidators([
+        Validators.required,
+        Validators.minLength(5),
+        Validators.maxLength(500)
+      ]);
+    } else {
+      rebateAmountCtrl.clearValidators();
+      rebateReasonCtrl.clearValidators();
+      rebateAmountCtrl.setValue(null);
+      rebateReasonCtrl.setValue('');
+    }
+    rebateAmountCtrl.updateValueAndValidity({ emitEvent: false });
+    rebateReasonCtrl.updateValueAndValidity({ emitEvent: false });
+    this.updatePaymentAmountValidators();
   }
 
   /**
@@ -100,12 +276,18 @@ export class PaymentDetailsComponent implements OnInit {
    * Patch form with saved data from API
    */
   patchFormWithSavedData(data: any): void {
+    const applyRebate = !!(data.applyRebate ?? (Number(data.rebateAmount) > 0));
     this.paymentForm.patchValue({
       paymentMode: data.paymentMode || '',
       paymentAmount: data.repaymentAmount || 0,
-      paymentDate: data.paymentDate || new Date().toISOString().split('T')[0]
+      paymentDate: data.paymentDate || new Date().toISOString().split('T')[0],
+      applyRebate,
+      rebateAmount: data.rebateAmount != null ? Number(data.rebateAmount) : null,
+      rebateReason: data.rebateReason || ''
     });
     this.savedData = data;
+    this.updateRebateValidators();
+    this.syncPaymentAmountToNetAfterRebate();
   }
 
   /**
@@ -158,21 +340,27 @@ export class PaymentDetailsComponent implements OnInit {
   }
 
   /**
-   * Check if payment amount matches outstanding
+   * Process enabled when amount rules satisfied (net due when rebate, else at least total outstanding).
    */
   isAmountMatching(): boolean {
-    const paymentAmount = this.paymentForm.get('paymentAmount')?.value || 0;
-    const outstanding = this.outstandingData?.totalOutstanding || 0;
-    return paymentAmount >= outstanding;
+    const paymentAmount = Number(this.paymentForm.get('paymentAmount')?.value) || 0;
+    if (!this.paymentForm.get('applyRebate')?.value) {
+      return paymentAmount >= this.getTotalOutstandingAmountDue();
+    }
+    return Math.abs(paymentAmount - this.getNetAmountDue()) < 0.02;
   }
 
   /**
-   * Get difference amount
+   * Get difference amount (payment vs net due after rebate)
    */
   getDifferenceAmount(): number {
-    const paymentAmount = this.paymentForm.get('paymentAmount')?.value || 0;
-    const outstanding = this.outstandingData?.totalOutstanding || 0;
-    return paymentAmount - outstanding;
+    const paymentAmount = Number(this.paymentForm.get('paymentAmount')?.value) || 0;
+    return paymentAmount - this.getNetAmountDue();
+  }
+
+  getRebateAmountNumber(): number {
+    if (!this.paymentForm.get('applyRebate')?.value) return 0;
+    return Number(this.paymentForm.get('rebateAmount')?.value) || 0;
   }
 
   /**
@@ -190,26 +378,49 @@ export class PaymentDetailsComponent implements OnInit {
     }
 
     if (!this.isAmountMatching()) {
-      this.toastService.showWarning('Payment amount must be equal to or greater than the outstanding amount.');
+      this.toastService.showWarning(
+        this.paymentForm.get('applyRebate')?.value
+          ? 'Payment amount must be equal to or greater than the net amount due (after rebate).'
+          : 'Payment amount must be equal to or greater than the outstanding amount.'
+      );
+      return;
+    }
+
+    const applyRebate = !!this.paymentForm.get('applyRebate')?.value;
+    const rebateAmount = applyRebate ? Number(this.paymentForm.get('rebateAmount')?.value) || 0 : null;
+    const rebateReason = applyRebate ? (this.paymentForm.get('rebateReason')?.value || '').trim() : null;
+    const waiverDue = applyRebate ? this.getWaiverInterestDueDateForApi() : null;
+    const waiverFlag: 'Yes' | 'No' = applyRebate ? 'Yes' : 'No';
+
+    if (applyRebate && (!rebateReason || rebateReason.length < 5)) {
+      this.toastService.showWarning('Please enter a rebate reason (at least 5 characters).');
+      return;
+    }
+    if (applyRebate && (!rebateAmount || rebateAmount <= 0)) {
+      this.toastService.showWarning('Please enter a valid rebate amount.');
       return;
     }
 
     this.isLoading = true;
 
-    // Build payload matching the API format
     const payload = {
       customerId: this.customerId,
       loanAccountNumber: this.loanAccountNumber,
-      repaymentAmount: this.paymentForm.get('paymentAmount')?.value,
+      repaymentAmount: Number(this.paymentForm.get('paymentAmount')?.value),
       paymentMode: this.paymentForm.get('paymentMode')?.value,
       paymentType: 'Total Repayment',
-      paymentStatus: 'SUCCESS'
+      paymentStatus: 'SUCCESS',
+      rebateAmount: applyRebate ? rebateAmount : null,
+      rebateReason: applyRebate ? rebateReason : null,
+      waiverFlag,
+      discountAmount: applyRebate ? rebateAmount : null,
+      waiverInterestDueDate: waiverDue
     };
 
     this.personalService.saveRepaymentDetails(payload).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        this.savedData = res?.data || payload;
+        this.savedData = { ...payload, ...(res?.data && typeof res.data === 'object' ? res.data : {}) };
         this.markAsSaved();
         this.persistSavedState();
         this.paymentCompleted.emit(this.savedData);
@@ -283,5 +494,13 @@ export class PaymentDetailsComponent implements OnInit {
   isFieldInvalid(fieldName: string): boolean {
     const field = this.paymentForm.get(fieldName);
     return field ? field.invalid && field.touched : false;
+  }
+
+  formatScheduleDueShort(): string {
+    const d = this.getScheduleSuggestedRebateDueDate();
+    if (!d) return '';
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return '';
+    return dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 }

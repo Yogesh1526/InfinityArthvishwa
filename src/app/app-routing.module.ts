@@ -24,6 +24,7 @@ import { UserViewComponent } from './layout/user-management/user-view/user-view.
 import { RoleGuard } from './auth/role.guard';
 import { InterestDueCurrentMonthPageComponent } from './layout/interest-due-current-month-page/interest-due-current-month-page.component';
 import { ReportsComponent } from './layout/reports/reports.component';
+import { ReportExportPageComponent } from './layout/report-export-page/report-export-page.component';
 
 const routes: Routes = [
   // Default path redirects to login
@@ -130,6 +131,16 @@ const routes: Routes = [
         path: 'reports',
         component: ReportsComponent,
         canActivate: [AuthGuard]
+      },
+      {
+        path: 'reports/export/:kind',
+        component: ReportExportPageComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'disbursal-report',
+        redirectTo: '/reports/export/disbursal',
+        pathMatch: 'full'
       },
       { 
         path: 'users', 

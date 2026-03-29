@@ -412,6 +412,71 @@
 .mini-row.highlight { margin: 8px -16px -16px; padding: 12px 16px; background: #ecfdf5; border-radius: 0 0 12px 12px; }
 .mini-row.highlight strong { font-size: 1.125rem; color: #047857; }
 
+/* Rebate (loan payment wizard — same fields as loan release payment details) */
+.rebate-section {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed #c7d2fe;
+  background: linear-gradient(135deg, #fafbff 0%, #f8fafc 100%);
+}
+
+.rebate-checkbox {
+  display: block;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.rebate-hint {
+  margin: 8px 0 0 28px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.schedule-rebate-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0 28px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.45;
+}
+
+.schedule-rebate-note mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #2563eb;
+}
+
+.readonly-rebate {
+  background: #f1f5f9;
+  cursor: not-allowed;
+}
+
+.rebate-fields {
+  margin-top: 12px;
+}
+
+.sidebar-row.rebate-sidebar .rebate-neg {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.sidebar-row.net {
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 @media (max-width: 900px) {
   .details-layout { grid-template-columns: 1fr; }
   .summary-cards { grid-template-columns: repeat(2, 1fr); }

@@ -133,8 +133,7 @@
       <mat-card-content>
         <mat-checkbox 
           [(ngModel)]="isConfirmed" 
-          color="primary"
-          (change)="isConfirmed && confirmOutstanding()">
+          color="primary">
           I have reviewed and confirm the outstanding details are correct
         </mat-checkbox>
         
@@ -142,10 +141,12 @@
           mat-flat-button 
           color="primary" 
           class="confirm-btn"
-          [disabled]="isConfirmed"
+          type="button"
+          [disabled]="!isConfirmed || isSaving"
           (click)="confirmOutstanding()">
-          <mat-icon>{{ isConfirmed ? 'check' : 'verified' }}</mat-icon>
-          {{ isConfirmed ? 'Confirmed' : 'Confirm & Save' }}
+          <mat-icon *ngIf="!isSaving">verified</mat-icon>
+          <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
+          Confirm &amp; Save
         </button>
       </mat-card-content>
     </mat-card>

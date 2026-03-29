@@ -6,6 +6,7 @@ import { ReleaseAuthorizationComponent } from './steps/release-authorization/rel
 import { OutstandingDetailsComponent } from './steps/outstanding-details/outstanding-details.component';
 import { PaymentDetailsComponent } from './steps/payment-details/payment-details.component';
 import { ReleaseDocumentComponent } from './steps/release-document/release-document.component';
+import { RepaymentScheduleSummaryComponent } from '../loan-payment-wizard/steps/repayment-schedule-summary/repayment-schedule-summary.component';
 
 @Component({
   selector: 'app-loan-release-wizard',
@@ -15,6 +16,7 @@ import { ReleaseDocumentComponent } from './steps/release-document/release-docum
 export class LoanReleaseWizardComponent implements OnInit {
   @ViewChild('releaseAuthorizationRef') releaseAuthorizationRef!: ReleaseAuthorizationComponent;
   @ViewChild('outstandingDetailsRef') outstandingDetailsRef!: OutstandingDetailsComponent;
+  @ViewChild('repaymentScheduleRef') repaymentScheduleRef!: RepaymentScheduleSummaryComponent;
   @ViewChild('paymentDetailsRef') paymentDetailsRef!: PaymentDetailsComponent;
   @ViewChild('releaseDocumentRef') releaseDocumentRef!: ReleaseDocumentComponent;
 
@@ -32,8 +34,9 @@ export class LoanReleaseWizardComponent implements OnInit {
   authorizationData: any = null;
 
   steps = [
-    { label: 'Release Authorization', key: 'authorization', icon: 'verified_user' },
     { label: 'Outstanding Details', key: 'outstanding', icon: 'account_balance_wallet' },
+    { label: 'Release Authorization', key: 'authorization', icon: 'verified_user' },
+    { label: 'Repayment Schedule', key: 'schedule', icon: 'table_chart' },
     { label: 'Payment Details', key: 'payment', icon: 'payment' },
     { label: 'Release Document', key: 'release', icon: 'description' }
   ];
@@ -188,18 +191,30 @@ export class LoanReleaseWizardComponent implements OnInit {
     }
 
     // Also check child-component-specific localStorage keys as fallback
-    // Step 1: Outstanding Details
+    // Step 0: Outstanding Details
     const outstandingKey = `outstanding_saved_${this.customerId}_${this.loanAccountNumber}`;
     if (localStorage.getItem(outstandingKey) === 'true') {
-      this.stepCompletionStatus[1] = true;
-      this.checkedSteps.add(1);
+      this.stepCompletionStatus[0] = true;
+      this.checkedSteps.add(0);
     }
 
-    // Step 2: Payment Details
+    // Payment Details step index 3 (loan release has no part/interest type step — that is loan-payment wizard only)
     const paymentKey = `payment_saved_${this.customerId}_${this.loanAccountNumber}`;
     if (localStorage.getItem(paymentKey) === 'true') {
-      this.stepCompletionStatus[2] = true;
-      this.checkedSteps.add(2);
+      this.stepCompletionStatus[3] = true;
+      this.checkedSteps.add(3);
+    }
+
+    // Legacy 6-step wizard: payment was index 4, release was index 5
+    const legacyPay = `wizard_step_4_${this.customerId}_${this.loanAccountNumber}`;
+    if (localStorage.getItem(legacyPay) === 'true') {
+      this.stepCompletionStatus[3] = true;
+      this.checkedSteps.add(3);
+    }
+    const legacyRel = `wizard_step_5_${this.customerId}_${this.loanAccountNumber}`;
+    if (localStorage.getItem(legacyRel) === 'true') {
+      this.stepCompletionStatus[4] = true;
+      this.checkedSteps.add(4);
     }
 
     // Trigger change detection
@@ -238,6 +253,11 @@ export class LoanReleaseWizardComponent implements OnInit {
     this.paymentData = data;
   }
 
+  /** Repayment schedule step confirmed (step index 2) */
+  onRepaymentScheduleConfirmed(): void {
+    this.markStepCompleted(2);
+  }
+
   /**
    * Check if this is the last step
    */
@@ -263,19 +283,29 @@ export class LoanReleaseWizardComponent implements OnInit {
    */
   validateCurrentStep(): boolean {
     switch (this.activeStep) {
-      case 0: // Release Authorization
-        if (this.releaseAuthorizationRef) {
-          return this.releaseAuthorizationRef.validateStep();
-        }
-        return true;
-      case 1: // Outstanding Details
+      case 0:
         if (this.outstandingDetailsRef) {
           return this.outstandingDetailsRef.validateStep();
         }
         return true;
-      case 2: // Payment Details
+      case 1:
+        if (this.releaseAuthorizationRef) {
+          return this.releaseAuthorizationRef.validateStep();
+        }
+        return true;
+      case 2:
+        if (this.repaymentScheduleRef) {
+          return this.repaymentScheduleRef.validateStep();
+        }
+        return true;
+      case 3:
         if (this.paymentDetailsRef) {
           return this.paymentDetailsRef.validateStep();
+        }
+        return true;
+      case 4:
+        if (this.releaseDocumentRef) {
+          return this.releaseDocumentRef.validateStep();
         }
         return true;
       default:

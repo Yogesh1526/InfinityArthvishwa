@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
+import { AuthService } from 'src/app/auth/auth.service';
 
 interface OutstandingData {
   loanAccountNumber: string;
@@ -32,6 +33,8 @@ export class OutstandingDetailsComponent implements OnInit, OnChanges {
 
   outstandingData: any = null;
   isLoading = false;
+  /** True while POST SaveOutstandingLoanAmountDetails is in flight (do not reuse isLoading — it hides the whole form). */
+  isSaving = false;
   isConfirmed = false;
   isSaved = false; // true when data is already saved on server
 
@@ -45,7 +48,8 @@ export class OutstandingDetailsComponent implements OnInit, OnChanges {
 
   constructor(
     private personalService: PersonalDetailsService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService
   ) {}
 
   /** localStorage key for persisting saved state */
@@ -144,47 +148,64 @@ export class OutstandingDetailsComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Confirm outstanding details - save via POST API and proceed
+   * Confirm outstanding details — POST body must match SaveOutstandingLoanAmountDetails API
+   * (same fields as GET getOutstandingLoanAmountDetails response `data`).
    */
   confirmOutstanding(): void {
-    if (this.isSaved) return; // Already saved, no need to save again
+    if (this.isSaved) return;
 
     if (!this.outstandingData) {
       this.toastService.showWarning('Please wait for outstanding details to load.');
       return;
     }
 
-    this.isLoading = true;
+    if (!this.isConfirmed) {
+      this.toastService.showWarning('Please tick the box to confirm you have reviewed the outstanding details.');
+      return;
+    }
 
-    // Build payload matching the API format
+    const d = this.outstandingData;
+    const username = this.authService.getCurrentUsername();
+    const todayStr = new Date().toISOString().split('T')[0];
+
     const payload = {
-      id: this.outstandingData.id || null,
-      loanAccountNumber: this.outstandingData.loanAccountNumber,
-      customerId: this.outstandingData.customerId,
-      totalOutstandingAmount: this.outstandingData.totalOutstandingAmount,
-      dailyInterestRate: this.outstandingData.dailyInterestRate,
-      schemeName: this.outstandingData.schemeName,
-      loanTenure: this.outstandingData.loanTenure,
-      loanStartDate: this.outstandingData.loanStartDate,
-      loanEndDate: this.loanEndDate || null,
-      createdDate: this.outstandingData.createdDate,
-      createdBy: this.outstandingData.createdBy,
-      updatedBy: this.outstandingData.updatedBy || null,
-      updatedDate: this.outstandingData.updatedDate || null
+      id: d.id ?? null,
+      loanAccountNumber: d.loanAccountNumber,
+      customerId: d.customerId,
+      totalScanctionedAmount: d.totalScanctionedAmount ?? null,
+      tillDateInterestAmount: d.tillDateInterestAmount ?? null,
+      totalOutstandingAmount: d.totalOutstandingAmount ?? null,
+      dailyInterestRate: d.dailyInterestRate ?? null,
+      totalPaidPrincipleAmount: d.totalPaidPrincipleAmount ?? 0,
+      schemeName: d.schemeName ?? null,
+      totalDueInterestAmount: d.totalDueInterestAmount ?? null,
+      loanTenure: d.loanTenure ?? null,
+      loanStartDate: d.loanStartDate ?? null,
+      loanEndDate: this.loanEndDate || d.loanEndDate || null,
+      createdDate: d.createdDate || todayStr,
+      createdBy: d.createdBy || username || null,
+      updatedBy: null,
+      updatedDate: null
     };
+
+    this.isSaving = true;
 
     this.personalService.saveOutstandingLoanAmountDetails(payload).subscribe({
       next: (res: any) => {
-        this.isLoading = false;
+        this.isSaving = false;
+        const saved = res?.data;
+        if (saved && typeof saved === 'object') {
+          this.outstandingData = { ...this.outstandingData, ...saved };
+          this.outstandingData.totalOutstanding = saved.totalOutstandingAmount ?? this.outstandingData.totalOutstanding;
+        }
         this.markAsSaved();
         this.persistSavedState();
-        this.toastService.showSuccess('Outstanding details saved & confirmed successfully.');
+        this.toastService.showSuccess(res?.message || 'Outstanding details saved & confirmed successfully.');
       },
       error: (err: any) => {
-        this.isLoading = false;
+        this.isSaving = false;
         const errorMsg = err?.error?.message || 'Failed to save outstanding details. Please try again.';
         this.toastService.showError(errorMsg);
-        this.isConfirmed = false;
       }
     });
   }
@@ -225,11 +246,8 @@ export class OutstandingDetailsComponent implements OnInit, OnChanges {
    */
   validateStep(): boolean {
     if (this.isSaved) return true;
-    if (!this.isConfirmed) {
-      this.toastService.showWarning('Please confirm the outstanding details before proceeding.');
-      return false;
-    }
-    return true;
+    this.toastService.showWarning('Please review, confirm, and save the outstanding details before proceeding.');
+    return false;
   }
 
   /**

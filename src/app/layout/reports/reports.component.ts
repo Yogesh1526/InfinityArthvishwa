@@ -20,7 +20,7 @@ export class ReportsComponent {
 
   openReport(report: ReportCard): void {
     if (report.comingSoon || !report.route) return;
-    this.router.navigate([report.route]);
+    this.router.navigateByUrl(report.route);
   }
 
   reports: ReportCard[] = [
@@ -32,18 +32,18 @@ export class ReportsComponent {
       route: '/interest-due-current-month'
     },
     {
-      title: 'Active Loan Portfolio',
-      description: 'Snapshot of all active gold loans with key metrics.',
+      title: 'Disbursal Report',
+      description: 'It records all loans disbursed during a specific period, helping the organization know.',
       icon: 'account_balance',
       colorClass: 'success',
-      comingSoon: true
+      route: '/reports/export/disbursal'
     },
     {
-      title: 'Collection Summary',
-      description: 'Summary of collections by date and mode for audit and tracking.',
+      title: 'Inventory Report',
+      description: 'It is a record of all gold items stored in the branch/warehouse against active loans..',
       icon: 'receipt_long',
       colorClass: 'info',
-      comingSoon: true
+      route: '/reports/export/inventory'
     },
     {
       title: 'Overdue Interest',
@@ -51,6 +51,20 @@ export class ReportsComponent {
       icon: 'warning',
       colorClass: 'warning',
       comingSoon: true
+    },
+    {
+      title: 'Released Report',
+      description: 'Tracks gold released to customers after full loan repayment.',
+      icon: 'lock_open',
+      colorClass: 'success',
+      route: '/reports/export/released'
+    },
+    {
+      title: 'Repayment Report',
+      description: 'Shows loan repayments including principal, interest, and payment dates.',
+      icon: 'payments',
+      colorClass: 'primary',
+      route: '/reports/export/repayment'
     }
   ];
 }

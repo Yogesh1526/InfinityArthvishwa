@@ -31,8 +31,8 @@ export class LoanPaymentWizardComponent implements OnInit {
   paymentResult: any = null;
 
   steps = [
-    { label: 'Payment Type', key: 'type', icon: 'category' },
     { label: 'Repayment Schedule', key: 'schedule', icon: 'table_chart' },
+    { label: 'Payment Type', key: 'type', icon: 'category' },
     { label: 'Payment Details', key: 'payment', icon: 'payment' },
     { label: 'Confirmation', key: 'confirmation', icon: 'verified' }
   ];
@@ -142,10 +142,10 @@ export class LoanPaymentWizardComponent implements OnInit {
     }
   }
 
-  /** Handle payment type selected */
+  /** Handle payment type selected (step 1 — after repayment schedule) */
   onPaymentTypeSelected(type: 'PART_PAYMENT' | 'INTEREST_PAYMENT'): void {
     this.paymentType = type;
-    this.markStepCompleted(0);
+    this.markStepCompleted(1);
   }
 
   /** Handle repayment schedule data loaded (outstanding data for downstream) */
@@ -153,9 +153,9 @@ export class LoanPaymentWizardComponent implements OnInit {
     this.outstandingData = data;
   }
 
-  /** Handle repayment schedule confirmed */
+  /** Handle repayment schedule confirmed (step 0) */
   onRepaymentScheduleConfirmed(): void {
-    this.markStepCompleted(1);
+    this.markStepCompleted(0);
   }
 
   /** Handle payment completed */
@@ -175,14 +175,14 @@ export class LoanPaymentWizardComponent implements OnInit {
   validateCurrentStep(): boolean {
     switch (this.activeStep) {
       case 0:
-        if (!this.paymentType) {
-          this.toastService.showWarning('Please select a payment type.');
-          return false;
+        if (this.repaymentScheduleRef) {
+          return this.repaymentScheduleRef.validateStep();
         }
         return true;
       case 1:
-        if (this.repaymentScheduleRef) {
-          return this.repaymentScheduleRef.validateStep();
+        if (!this.paymentType) {
+          this.toastService.showWarning('Please select a payment type.');
+          return false;
         }
         return true;
       case 2:

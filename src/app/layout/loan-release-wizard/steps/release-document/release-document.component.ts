@@ -189,7 +189,7 @@ export class ReleaseDocumentComponent implements OnInit, OnChanges {
    */
   private persistWizardStep(): void {
     if (this.customerId && this.loanAccountNumber) {
-      localStorage.setItem(`wizard_step_3_${this.customerId}_${this.loanAccountNumber}`, 'true');
+      localStorage.setItem(`wizard_step_5_${this.customerId}_${this.loanAccountNumber}`, 'true');
     }
   }
 

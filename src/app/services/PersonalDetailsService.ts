@@ -571,6 +571,14 @@ export class PersonalDetailsService {
     return this.http.get(`${this.baseUrl}/repayment-details/get-payment-history/${customerId}/${loanAccountNumber}`);
   }
 
+  /**
+   * Lists release PDFs and payment receipt rows for a customer (grouped by loan in the UI).
+   * Response data: { releasePaymentDoc: [...], paymentPaidHistoryList: [...] }
+   */
+  getPaymentDocumentsList(customerId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/paymentDocuments/list/${encodeURIComponent(customerId)}`);
+  }
+
   getPaymentDetails(customerId: string, loanAccountNumber: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/part-payment-emi-payment/paymentDetails/${customerId}/${loanAccountNumber}`);
   }
@@ -585,6 +593,14 @@ export class PersonalDetailsService {
     paymentAmount: number;
     paymentType: 'PART_PAYMENT' | 'INTEREST_PAYMENT';
     paymentDate: string;
+    rebateAmount?: number | null;
+    rebateReason?: string | null;
+    /** Interest waiver / schedule rebate — backend expects "Yes" / "No" */
+    waiverFlag?: 'Yes' | 'No';
+    /** Rebate amount for backend (same value as rebate when waiver applies) */
+    discountAmount?: number | null;
+    /** Schedule row interest due date when rebate/waiver is tied to repayment schedule */
+    waiverInterestDueDate?: string | null;
   }): Observable<any> {
     return this.http.post(`${this.baseUrl}/part-payment-emi-payment/payPartPaymentAndInterestAmount`, payload);
   }
@@ -609,6 +625,32 @@ export class PersonalDetailsService {
     return this.http.get<{ code: number; message: string; data: PaymentPendingItem[] }>(
       `${this.baseUrl}/payment-pending-customer-list/getPaymentList`
     );
+  }
+
+  /**
+   * Export operational reports (disbursal, inventory, released, repayment).
+   * GET `/api/reports/{kind}/export` — dates omitted when not used (e.g. inventory without filter).
+   */
+  downloadReportExport(
+    kind: 'disbursal' | 'inventory' | 'released' | 'repayment',
+    params: {
+      branchName: string;
+      format: 'pdf' | 'excel' | 'csv';
+      startDate: string | null;
+      endDate: string | null;
+    }
+  ): Observable<Blob> {
+    let httpParams = new HttpParams().set('branchName', params.branchName).set('format', params.format);
+    if (params.startDate) {
+      httpParams = httpParams.set('startDate', params.startDate);
+    }
+    if (params.endDate) {
+      httpParams = httpParams.set('endDate', params.endDate);
+    }
+    return this.http.get(`${this.baseUrl}/reports/${kind}/export`, {
+      params: httpParams,
+      responseType: 'blob'
+    });
   }
 }
 
