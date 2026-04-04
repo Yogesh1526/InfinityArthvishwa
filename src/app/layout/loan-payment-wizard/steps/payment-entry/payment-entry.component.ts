@@ -2,6 +2,8 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
+import { resolveScheduleRebateSuggestion } from '../../schedule-rebate.util';
+import { buildInterestInstallmentOptions } from '../../schedule-interest.util';
 
 @Component({
   selector: 'app-payment-entry',
@@ -20,6 +22,12 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
   paymentForm!: FormGroup;
   isLoading = false;
   isPaymentProcessed = false;
+
+  /** Cached for mat-select — do not rebuild in template each CD (was freezing UI). */
+  backwardInstallmentOptions: { value: string; label: string }[] = [];
+
+  /** Cached — which schedule installment this interest payment applies to (previous / current / future month). */
+  interestInstallmentSelectOptions: { value: string; label: string; remaining: number }[] = [];
 
   paymentModes = [
     { value: 'CASH', label: 'Cash', icon: 'payments' },
@@ -41,10 +49,28 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['outstandingData']?.currentValue) {
+      this.rebuildBackwardInstallmentOptions();
+      this.rebuildInterestInstallmentOptions();
+    }
     if ((changes['paymentType'] || changes['outstandingData']) && this.paymentForm) {
       if (this.paymentType === 'PART_PAYMENT') {
-        this.paymentForm.patchValue({ applyRebate: false, rebateAmount: null, rebateReason: '' }, { emitEvent: false });
+        this.paymentForm.patchValue(
+          {
+            applyRebate: false,
+            rebateAmount: null,
+            rebateReason: '',
+            useBackwardRebate: false,
+            rebateAnchorDueDate: null,
+            interestInstallmentDueDate: null
+          },
+          { emitEvent: false }
+        );
       }
+      if (this.paymentType === 'INTEREST_PAYMENT') {
+        this.ensureInterestInstallmentSelection();
+      }
+      this.updateInterestInstallmentValidators();
       this.updateAmountDefaults();
       this.syncRebateFromScheduleIfNeeded();
       this.updateRebateValidators();
@@ -71,7 +97,10 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       paymentDate: [new Date().toISOString().split('T')[0], Validators.required],
       applyRebate: [false],
       rebateAmount: [null as number | null],
-      rebateReason: ['']
+      rebateReason: [''],
+      useBackwardRebate: [false],
+      rebateAnchorDueDate: [null as string | null],
+      interestInstallmentDueDate: [null as string | null]
     });
 
     this.paymentForm.get('paymentMode')?.valueChanges.subscribe(mode => {
@@ -85,7 +114,15 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
           this.paymentForm.patchValue({ rebateAmount: sug }, { emitEvent: false });
         }
       } else {
-        this.paymentForm.patchValue({ rebateAmount: null, rebateReason: '' }, { emitEvent: false });
+        this.paymentForm.patchValue(
+          {
+            rebateAmount: null,
+            rebateReason: '',
+            useBackwardRebate: false,
+            rebateAnchorDueDate: null
+          },
+          { emitEvent: false }
+        );
         if (this.paymentType === 'INTEREST_PAYMENT') {
           const pay = this.paymentForm.get('paymentAmount');
           pay?.setValue(this.getAccruedInterest(), { emitEvent: false });
@@ -93,6 +130,55 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       }
       this.updateRebateValidators();
       this.syncPaymentAmountToEffectiveInterest();
+    });
+
+    this.paymentForm.get('paymentDate')?.valueChanges.subscribe(() => {
+      if (this.paymentType !== 'INTEREST_PAYMENT') return;
+      if (this.paymentForm.get('applyRebate')?.value) {
+        this.syncRebateFromScheduleIfNeeded();
+        this.updateRebateValidators();
+        this.syncPaymentAmountToEffectiveInterest();
+      } else {
+        this.suggestInterestInstallmentForPaymentDateMonth();
+        this.updateAmountDefaults();
+        this.updatePaymentAmountValidators();
+      }
+    });
+
+    this.paymentForm.get('interestInstallmentDueDate')?.valueChanges.subscribe(() => {
+      if (this.paymentType !== 'INTEREST_PAYMENT') return;
+      queueMicrotask(() => {
+        if (!this.paymentForm) return;
+        this.syncRebateFromScheduleIfNeeded();
+        this.updateRebateValidators();
+        this.updateAmountDefaults();
+        this.syncPaymentAmountToEffectiveInterest();
+        this.updatePaymentAmountValidators();
+      });
+    });
+
+    this.paymentForm.get('useBackwardRebate')?.valueChanges.subscribe((useBackward) => {
+      // Only clear anchor when turning backward off; avoid extra patchValue on check (re-entrancy with Material).
+      if (!useBackward) {
+        this.paymentForm.patchValue({ rebateAnchorDueDate: null }, { emitEvent: false });
+      }
+      // Defer: checkbox + mat-select appearing same tick can loop change detection / overlay focus.
+      queueMicrotask(() => {
+        if (!this.paymentForm) return;
+        if (this.paymentType === 'INTEREST_PAYMENT' && this.paymentForm.get('applyRebate')?.value) {
+          this.syncRebateFromScheduleIfNeeded();
+          this.updateRebateValidators();
+          this.syncPaymentAmountToEffectiveInterest();
+        }
+      });
+    });
+
+    this.paymentForm.get('rebateAnchorDueDate')?.valueChanges.subscribe(() => {
+      if (this.paymentType === 'INTEREST_PAYMENT' && this.paymentForm.get('applyRebate')?.value) {
+        this.syncRebateFromScheduleIfNeeded();
+        this.updateRebateValidators();
+        this.syncPaymentAmountToEffectiveInterest();
+      }
     });
 
     this.paymentForm.get('rebateAmount')?.valueChanges.subscribe(() => {
@@ -109,12 +195,200 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     });
 
     this.updateValidators('');
+    this.rebuildBackwardInstallmentOptions();
+    this.rebuildInterestInstallmentOptions();
+    if (this.paymentType === 'INTEREST_PAYMENT') {
+      this.ensureInterestInstallmentSelection();
+    }
+    this.updateInterestInstallmentValidators();
     this.updateAmountDefaults();
     this.updateRebateValidators();
   }
 
-  /** Schedule row: monthly rebate when due passed this month (from repayment schedule API). */
+  trackByBackwardOption(_index: number, opt: { value: string; label: string }): string {
+    return opt.value;
+  }
+
+  trackByInterestInstallment(_index: number, opt: { value: string; label: string }): string {
+    return opt.value;
+  }
+
+  /** True when schedule is loaded and at least one row has rebate (cached list non-empty). */
+  showBackwardRebateUi(): boolean {
+    return this.backwardInstallmentOptions.length > 0;
+  }
+
+  /** Interest payment: show installment picker when schedule has any installment with interest remaining. */
+  showInterestInstallmentPicker(): boolean {
+    return this.paymentType === 'INTEREST_PAYMENT' && this.interestInstallmentSelectOptions.length > 0;
+  }
+
+  private rebuildBackwardInstallmentOptions(): void {
+    this.backwardInstallmentOptions = this.computeBackwardInstallmentOptions();
+  }
+
+  private rebuildInterestInstallmentOptions(): void {
+    const rows = this.getRepaymentScheduleRows();
+    const raw = buildInterestInstallmentOptions(rows);
+    this.interestInstallmentSelectOptions = raw.map((o) => ({
+      value: o.value,
+      remaining: o.remaining,
+      label: `${this.formatInstallmentDueHeading(o.value)} — ${this.formatCurrency(o.remaining)} due`
+    }));
+  }
+
+  private formatInstallmentDueHeading(iso: string): string {
+    const dt = new Date(iso);
+    if (isNaN(dt.getTime())) return iso;
+    return `Due ${dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  }
+
+  /**
+   * Remaining interest for the selected schedule installment (or portfolio total when no row picker).
+   * Used for amount defaults, caps, rebate, and validation for this payment.
+   */
+  getInterestPaymentBasis(): number {
+    const opts = this.interestInstallmentSelectOptions;
+    if (!opts.length) return this.outstandingData?.accruedInterest || 0;
+    const key = this.paymentForm?.get('interestInstallmentDueDate')?.value;
+    if (key != null && key !== '') {
+      const hit = opts.find((o) => o.value === key);
+      if (hit) return hit.remaining;
+    }
+    return opts[0].remaining;
+  }
+
+  private ensureInterestInstallmentSelection(): void {
+    if (!this.paymentForm || this.paymentType !== 'INTEREST_PAYMENT') return;
+    const opts = this.interestInstallmentSelectOptions;
+    if (!opts.length) return;
+    const cur = this.paymentForm.get('interestInstallmentDueDate')?.value;
+    const valid = cur != null && cur !== '' && opts.some((o) => o.value === cur);
+    if (!valid) {
+      const pick = this.pickDefaultInterestInstallmentDueDate();
+      if (pick) {
+        this.paymentForm.patchValue({ interestInstallmentDueDate: pick }, { emitEvent: false });
+      }
+    }
+  }
+
+  /** Prefer installment whose due falls in the same calendar month as payment date; else earliest with balance. */
+  private pickDefaultInterestInstallmentDueDate(): string | null {
+    const opts = this.interestInstallmentSelectOptions;
+    if (!opts.length) return null;
+    const pd = this.parsePaymentDateFromForm();
+    if (pd) {
+      const py = pd.getFullYear();
+      const pm = pd.getMonth();
+      for (const o of opts) {
+        const d = new Date(o.value);
+        if (!isNaN(d.getTime()) && d.getFullYear() === py && d.getMonth() === pm) {
+          return o.value;
+        }
+      }
+    }
+    return opts[0].value;
+  }
+
+  /** When payment date changes, prefer the installment due in that calendar month (if any). */
+  private suggestInterestInstallmentForPaymentDateMonth(): void {
+    if (!this.paymentForm || !this.interestInstallmentSelectOptions.length) return;
+    const pick = this.pickDefaultInterestInstallmentDueDate();
+    if (pick) {
+      this.paymentForm.patchValue({ interestInstallmentDueDate: pick }, { emitEvent: false });
+    }
+  }
+
+  private updateInterestInstallmentValidators(): void {
+    if (!this.paymentForm) return;
+    const c = this.paymentForm.get('interestInstallmentDueDate');
+    if (!c) return;
+    if (this.paymentType === 'INTEREST_PAYMENT' && this.interestInstallmentSelectOptions.length > 0) {
+      c.setValidators([Validators.required]);
+    } else {
+      c.clearValidators();
+      c.setValue(null, { emitEvent: false });
+    }
+    c.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private computeBackwardInstallmentOptions(): { value: string; label: string }[] {
+    const rows = this.getRepaymentScheduleRows();
+    if (!rows.length) return [];
+    const num = (v: any) => (v != null && v !== '' ? Number(v) : 0);
+    const parseDue = (raw: any): Date | null => {
+      if (!raw) return null;
+      const d = new Date(raw);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const items = rows
+      .filter((r: any) => num(r.monthlyRebateInterestAmount) > 0 && r.interestPayDueDate)
+      .map((r: any) => ({
+        value: String(r.interestPayDueDate),
+        due: parseDue(r.interestPayDueDate)!,
+        rebate: num(r.monthlyRebateInterestAmount)
+      }))
+      .filter((x) => x.due)
+      .sort((a, b) => b.due.getTime() - a.due.getTime());
+    return items.map((i) => ({
+      value: i.value,
+      label: `Due ${i.due.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      })} — ${this.formatCurrency(i.rebate)}`
+    }));
+  }
+
+  /** Rows copied from repayment schedule (for payment-date / backward rebate resolution). */
+  private getRepaymentScheduleRows(): any[] {
+    return Array.isArray(this.outstandingData?.repaymentScheduleRows)
+      ? this.outstandingData.repaymentScheduleRows
+      : [];
+  }
+
+  /** Template: show backward rebate only when schedule rows were loaded with outstanding data. */
+  hasScheduleRebateRows(): boolean {
+    return this.getRepaymentScheduleRows().length > 0;
+  }
+
+  private parsePaymentDateFromForm(): Date | null {
+    const raw = this.paymentForm?.get('paymentDate')?.value;
+    if (!raw) return null;
+    const s = String(raw);
+    const d = new Date(s.length <= 10 ? `${s}T12:00:00` : s);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  /**
+   * Resolved rebate + waiver due date from schedule + payment date (or backward anchor).
+   * When schedule rows exist, this is the source of truth for the interest step.
+   */
+  private getResolvedScheduleRebateMeta(): { amount: number; dueDate: string } | null {
+    if (this.paymentType !== 'INTEREST_PAYMENT' || !this.paymentForm) return null;
+    const rows = this.getRepaymentScheduleRows();
+    if (!rows.length) return null;
+    const pd = this.parsePaymentDateFromForm();
+    if (!pd) return null;
+    const backward = !!this.paymentForm.get('useBackwardRebate')?.value;
+    const anchor = this.paymentForm.get('rebateAnchorDueDate')?.value;
+    if (backward) {
+      if (anchor == null || anchor === '') return null;
+      return resolveScheduleRebateSuggestion(rows, pd, {
+        backwardMode: true,
+        anchorDueDateIso: String(anchor)
+      });
+    }
+    return resolveScheduleRebateSuggestion(rows, pd, {});
+  }
+
+  /** Schedule row: monthly rebate from resolver or legacy outstanding fields. */
   getScheduleSuggestedRebate(): number {
+    const rows = this.getRepaymentScheduleRows();
+    if (rows.length && this.paymentType === 'INTEREST_PAYMENT') {
+      const meta = this.getResolvedScheduleRebateMeta();
+      return meta && meta.amount > 0 ? meta.amount : 0;
+    }
     const v = this.outstandingData?.scheduleSuggestedRebateAmount;
     if (v == null || v === '') return 0;
     const n = Number(v);
@@ -122,36 +396,46 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
   }
 
   getScheduleSuggestedRebateDueDate(): string | null {
+    const rows = this.getRepaymentScheduleRows();
+    if (rows.length && this.paymentType === 'INTEREST_PAYMENT') {
+      return this.getResolvedScheduleRebateMeta()?.dueDate ?? null;
+    }
     return this.outstandingData?.scheduleSuggestedRebateDueDate || null;
   }
 
   /** Due date for waiver/discount line on payPartPaymentAndInterestAmount (schedule-derived or API field). */
   getWaiverInterestDueDateForApi(): string | null {
-    const fromSchedule = this.getScheduleSuggestedRebateDueDate();
-    if (fromSchedule) return String(fromSchedule).trim() || null;
+    const fromResolved = this.getScheduleSuggestedRebateDueDate();
+    if (fromResolved) return String(fromResolved).trim() || null;
     const raw = this.outstandingData?.waiverInterestDueDate;
     if (raw == null || raw === '') return null;
     return String(raw).trim() || null;
   }
 
-  /** Read-only rebate amount when schedule supplies suggested rebate (interest payment only). */
+  /** Read-only rebate when resolver yields an amount (automatic or backward with anchor). */
   isScheduleRebateReadonly(): boolean {
-    return (
-      this.paymentType === 'INTEREST_PAYMENT' &&
-      !!this.paymentForm?.get('applyRebate')?.value &&
-      this.getScheduleSuggestedRebate() > 0
-    );
+    if (this.paymentType !== 'INTEREST_PAYMENT' || !this.paymentForm?.get('applyRebate')?.value) {
+      return false;
+    }
+    if (this.paymentForm.get('useBackwardRebate')?.value) {
+      const hasAnchor = !!this.paymentForm.get('rebateAnchorDueDate')?.value;
+      return hasAnchor && this.getScheduleSuggestedRebate() > 0;
+    }
+    return this.getScheduleSuggestedRebate() > 0;
   }
 
   private syncRebateFromScheduleIfNeeded(): void {
-    if (
-      this.paymentType !== 'INTEREST_PAYMENT' ||
-      !this.paymentForm?.get('applyRebate')?.value ||
-      this.getScheduleSuggestedRebate() <= 0
-    ) {
+    if (this.paymentType !== 'INTEREST_PAYMENT' || !this.paymentForm?.get('applyRebate')?.value) {
       return;
     }
-    this.paymentForm.patchValue({ rebateAmount: this.getScheduleSuggestedRebate() }, { emitEvent: false });
+    const sug = this.getScheduleSuggestedRebate();
+    if (sug > 0) {
+      this.paymentForm.patchValue({ rebateAmount: sug }, { emitEvent: false });
+      return;
+    }
+    if (this.paymentForm.get('useBackwardRebate')?.value) {
+      this.paymentForm.patchValue({ rebateAmount: null }, { emitEvent: false });
+    }
   }
 
   /**
@@ -230,7 +514,22 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
       !!this.paymentForm.get('applyRebate')?.value && this.paymentType === 'INTEREST_PAYMENT';
     const rebateAmountCtrl = this.paymentForm.get('rebateAmount');
     const rebateReasonCtrl = this.paymentForm.get('rebateReason');
+    const anchorCtrl = this.paymentForm.get('rebateAnchorDueDate');
     if (!rebateAmountCtrl || !rebateReasonCtrl) return;
+
+    const backward =
+      apply && !!this.paymentForm.get('useBackwardRebate')?.value && this.getRepaymentScheduleRows().length > 0;
+    if (anchorCtrl) {
+      if (backward) {
+        anchorCtrl.setValidators([Validators.required]);
+      } else {
+        anchorCtrl.clearValidators();
+        if (!this.paymentForm.get('useBackwardRebate')?.value) {
+          anchorCtrl.setValue(null, { emitEvent: false });
+        }
+      }
+      anchorCtrl.updateValueAndValidity({ emitEvent: false });
+    }
 
     if (apply) {
       rebateAmountCtrl.setValidators([
@@ -334,16 +633,20 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     return this.outstandingData?.principalOutstanding || 0;
   }
 
+  /**
+   * Interest bucket for this payment (selected installment remaining, or total portfolio interest if no picker).
+   */
   private getAccruedInterest(): number {
-    return this.outstandingData?.accruedInterest || 0;
+    return this.getInterestPaymentBasis();
   }
 
-  /** Minimum interest = first unpaid installment (e.g. first month ₹2,906); fallback to full accrued */
+  /** Minimum interest = ₹1 when paying by installment (partial OK); else legacy first-unpaid / total rules */
   getMinimumAmount(): number {
     if (this.paymentType === 'INTEREST_PAYMENT') {
+      if (this.interestInstallmentSelectOptions.length > 0) return 1;
       const firstUnpaid = this.outstandingData?.firstUnpaidInstallmentInterest ?? 0;
-      const accrued = this.getAccruedInterest();
-      if (firstUnpaid > 0) return firstUnpaid; // must pay at least one month's interest
+      const accrued = this.outstandingData?.accruedInterest || 0;
+      if (firstUnpaid > 0) return firstUnpaid;
       return accrued > 0 ? accrued : 1;
     }
     return 1;
@@ -422,8 +725,10 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
     const principal = this.getPrincipalOutstanding();
     const interest = this.getEffectiveAccruedInterestForPayment();
     if (this.paymentType === 'INTEREST_PAYMENT') {
+      const instLabel =
+        this.interestInstallmentSelectOptions.length > 0 ? 'Selected installment' : 'Interest due';
       return [
-        { label: 'Interest Due', amount: interest, description: 'Clears accrued interest (after rebate)' },
+        { label: instLabel, amount: interest, description: 'Interest for chosen installment (after rebate)' },
         {
           label: 'Interest + 10%',
           amount: Math.min(interest + principal * 0.1, this.getMaxAmount()),
@@ -524,7 +829,9 @@ export class PaymentEntryComponent implements OnInit, OnChanges {
           );
         } else if (amount < minInstallment && minInstallment > 0) {
           this.toastService.showWarning(
-            `Pay at least the first unpaid installment interest of ${this.formatCurrency(minInstallment)}.`
+            this.interestInstallmentSelectOptions.length > 0
+              ? `Enter at least ${this.formatCurrency(minInstallment)} toward this payment (partial installment payments are allowed).`
+              : `Pay at least the first unpaid installment interest of ${this.formatCurrency(minInstallment)}.`
           );
         } else {
           this.toastService.showWarning('Enter a valid interest payment amount.');

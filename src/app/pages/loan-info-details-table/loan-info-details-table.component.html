@@ -1,6 +1,14 @@
 <div class="loan-dashboard">
-  <!-- Error or No Data State -->
-  <div *ngIf="hasError || !hasData" class="error-container">
+  <!-- In-page loading (global overlay also runs for HTTP; this covers cache hits and matches dashboard clarity) -->
+  <div class="page-loading" *ngIf="isLoading && !loaderService.isLoading()">
+    <div class="page-loading-card">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Loading loan applications…</p>
+    </div>
+  </div>
+
+  <!-- Error or No Data State (only after load completes) -->
+  <div *ngIf="!isLoading && !hasData" class="error-container">
     <app-data-not-found 
       [message]="errorMessage || 'No customer data found'"
       icon="error_outline"
@@ -21,7 +29,7 @@
   </div>
 
   <!-- Data Display -->
-  <div *ngIf="hasData && !hasError" class="dashboard-content">
+  <div *ngIf="!isLoading && hasData && !hasError" class="dashboard-content">
     <!-- Gold Rate Alert Banner -->
     <div *ngIf="showGoldRateAlert" class="gold-rate-alert">
       <div class="alert-content">

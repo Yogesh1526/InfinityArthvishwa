@@ -3,6 +3,11 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
+import { resolveScheduleRebateSuggestion } from '../../schedule-rebate.util';
+import {
+  buildInterestInstallmentOptions,
+  totalRemainingInterestFromSchedule
+} from '../../schedule-interest.util';
 
 @Component({
   selector: 'app-repayment-schedule-summary',
@@ -106,91 +111,27 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
     const lastRow = schedule[schedule.length - 1];
     this.principalOutstanding = num(lastRow.closingPrincipal) || num(lastRow.openingPrincipal) || 0;
 
-    // Remaining interest = total interest due (all rows) - total interest already paid
-    const totalInterestDue = schedule.reduce(
-      (sum, row) => sum + num(row.totalInterestDueAmount),
-      0
-    );
-    // Use interestPaidAmount when set; else use Paid column (paymentPaidAmount) when it's interest-only (principlePaidAmount === 0)
-    const totalInterestPaid = schedule.reduce((sum, row) => {
-      const interestPaid = num(row.interestPaidAmount);
-      const paymentPaid = num(row.paymentPaidAmount);
-      const principalPaid = num(row.principlePaidAmount);
-      if (interestPaid > 0) return sum + interestPaid;
-      if (paymentPaid > 0 && principalPaid === 0) return sum + paymentPaid; // Paid column = interest payment
-      return sum;
-    }, 0);
-
-    this.accruedInterest = Math.max(totalInterestDue - totalInterestPaid, 0);
+    // Sum remaining interest per row (handles future months where totalInterestDueAmount is 0 but monthlyInterestAmount is set)
+    this.accruedInterest = totalRemainingInterestFromSchedule(schedule);
     this.totalOutstanding = this.principalOutstanding + this.accruedInterest;
 
-    // First unpaid installment interest = first row with no/little payment → use as min interest payment
-    const firstUnpaid = schedule.find(
-      (r) => num(r.paymentPaidAmount) === 0 || r.paymentPaidAmount == null || r.paymentPaidAmount === ''
-    );
-    this.firstUnpaidInstallmentInterest = firstUnpaid
-      ? num(firstUnpaid.totalInterestDueAmount) || num(firstUnpaid.monthlyInterestAmount) || 0
-      : 0;
+    const instOpts = buildInterestInstallmentOptions(schedule);
+    // Earliest installment that still has interest due (for fallbacks)
+    this.firstUnpaidInstallmentInterest = instOpts.length > 0 ? instOpts[0].remaining : 0;
   }
 
-  /**
-   * Monthly rebate from schedule for payment / waiver UI.
-   * 1) Prefer unpaid row with due in **current month**, due date **already passed**, rebate &gt; 0 (late pay).
-   * 2) Else use unpaid row with due in **current month** and rebate &gt; 0 (e.g. pay March interest in March before due date; Feb row missing and March is the current-month line).
-   */
-  private computeScheduleSuggestedRebate(schedule: any[]): { amount: number; dueDate: string } | null {
-    const num = (v: any) => (v != null && v !== '' ? Number(v) : 0);
-    const isUnpaid = (r: any) =>
-      num(r.paymentPaidAmount) === 0 || r.paymentPaidAmount == null || r.paymentPaidAmount === '';
-
-    const unpaidRows = schedule.filter(isUnpaid);
-    if (!unpaidRows.length) return null;
-
-    const now = new Date();
-    const cy = now.getFullYear();
-    const cm = now.getMonth();
-    const todayDay = new Date(cy, cm, now.getDate());
-
-    const parseDue = (r: any): Date | null => {
-      const raw = r.interestPayDueDate;
-      if (!raw) return null;
-      const d = new Date(raw);
-      return isNaN(d.getTime()) ? null : d;
-    };
-
-    const inCurrentMonth = (d: Date) => d.getFullYear() === cy && d.getMonth() === cm;
-
-    type Cand = { row: any; due: Date; dueRaw: string; rebate: number };
-    const candidates: Cand[] = [];
-    for (const row of unpaidRows) {
-      const due = parseDue(row);
-      if (!due || !inCurrentMonth(due)) continue;
-      const rebate = num(row.monthlyRebateInterestAmount);
-      if (rebate <= 0) continue;
-      candidates.push({ row, due, dueRaw: String(row.interestPayDueDate), rebate });
-    }
-
-    if (!candidates.length) return null;
-
-    candidates.sort((a, b) => a.due.getTime() - b.due.getTime());
-
-    const dueDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const late = candidates.find((c) => dueDay(c.due) < todayDay);
-    const pick = late ?? candidates[0];
-
-    return { amount: pick.rebate, dueDate: pick.dueRaw };
-  }
-
-  /** Attach readonly suggested rebate fields for loan-payment interest step */
+  /** Attach schedule rows + suggested rebate (as of today) for loan-payment interest step */
   private enrichOutstandingWithScheduleRebate(): void {
     if (!this.outstandingData) return;
     if (this.scheduleData?.length > 0) {
-      const meta = this.computeScheduleSuggestedRebate(this.scheduleData);
+      this.outstandingData.repaymentScheduleRows = this.scheduleData.map((r) => ({ ...r }));
+      const meta = resolveScheduleRebateSuggestion(this.scheduleData, new Date(), {});
       this.outstandingData.scheduleSuggestedRebateAmount = meta?.amount ?? null;
       this.outstandingData.scheduleSuggestedRebateDueDate = meta?.dueDate ?? null;
       this.outstandingData.waiverInterestDueDate =
         meta?.dueDate ?? this.outstandingData.waiverInterestDueDate ?? null;
     } else {
+      this.outstandingData.repaymentScheduleRows = [];
       this.outstandingData.scheduleSuggestedRebateAmount = null;
       this.outstandingData.scheduleSuggestedRebateDueDate = null;
     }
@@ -310,6 +251,19 @@ export class RepaymentScheduleSummaryComponent implements OnInit, OnChanges, Aft
       currency: 'INR',
       minimumFractionDigits: 2
     }).format(amount || 0);
+  }
+
+  /** Same sources as payment-entry “Net disbursed amount” (outstanding API). */
+  getNetDisbursedAmount(): number {
+    const d = this.outstandingData;
+    if (!d) return 0;
+    const raw =
+      d.totalScanctionedAmount ||
+      d.totalSanctionedAmount ||
+      d.netDisbursedAmount ||
+      d.principalOutstanding;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : 0;
   }
 
   formatDate(dateString: string | null): string {

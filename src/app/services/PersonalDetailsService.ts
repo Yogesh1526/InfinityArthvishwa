@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../environment';
 
 @Injectable({
@@ -9,6 +10,10 @@ import { environment } from '../environment';
 export class PersonalDetailsService {
 
   private baseUrl = `${environment.apiUrl}/api`;
+
+  /** Short-lived cache for heavy list API — avoids refetch on every navigation (see clearAllCustomerDetailsCache). */
+  private static readonly ALL_CUSTOMERS_TTL_MS = 120_000;
+  private getAllCustomerDetailsCache: { body: any; fetchedAt: number } | null = null;
   
   constructor(private http: HttpClient) {}
 
@@ -29,8 +34,28 @@ export class PersonalDetailsService {
   //   return this.http.put(`${this.baseUrl}/updateApplication/${customerId}`, data);
   // }
 
-  getAllCustomerDetails(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/applicantDetails/getAllCustomerDetails`);
+  /**
+   * Full customer list (heavy). Cached ~2 minutes unless `refresh` is true.
+   * Call clearAllCustomerDetailsCache() after create/update when the list must be current.
+   */
+  getAllCustomerDetails(options?: { refresh?: boolean }): Observable<any> {
+    const refresh = options?.refresh === true;
+    if (
+      !refresh &&
+      this.getAllCustomerDetailsCache &&
+      Date.now() - this.getAllCustomerDetailsCache.fetchedAt < PersonalDetailsService.ALL_CUSTOMERS_TTL_MS
+    ) {
+      return of(this.getAllCustomerDetailsCache.body);
+    }
+    return this.http.get(`${this.baseUrl}/applicantDetails/getAllCustomerDetails`).pipe(
+      tap((body) => {
+        this.getAllCustomerDetailsCache = { body, fetchedAt: Date.now() };
+      })
+    );
+  }
+
+  clearAllCustomerDetailsCache(): void {
+    this.getAllCustomerDetailsCache = null;
   }
 
   createFamilyDetails(data: any): Observable<any> {
@@ -629,17 +654,72 @@ export class PersonalDetailsService {
 
   /**
    * Export operational reports (disbursal, inventory, released, repayment).
-   * GET `/api/reports/{kind}/export` — dates omitted when not used (e.g. inventory without filter).
+   * Disbursal uses `/api/report-generation/applicantLoanDetailsReport` with only selected query params
+   * (no branchName or format). Omitted keys are not sent. When monthly/quarterly/year period is used
+   * in a way that defines the window, startDate/endDate are not sent.
+   * Other kinds use `/api/reports/{kind}/export` with branchName and format.
    */
   downloadReportExport(
     kind: 'disbursal' | 'inventory' | 'released' | 'repayment',
     params: {
+      /** Used for non-disbursal exports only; omitted for applicantLoanDetailsReport */
       branchName: string;
+      /** Used for non-disbursal exports only; omitted for applicantLoanDetailsReport */
       format: 'pdf' | 'excel' | 'csv';
       startDate: string | null;
       endDate: string | null;
+      /** Disbursal only — only defined fields are appended to the query string */
+      disbursalPeriod?: {
+        granularity?: 'monthly' | 'quarterly' | 'yearly' | null;
+        year?: number;
+        month?: number;
+        quarter?: number;
+      } | null;
     }
   ): Observable<Blob> {
+    if (kind === 'disbursal') {
+      const ex = params.disbursalPeriod;
+      const g = ex?.granularity ?? null;
+      const toFinite = (v: unknown): number => {
+        if (v == null || v === '') return NaN;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : NaN;
+      };
+      const monthNum = toFinite(ex?.month);
+      const quarterNum = toFinite(ex?.quarter);
+      const yearNum = toFinite(ex?.year);
+
+      let httpParams = new HttpParams();
+      if (g === 'monthly' && Number.isFinite(monthNum)) {
+        httpParams = httpParams.set('monthly', String(monthNum));
+      }
+      if (g === 'quarterly' && Number.isFinite(quarterNum)) {
+        httpParams = httpParams.set('quarter', String(quarterNum));
+      }
+      if (Number.isFinite(yearNum)) {
+        httpParams = httpParams.set('year', String(yearNum));
+      }
+
+      const periodDefinesWindow =
+        (g === 'monthly' && Number.isFinite(monthNum)) ||
+        (g === 'quarterly' && Number.isFinite(quarterNum)) ||
+        (g === 'yearly' && Number.isFinite(yearNum));
+
+      if (!periodDefinesWindow) {
+        if (params.startDate) {
+          httpParams = httpParams.set('startDate', params.startDate);
+        }
+        if (params.endDate) {
+          httpParams = httpParams.set('endDate', params.endDate);
+        }
+      }
+
+      return this.http.get(`${this.baseUrl}/report-generation/applicantLoanDetailsReport`, {
+        params: httpParams,
+        responseType: 'blob'
+      });
+    }
+
     let httpParams = new HttpParams().set('branchName', params.branchName).set('format', params.format);
     if (params.startDate) {
       httpParams = httpParams.set('startDate', params.startDate);
@@ -649,6 +729,28 @@ export class PersonalDetailsService {
     }
     return this.http.get(`${this.baseUrl}/reports/${kind}/export`, {
       params: httpParams,
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Paginated archive of generated reports (`allReportsDetails`).
+   * Spring-style `sort`, e.g. `uploadedAt,desc` or `id,desc`.
+   */
+  getAllReportsDetails(pageNumber: number, pageSize: number, sort = ''): Observable<any> {
+    let params = new HttpParams()
+      .set('pageNumber', String(pageNumber))
+      .set('pageSize', String(pageSize));
+    if (sort != null && String(sort).length > 0) {
+      params = params.set('sort', String(sort));
+    }
+    return this.http.get(`${this.baseUrl}/report-generation/allReportsDetails`, { params });
+  }
+
+  /** Download a file from the report archive by exact `fileName` returned from `allReportsDetails`. */
+  downloadArchivedReport(fileName: string): Observable<Blob> {
+    const enc = encodeURIComponent(fileName);
+    return this.http.get(`${this.baseUrl}/report-generation/downloadReport/${enc}`, {
       responseType: 'blob'
     });
   }

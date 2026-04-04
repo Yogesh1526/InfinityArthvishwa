@@ -434,6 +434,25 @@
   line-height: 1.45;
 }
 
+.rebate-hint.subtle {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.backward-rebate-block {
+  margin: 10px 0 0 28px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.installment-basis-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
 .schedule-rebate-note {
   display: flex;
   flex-wrap: wrap;

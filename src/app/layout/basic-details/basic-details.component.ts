@@ -202,6 +202,7 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res.code === 201 || res.code === 200 || res?.success) {
             this.toast.showSuccess('Customer updated successfully!');
+            this.apiService.clearAllCustomerDetailsCache();
             // Navigate to customer profile after successful update
             const cid = this.customerId || body?.customerId || res?.data?.customerId;
             if (cid) {
@@ -234,6 +235,7 @@ export class BasicDetailsComponent implements OnInit {
         next: (res: any) => {
           if (res.code === 201 || res.code === 200) {
             this.toast.showSuccess('Customer saved successfully!');
+            this.apiService.clearAllCustomerDetailsCache();
             // Reset form and navigate to customer profile if customerId available, else loan-info-details
             this.customerForm.reset();
             this.customerForm.patchValue({ submittedDate: new Date() });

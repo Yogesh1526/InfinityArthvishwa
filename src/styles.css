@@ -100,6 +100,17 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Report export page — wider multi-line tooltips */
+.report-export-tooltip .mdc-tooltip__surface,
+.report-export-tooltip.mat-mdc-tooltip .mdc-tooltip__surface {
+  max-width: min(320px, 90vw);
+  text-align: left;
+  white-space: normal;
+  line-height: 1.45;
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
 /* Prevent drag and drop on sensitive areas */
 .no-drag {
   -webkit-user-drag: none;

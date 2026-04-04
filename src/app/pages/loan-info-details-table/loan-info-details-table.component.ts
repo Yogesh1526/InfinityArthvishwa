@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { GoldRateService } from 'src/app/services/gold-rate.service';
+import { LoaderService } from 'src/app/services/loader.service';
 
 interface LoanAccountDetail {
   loanAccountNumber: string;
@@ -48,7 +50,9 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   // Expose Math to template
   Math = Math;
 
-  // Error and data states (loading handled by global LoaderInterceptor)
+  /** Until first customer list response — keeps empty/error UI from showing during fetch (global loader + local fallback). */
+  isLoading = false;
+
   hasError: boolean = false;
   errorMessage: string = '';
   hasData: boolean = false;
@@ -60,7 +64,8 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   constructor(
     private router: Router,
     private loanService: PersonalDetailsService,
-    private goldRateService: GoldRateService
+    private goldRateService: GoldRateService,
+    public loaderService: LoaderService
   ) {}
 
   ngOnInit(): void {
@@ -68,48 +73,50 @@ export class LoanInfoDetailsTableComponent implements OnInit {
     this.checkGoldRateStatus();
   }
 
-  loadCustomerDetails(): void {
-    // Reset states (loading is handled by global LoaderInterceptor)
+  loadCustomerDetails(refresh = false): void {
+    this.isLoading = true;
     this.hasError = false;
     this.errorMessage = '';
     this.hasData = false;
 
-    this.loanService.getAllCustomerDetails().subscribe({
-      next: (response) => {
-        const customers = response?.data || [];
+    this.loanService
+      .getAllCustomerDetails({ refresh })
+      .pipe(finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: (response) => {
+          const customers = response?.data || [];
 
-        if (customers.length === 0) {
-          this.hasData = false;
+          if (customers.length === 0) {
+            this.hasData = false;
+            this.hasError = true;
+            this.errorMessage = 'No customer data found';
+            this.loanList = [];
+          } else {
+            this.hasData = true;
+            this.hasError = false;
+            this.loanList = customers.map((c: any) => this.mapCustomerToLoan(c));
+          }
+
+          this.updateCounts();
+        },
+        error: (err) => {
           this.hasError = true;
-          this.errorMessage = 'No customer data found';
+          this.hasData = false;
           this.loanList = [];
-        } else {
-          this.hasData = true;
-          this.hasError = false;
-          this.loanList = customers.map((c: any) => this.mapCustomerToLoan(c));
-        }
 
-        this.updateCounts();
-      },
-      error: (err) => {
-        this.hasError = true;
-        this.hasData = false;
-        this.loanList = [];
-        
-        // Set appropriate error message
-        if (err.status === 0) {
-          this.errorMessage = 'Unable to connect to server. Please check your internet connection.';
-        } else if (err.status === 404) {
-          this.errorMessage = 'API endpoint not found';
-        } else if (err.status >= 500) {
-          this.errorMessage = 'Server error. Please try again later.';
-        } else {
-          this.errorMessage = err?.error?.message || 'Failed to load customer data. Please try again.';
+          if (err.status === 0) {
+            this.errorMessage = 'Unable to connect to server. Please check your internet connection.';
+          } else if (err.status === 404) {
+            this.errorMessage = 'API endpoint not found';
+          } else if (err.status >= 500) {
+            this.errorMessage = 'Server error. Please try again later.';
+          } else {
+            this.errorMessage = err?.error?.message || 'Failed to load customer data. Please try again.';
+          }
+
+          console.error('Error loading customer data', err);
         }
-        
-        console.error('Error loading customer data', err);
-      }
-    });
+      });
   }
 
   /**
@@ -176,7 +183,7 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
   retryLoad(): void {
-    this.loadCustomerDetails();
+    this.loadCustomerDetails(true);
   }
 
 

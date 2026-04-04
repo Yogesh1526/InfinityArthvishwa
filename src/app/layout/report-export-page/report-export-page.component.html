@@ -1,177 +1,353 @@
-<div class="report-export-page">
+<div class="report-export-page" [class.report-export-page--disbursal]="isDisbursal">
+  <div class="rex-blob rex-blob--a" aria-hidden="true"></div>
+  <div class="rex-blob rex-blob--b" aria-hidden="true"></div>
+  <div class="rex-blob rex-blob--c" aria-hidden="true"></div>
+
   <div class="page-inner">
-    <div class="top-nav">
+    <div class="rex-topbar">
       <button
         mat-icon-button
         type="button"
-        class="back-fab"
+        class="rex-back"
         (click)="goBack()"
         matTooltip="Back to reports"
         aria-label="Back to reports">
         <mat-icon>arrow_back</mat-icon>
       </button>
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <button type="button" class="crumb-link" (click)="goBack()">Reports</button>
-        <mat-icon class="crumb-sep">chevron_right</mat-icon>
-        <span class="crumb-current">{{ config.breadcrumbLabel }}</span>
+      <nav class="rex-crumb" aria-label="Breadcrumb">
+        <button type="button" class="rex-crumb-link" (click)="goBack()">Reports</button>
+        <mat-icon class="rex-crumb-sep">chevron_right</mat-icon>
+        <span class="rex-crumb-here">{{ config.breadcrumbLabel }}</span>
       </nav>
     </div>
 
-    <header class="page-hero">
-      <div class="hero-accent" aria-hidden="true"></div>
-      <div class="hero-main">
-        <div class="hero-icon-wrap">
-          <mat-icon class="hero-icon">{{ config.heroIcon }}</mat-icon>
+    <form [formGroup]="form" (ngSubmit)="download()" class="rex-form" novalidate>
+      <div class="rex-shell" [class.rex-shell--disbursal-compact]="isDisbursal">
+        <header class="rex-hero">
+          <div class="rex-hero-glow" aria-hidden="true"></div>
+          <div class="rex-hero-icon">
+            <mat-icon>{{ config.heroIcon }}</mat-icon>
+          </div>
+          <div class="rex-hero-copy">
+            <p class="rex-eyebrow">Report export</p>
+            <h1 class="rex-title">{{ config.title }}</h1>
+            <p class="rex-lead">{{ config.description }}</p>
+          </div>
+        </header>
+
+        <div class="rex-grid">
+          <div class="rex-col rex-col--main">
+            <section class="rex-card rex-card--period" aria-labelledby="rex-period-heading">
+              <div class="rex-step">
+                <span class="rex-step-badge">1</span>
+                <div class="rex-step-body">
+                  <h2 id="rex-period-heading" class="rex-h2">Reporting period</h2>
+                  <p class="rex-muted">{{ config.periodSubtext }}</p>
+                </div>
+              </div>
+
+              <div class="rex-date-strip">
+                <mat-form-field appearance="outline" class="rex-field rex-field--date" subscriptSizing="dynamic">
+                  <mat-label>From</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="startPicker"
+                    formControlName="startDate"
+                    [required]="!datesOptional"
+                    autocomplete="off" />
+                  <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startPicker></mat-datepicker>
+                  <mat-error *ngIf="!datesOptional && form.get('startDate')?.hasError('required')">Required</mat-error>
+                </mat-form-field>
+
+                <div class="rex-date-join" aria-hidden="true">
+                  <span class="rex-date-join-line"></span>
+                  <mat-icon>arrow_forward</mat-icon>
+                  <span class="rex-date-join-line"></span>
+                </div>
+
+                <mat-form-field appearance="outline" class="rex-field rex-field--date" subscriptSizing="dynamic">
+                  <mat-label>To</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="endPicker"
+                    formControlName="endDate"
+                    [required]="!datesOptional"
+                    autocomplete="off" />
+                  <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endPicker></mat-datepicker>
+                  <mat-error *ngIf="!datesOptional && form.get('endDate')?.hasError('required')">Required</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="rex-alert" *ngIf="showDatePairError()">
+                <mat-icon>error_outline</mat-icon>
+                <span>Enter both From and To, or leave both empty{{ datesOptional ? ' (optional for this report)' : '' }}.</span>
+              </div>
+
+              <div class="rex-alert" *ngIf="showDateRangeError()">
+                <mat-icon>error_outline</mat-icon>
+                <span>End date must be on or after the start date.</span>
+              </div>
+
+              <div class="rex-disbursal" *ngIf="isDisbursal">
+                <div class="rex-disbursal-head">
+                  <div class="rex-disbursal-icon">
+                    <mat-icon>schedule</mat-icon>
+                  </div>
+                  <div>
+                    <div class="rex-disbursal-title-row">
+                      <h3 class="rex-h3">Report frequency</h3>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="rex-info"
+                        aria-label="Technical details for report frequency"
+                        matTooltip="Optional filters. Monthly (1–12), quarterly (1–4), yearly. When a period window is used (e.g. monthly + month), startDate/endDate are omitted. Otherwise only filled fields are sent."
+                        matTooltipShowDelay="200"
+                        matTooltipClass="report-export-tooltip">
+                        <mat-icon>info_outline</mat-icon>
+                      </button>
+                    </div>
+                    <p class="rex-disbursal-desc">
+                      All optional — only chosen values are sent. A full period (e.g. monthly + month) skips start/end dates on the request.
+                    </p>
+                  </div>
+                </div>
+                <div class="rex-disbursal-fields">
+                  <mat-form-field appearance="outline" class="rex-field" subscriptSizing="dynamic">
+                    <mat-label>Period type</mat-label>
+                    <mat-select formControlName="periodGranularity">
+                      <mat-option value="">— Select —</mat-option>
+                      <mat-option *ngFor="let opt of disbursalGranularityOptions" [value]="opt.value">
+                        {{ opt.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field
+                    *ngIf="form.get('periodGranularity')?.value === 'monthly'"
+                    appearance="outline"
+                    class="rex-field"
+                    subscriptSizing="dynamic">
+                    <mat-label>Month</mat-label>
+                    <mat-select formControlName="reportMonth">
+                      <mat-option [value]="null">— Select —</mat-option>
+                      <mat-option *ngFor="let m of disbursalMonthOptions" [value]="m.value">
+                        {{ m.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field
+                    *ngIf="form.get('periodGranularity')?.value === 'quarterly'"
+                    appearance="outline"
+                    class="rex-field"
+                    subscriptSizing="dynamic">
+                    <mat-label>Quarter</mat-label>
+                    <mat-select formControlName="reportQuarter">
+                      <mat-option [value]="null">— Select —</mat-option>
+                      <mat-option *ngFor="let q of disbursalQuarterOptions" [value]="q.value">
+                        {{ q.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="rex-field rex-field--year" subscriptSizing="dynamic">
+                    <mat-label>Year</mat-label>
+                    <input matInput type="number" formControlName="reportYear" min="2000" max="2100" autocomplete="off" />
+                    <mat-hint>Optional. Sent when filled — with period type or alone (year-only query param).</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="rex-col rex-col--side" aria-labelledby="rex-export-heading">
+            <section class="rex-card rex-card--side">
+              <div class="rex-step">
+                <span class="rex-step-badge rex-step-badge--teal">2</span>
+                <div class="rex-step-body">
+                  <h2 id="rex-export-heading" class="rex-h2">Branch &amp; format</h2>
+                  <p class="rex-muted">One branch per export. Pick how you want the file.</p>
+                </div>
+              </div>
+
+                <mat-form-field appearance="outline" class="rex-field rex-field--branch" subscriptSizing="dynamic">
+                <mat-label>Branch</mat-label>
+                <mat-icon matPrefix class="rex-prefix-ico">business</mat-icon>
+                <mat-select formControlName="branchName" [required]="!isDisbursal">
+                  <mat-option *ngIf="isDisbursal" value="">— Not selected —</mat-option>
+                  <mat-option *ngFor="let branch of branchOptions" [value]="branch">
+                    {{ branch }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="!isDisbursal && form.get('branchName')?.hasError('required')">Branch is required</mat-error>
+              </mat-form-field>
+
+              <p class="rex-format-label">Export as</p>
+              <div class="rex-format-cards" role="group" aria-label="Export file format">
+                <button
+                  type="button"
+                  class="rex-fmt rex-fmt--on"
+                  aria-pressed="true"
+                  (click)="setOutputFormat('excel')">
+                  <span class="rex-fmt-ico rex-fmt-ico--xls">
+                    <mat-icon>table_chart</mat-icon>
+                  </span>
+                  <span class="rex-fmt-name">Excel</span>
+                  <span class="rex-fmt-hint">Default export</span>
+                </button>
+                <button
+                  type="button"
+                  class="rex-fmt rex-fmt--readonly"
+                  disabled
+                  aria-disabled="true"
+                  aria-label="PDF (not available yet)">
+                  <span class="rex-fmt-ico rex-fmt-ico--pdf">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                  </span>
+                  <span class="rex-fmt-name">PDF</span>
+                  <span class="rex-fmt-hint">Not available yet</span>
+                </button>
+                <button
+                  type="button"
+                  class="rex-fmt rex-fmt--readonly"
+                  disabled
+                  aria-disabled="true"
+                  aria-label="CSV (not available yet)">
+                  <span class="rex-fmt-ico rex-fmt-ico--csv">
+                    <mat-icon>text_snippet</mat-icon>
+                  </span>
+                  <span class="rex-fmt-name">CSV</span>
+                  <span class="rex-fmt-hint">Not available yet</span>
+                </button>
+              </div>
+            </section>
+          </aside>
         </div>
-        <div class="hero-text">
-          <h1>{{ config.title }}</h1>
-          <p>{{ config.description }}</p>
-        </div>
+
+        <footer class="rex-footer" [class.rex-footer--disbursal-compact]="isDisbursal">
+          <div class="rex-footer-inner" *ngIf="!isDisbursal">
+            <div class="rex-summary" *ngIf="canPreviewSummary">
+              <div class="rex-summary-ico">
+                <mat-icon>task_alt</mat-icon>
+              </div>
+              <div class="rex-summary-text">
+                <div class="rex-chips">
+                  <span class="rex-chip" *ngIf="form.get('startDate')?.value && form.get('endDate')?.value">
+                    {{ form.get('startDate')?.value | date : 'dd MMM yyyy' }}
+                    <mat-icon class="rex-chip-arrow">trending_flat</mat-icon>
+                    {{ form.get('endDate')?.value | date : 'dd MMM yyyy' }}
+                  </span>
+                  <span class="rex-chip rex-chip--soft" *ngIf="datesOptional && !form.get('startDate')?.value && !form.get('endDate')?.value">
+                    Full snapshot
+                  </span>
+                  <span class="rex-chip rex-chip--soft">
+                    {{ (form.get('branchName')?.value || '').toString().trim() || 'Branch' }}
+                  </span>
+                  <span class="rex-chip rex-chip--outline">{{ getOutputTypeLabel() }}</span>
+                </div>
+                <p class="rex-summary-note">Ready when you are — download uses your selections above.</p>
+              </div>
+            </div>
+
+            <div class="rex-summary rex-summary--empty" *ngIf="!canPreviewSummary">
+              <div class="rex-summary-ico rex-summary-ico--muted">
+                <mat-icon>touch_app</mat-icon>
+              </div>
+              <p class="rex-empty-msg">
+                Complete branch{{ datesOptional ? '' : ', dates' }}, and format to see a live summary here.
+              </p>
+            </div>
+
+            <div class="rex-actions">
+              <button mat-stroked-button type="button" class="rex-btn-cancel" (click)="goBack()">Cancel</button>
+              <button mat-flat-button color="primary" class="rex-btn-go" type="submit" [disabled]="isDownloading || form.invalid">
+                <mat-icon *ngIf="!isDownloading">download</mat-icon>
+                <mat-spinner *ngIf="isDownloading" diameter="20"></mat-spinner>
+                {{ isDownloading ? 'Preparing…' : 'Download report' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="rex-footer-inner rex-footer-inner--disbursal" *ngIf="isDisbursal">
+            <div class="rex-actions rex-actions--disbursal-bar">
+              <button mat-stroked-button type="button" class="rex-btn-cancel" (click)="goBack()">Cancel</button>
+              <button mat-flat-button color="primary" class="rex-btn-go" type="submit" [disabled]="isDownloading || form.invalid">
+                <mat-icon *ngIf="!isDownloading">download</mat-icon>
+                <mat-spinner *ngIf="isDownloading" diameter="20"></mat-spinner>
+                {{ isDownloading ? 'Preparing…' : 'Generate & download' }}
+              </button>
+            </div>
+          </div>
+        </footer>
       </div>
-    </header>
 
-    <form [formGroup]="form" (ngSubmit)="download()" class="report-form" novalidate>
-      <div class="panels">
-        <mat-card class="panel panel-period">
-          <div class="panel-head">
-            <div class="panel-head-icon">
-              <mat-icon>date_range</mat-icon>
-            </div>
-            <div class="panel-head-text">
-              <h2 class="panel-title">Reporting period</h2>
-              <p class="panel-sub">{{ config.periodSubtext }}</p>
-            </div>
-          </div>
+      <section *ngIf="isDisbursal" class="disbursal-report-history" aria-labelledby="disbursal-history-heading">
+        <h2 id="disbursal-history-heading" class="history-section-title">
+          <mat-icon>history</mat-icon>
+          Previous reports
+        </h2>
 
-          <div class="date-range-block">
-            <mat-form-field appearance="outline" class="date-field" subscriptSizing="dynamic">
-              <mat-label>From</mat-label>
-              <input
-                matInput
-                [matDatepicker]="startPicker"
-                formControlName="startDate"
-                [required]="!datesOptional"
-                autocomplete="off" />
-              <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-              <mat-datepicker #startPicker></mat-datepicker>
-              <mat-error *ngIf="!datesOptional && form.get('startDate')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-
-            <div class="range-connector" aria-hidden="true">
-              <span class="connector-line"></span>
-              <mat-icon class="connector-icon">arrow_forward</mat-icon>
-              <span class="connector-line"></span>
-            </div>
-
-            <mat-form-field appearance="outline" class="date-field" subscriptSizing="dynamic">
-              <mat-label>To</mat-label>
-              <input
-                matInput
-                [matDatepicker]="endPicker"
-                formControlName="endDate"
-                [required]="!datesOptional"
-                autocomplete="off" />
-              <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
-              <mat-datepicker #endPicker></mat-datepicker>
-              <mat-error *ngIf="!datesOptional && form.get('endDate')?.hasError('required')">Required</mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="inline-alert" *ngIf="showDatePairError()">
-            <mat-icon>error_outline</mat-icon>
-            <span>Enter both From and To, or leave both empty{{ datesOptional ? ' (optional for this report)' : '' }}.</span>
-          </div>
-
-          <div class="inline-alert" *ngIf="showDateRangeError()">
-            <mat-icon>error_outline</mat-icon>
-            <span>End date must be on or after the start date.</span>
-          </div>
-        </mat-card>
-
-        <mat-card class="panel panel-output">
-          <div class="panel-head">
-            <div class="panel-head-icon panel-head-icon--alt">
-              <mat-icon>storefront</mat-icon>
-            </div>
-            <div class="panel-head-text">
-              <h2 class="panel-title">Branch &amp; file type</h2>
-              <p class="panel-sub">Select the branch and choose how you want the file.</p>
-            </div>
-          </div>
-
-          <div class="branch-wrap">
-            <mat-form-field appearance="outline" class="branch-field" subscriptSizing="dynamic">
-              <mat-label>Branch</mat-label>
-              <mat-icon matPrefix class="field-prefix-icon">business</mat-icon>
-              <mat-select formControlName="branchName" required>
-                <mat-option *ngFor="let branch of branchOptions" [value]="branch">
-                  {{ branch }}
-                </mat-option>
-              </mat-select>
-              <mat-error *ngIf="form.get('branchName')?.hasError('required')">Branch is required</mat-error>
-            </mat-form-field>
-          </div>
-
-          <div class="format-section">
-            <span class="format-label">Export as</span>
-            <mat-button-toggle-group formControlName="outputType" class="format-toggles" appearance="standard">
-              <mat-button-toggle value="pdf" class="toggle-pdf">
-                <mat-icon>picture_as_pdf</mat-icon>
-                PDF
-              </mat-button-toggle>
-              <mat-button-toggle value="excel" class="toggle-xls">
-                <mat-icon>table_chart</mat-icon>
-                Excel
-              </mat-button-toggle>
-              <mat-button-toggle value="csv" class="toggle-csv">
-                <mat-icon>text_snippet</mat-icon>
-                CSV
-              </mat-button-toggle>
-            </mat-button-toggle-group>
-          </div>
-        </mat-card>
-      </div>
-
-      <mat-card class="action-bar">
-        <div class="action-bar-inner">
-          <div class="summary" *ngIf="canPreviewSummary">
-            <mat-icon class="summary-icon">description</mat-icon>
-            <div class="summary-lines">
-              <span class="summary-primary" *ngIf="form.get('startDate')?.value && form.get('endDate')?.value">
-                {{ form.get('startDate')?.value | date : 'dd MMM yyyy' }}
-                <span class="summary-dash">→</span>
-                {{ form.get('endDate')?.value | date : 'dd MMM yyyy' }}
-              </span>
-              <span class="summary-primary muted-range" *ngIf="datesOptional && !form.get('startDate')?.value && !form.get('endDate')?.value">
-                No date filter (full snapshot)
-              </span>
-              <span class="summary-meta">
-                <ng-container *ngIf="form.get('branchName')?.value as branchName; else branchPlaceholder">
-                  {{ branchName }}
-                </ng-container>
-                <ng-template #branchPlaceholder>
-                  <span class="placeholder-muted">Branch not set</span>
-                </ng-template>
-                <span class="meta-sep">·</span>
-                {{ getOutputTypeLabel() }}
-              </span>
-            </div>
-          </div>
-          <div class="summary summary--empty" *ngIf="!canPreviewSummary">
-            <mat-icon class="summary-icon muted">touch_app</mat-icon>
-            <span class="placeholder-muted">Select branch{{ datesOptional ? '' : ', dates' }}, and format to preview.</span>
-          </div>
-
-          <div class="action-buttons">
-            <button mat-stroked-button type="button" (click)="goBack()">Cancel</button>
-            <button mat-flat-button color="primary" class="btn-download" type="submit" [disabled]="isDownloading || form.invalid">
-              <mat-icon *ngIf="!isDownloading">download</mat-icon>
-              <mat-spinner *ngIf="isDownloading" diameter="20"></mat-spinner>
-              {{ isDownloading ? 'Preparing…' : 'Download report' }}
-            </button>
-          </div>
+        <div class="history-loading" *ngIf="historyLoading">
+          <mat-spinner diameter="36"></mat-spinner>
+          <p>Loading previous reports…</p>
         </div>
-      </mat-card>
+
+        <div class="history-empty" *ngIf="!historyLoading && historyRows.length === 0">
+          <mat-icon>folder_open</mat-icon>
+          <h3>No reports yet</h3>
+          <p>Generated disbursement files will appear here.</p>
+        </div>
+
+        <div class="history-table-container" *ngIf="!historyLoading && historyRows.length > 0">
+          <table class="history-table doc-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Uploaded</th>
+                <th>Size</th>
+                <th>Created by</th>
+                <th class="col-actions">Download</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of historyRows">
+                <td>
+                  <span class="doc-name">{{ row.fileName }}</span>
+                </td>
+                <td>{{ formatHistoryDateTime(row.uploadedAt) }}</td>
+                <td>{{ formatFileSize(row.size) }}</td>
+                <td>{{ row.createdBy || '—' }}</td>
+                <td class="col-actions">
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    type="button"
+                    class="btn-dl"
+                    [disabled]="downloadingHistoryFileName === row.fileName"
+                    (click)="downloadHistoryRow(row)">
+                    <mat-icon *ngIf="downloadingHistoryFileName !== row.fileName">download</mat-icon>
+                    <mat-spinner *ngIf="downloadingHistoryFileName === row.fileName" diameter="18"></mat-spinner>
+                    {{ downloadingHistoryFileName === row.fileName ? '…' : 'Download' }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <mat-paginator
+          *ngIf="isDisbursal && !historyLoading && historyTotalElements > 0"
+          [length]="historyTotalElements"
+          [pageIndex]="historyPageIndex"
+          [pageSize]="historyPageSize"
+          [pageSizeOptions]="[5, 10, 25]"
+          [showFirstLastButtons]="true"
+          (page)="onHistoryPage($event)">
+        </mat-paginator>
+      </section>
     </form>
   </div>
 </div>

@@ -16,8 +16,15 @@
         <div class="schedule-card-title">
           <mat-icon>calendar_today</mat-icon>
           <span>Installment schedule</span>
+          <span class="schedule-count" *ngIf="scheduleData.length > 0">{{ scheduleData.length }} installment(s)</span>
+
         </div>
-        <span class="schedule-count" *ngIf="scheduleData.length > 0">{{ scheduleData.length }} installment(s)</span>
+        <div class="schedule-head-right">
+          <div class="net-disbursed-highlight" *ngIf="outstandingData">
+            <span class="net-disbursed-label">Net disbursed amount</span>
+            <span class="net-disbursed-value">{{ formatCurrency(getNetDisbursedAmount()) }}</span>
+          </div>
+        </div>
       </div>
       <div class="schedule-card-body">
         <div class="table-scroll" *ngIf="scheduleData.length > 0">

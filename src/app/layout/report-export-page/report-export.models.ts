@@ -17,10 +17,11 @@ export const REPORT_EXPORT_CONFIG: Record<ReportExportKind, ReportExportUiConfig
     breadcrumbLabel: 'Disbursal report',
     title: 'Disbursal report',
     description:
-      'Pull all loans disbursed in the selected window for one branch, then download as PDF, Excel, or CSV.',
+      'Export disbursed loans for the filters you choose. Period (month / quarter / year) and date range are all optional — only selected values are sent to the API.',
     heroIcon: 'account_balance_wallet',
-    datesOptional: false,
-    periodSubtext: 'Start and end dates are inclusive.'
+    datesOptional: true,
+    periodSubtext:
+      'Optional: use From/To, or choose period type with month/quarter/year. If you use a full period (e.g. monthly + month), start/end dates are not sent.'
   },
   inventory: {
     breadcrumbLabel: 'Inventory report',
@@ -58,4 +59,18 @@ export const REPORT_BRANCH_OPTIONS: string[] = ['Bhosari'];
 
 export function isReportExportKind(value: string | null): value is ReportExportKind {
   return value != null && (REPORT_EXPORT_KINDS as string[]).includes(value);
+}
+
+/** Row from `GET .../report-generation/allReportsDetails` */
+export interface ReportArchiveItem {
+  id: number;
+  documentType: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  uploadedAt: string;
+  createdBy: string;
+  createdDate: string;
+  updatedBy: string | null;
+  updatedDate: string | null;
 }
