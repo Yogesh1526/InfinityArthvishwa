@@ -657,6 +657,7 @@ export class PersonalDetailsService {
    * Disbursal uses `/api/report-generation/applicantLoanDetailsReport` with only selected query params
    * (no branchName or format). Omitted keys are not sent. When monthly/quarterly/year period is used
    * in a way that defines the window, startDate/endDate are not sent.
+   * Repayment uses `/api/report-generation/repaymentReport` with startDate and endDate only.
    * Other kinds use `/api/reports/{kind}/export` with branchName and format.
    */
   downloadReportExport(
@@ -715,6 +716,20 @@ export class PersonalDetailsService {
       }
 
       return this.http.get(`${this.baseUrl}/report-generation/applicantLoanDetailsReport`, {
+        params: httpParams,
+        responseType: 'blob'
+      });
+    }
+
+    if (kind === 'repayment') {
+      let httpParams = new HttpParams();
+      if (params.startDate) {
+        httpParams = httpParams.set('startDate', params.startDate);
+      }
+      if (params.endDate) {
+        httpParams = httpParams.set('endDate', params.endDate);
+      }
+      return this.http.get(`${this.baseUrl}/report-generation/repaymentReport`, {
         params: httpParams,
         responseType: 'blob'
       });

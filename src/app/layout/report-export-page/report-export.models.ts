@@ -45,10 +45,10 @@ export const REPORT_EXPORT_CONFIG: Record<ReportExportKind, ReportExportUiConfig
     breadcrumbLabel: 'Repayment report',
     title: 'Repayment report',
     description:
-      'Loan repayments including principal, interest, and payment dates for the branch and period.',
+      'Loan repayments including principal, interest, and payment dates. Choose a start and end date — only those dates are sent to the API.',
     heroIcon: 'payments',
     datesOptional: false,
-    periodSubtext: 'Start and end dates are inclusive.'
+    periodSubtext: 'Start and end dates are required and inclusive.'
   }
 };
 

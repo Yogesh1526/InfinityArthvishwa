@@ -130,6 +130,15 @@ export class ReportExportPageComponent implements OnInit, OnDestroy {
     return this.kind === 'disbursal';
   }
 
+  get isRepayment(): boolean {
+    return this.kind === 'repayment';
+  }
+
+  /** Uses report-generation APIs (no branchName / format query params). */
+  get isReportGenerationExport(): boolean {
+    return this.isDisbursal || this.isRepayment;
+  }
+
   get datesOptional(): boolean {
     return this.config.datesOptional;
   }
@@ -143,6 +152,11 @@ export class ReportExportPageComponent implements OnInit, OnDestroy {
     if (this.kind === 'disbursal') {
       start?.clearValidators();
       end?.clearValidators();
+      branch?.clearValidators();
+      output?.clearValidators();
+    } else if (this.kind === 'repayment') {
+      start?.setValidators([Validators.required]);
+      end?.setValidators([Validators.required]);
       branch?.clearValidators();
       output?.clearValidators();
     } else {
@@ -319,7 +333,7 @@ export class ReportExportPageComponent implements OnInit, OnDestroy {
             return;
           }
           const fileName = this.buildFileName(format, startVal, endVal);
-          const mime = this.mimeForFormat(format);
+          const mime = this.mimeForFormat(this.isRepayment ? 'excel' : format);
           const fileBlob = blob.type ? blob : new Blob([blob], { type: mime });
           const url = window.URL.createObjectURL(fileBlob);
           const a = document.createElement('a');
@@ -447,7 +461,8 @@ export class ReportExportPageComponent implements OnInit, OnDestroy {
   }
 
   private buildFileName(format: ReportExportFormat, start: Date | null, end: Date | null): string {
-    const ext = format === 'pdf' ? 'pdf' : format === 'excel' ? 'xlsx' : 'csv';
+    const ext =
+      this.isRepayment || format === 'excel' ? 'xlsx' : format === 'pdf' ? 'pdf' : 'csv';
     const branch = (this.form.get('branchName')?.value as string)?.trim().replace(/\s+/g, '_') || 'branch';
     if (start && end) {
       return `${this.kind}-report_${this.toIsoDate(start)}_${this.toIsoDate(end)}.${ext}`;
@@ -515,6 +530,9 @@ export class ReportExportPageComponent implements OnInit, OnDestroy {
   get canPreviewSummary(): boolean {
     if (this.isDisbursal) {
       return true;
+    }
+    if (this.isRepayment) {
+      return !!(this.form.get('startDate')?.value && this.form.get('endDate')?.value);
     }
     const branch = this.form.get('branchName')?.value;
     if (!branch) {

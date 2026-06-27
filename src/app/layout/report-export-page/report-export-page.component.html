@@ -1,4 +1,4 @@
-<div class="report-export-page" [class.report-export-page--disbursal]="isDisbursal">
+<div class="report-export-page" [class.report-export-page--disbursal]="isReportGenerationExport">
   <div class="rex-blob rex-blob--a" aria-hidden="true"></div>
   <div class="rex-blob rex-blob--b" aria-hidden="true"></div>
   <div class="rex-blob rex-blob--c" aria-hidden="true"></div>
@@ -22,7 +22,7 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="download()" class="rex-form" novalidate>
-      <div class="rex-shell" [class.rex-shell--disbursal-compact]="isDisbursal">
+      <div class="rex-shell" [class.rex-shell--disbursal-compact]="isReportGenerationExport">
         <header class="rex-hero">
           <div class="rex-hero-glow" aria-hidden="true"></div>
           <div class="rex-hero-icon">
@@ -163,7 +163,7 @@
             </section>
           </div>
 
-          <aside class="rex-col rex-col--side" aria-labelledby="rex-export-heading">
+          <aside class="rex-col rex-col--side" *ngIf="!isRepayment" aria-labelledby="rex-export-heading">
             <section class="rex-card rex-card--side">
               <div class="rex-step">
                 <span class="rex-step-badge rex-step-badge--teal">2</span>
@@ -176,13 +176,13 @@
                 <mat-form-field appearance="outline" class="rex-field rex-field--branch" subscriptSizing="dynamic">
                 <mat-label>Branch</mat-label>
                 <mat-icon matPrefix class="rex-prefix-ico">business</mat-icon>
-                <mat-select formControlName="branchName" [required]="!isDisbursal">
+                <mat-select formControlName="branchName" [required]="!isReportGenerationExport">
                   <mat-option *ngIf="isDisbursal" value="">— Not selected —</mat-option>
                   <mat-option *ngFor="let branch of branchOptions" [value]="branch">
                     {{ branch }}
                   </mat-option>
                 </mat-select>
-                <mat-error *ngIf="!isDisbursal && form.get('branchName')?.hasError('required')">Branch is required</mat-error>
+                <mat-error *ngIf="!isReportGenerationExport && form.get('branchName')?.hasError('required')">Branch is required</mat-error>
               </mat-form-field>
 
               <p class="rex-format-label">Export as</p>
@@ -227,8 +227,8 @@
           </aside>
         </div>
 
-        <footer class="rex-footer" [class.rex-footer--disbursal-compact]="isDisbursal">
-          <div class="rex-footer-inner" *ngIf="!isDisbursal">
+        <footer class="rex-footer" [class.rex-footer--disbursal-compact]="isReportGenerationExport">
+          <div class="rex-footer-inner" *ngIf="!isReportGenerationExport">
             <div class="rex-summary" *ngIf="canPreviewSummary">
               <div class="rex-summary-ico">
                 <mat-icon>task_alt</mat-icon>
@@ -271,13 +271,13 @@
             </div>
           </div>
 
-          <div class="rex-footer-inner rex-footer-inner--disbursal" *ngIf="isDisbursal">
+          <div class="rex-footer-inner rex-footer-inner--disbursal" *ngIf="isReportGenerationExport">
             <div class="rex-actions rex-actions--disbursal-bar">
               <button mat-stroked-button type="button" class="rex-btn-cancel" (click)="goBack()">Cancel</button>
               <button mat-flat-button color="primary" class="rex-btn-go" type="submit" [disabled]="isDownloading || form.invalid">
                 <mat-icon *ngIf="!isDownloading">download</mat-icon>
                 <mat-spinner *ngIf="isDownloading" diameter="20"></mat-spinner>
-                {{ isDownloading ? 'Preparing…' : 'Generate & download' }}
+                {{ isDownloading ? 'Preparing…' : (isRepayment ? 'Download report' : 'Generate & download') }}
               </button>
             </div>
           </div>
