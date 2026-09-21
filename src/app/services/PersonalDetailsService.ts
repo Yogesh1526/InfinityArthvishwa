@@ -630,6 +630,21 @@ export class PersonalDetailsService {
     return this.http.post(`${this.baseUrl}/part-payment-emi-payment/payPartPaymentAndInterestAmount`, payload);
   }
 
+  /** Pay interest for a single repayment-schedule installment row */
+  payInterestAmount(payload: {
+    id: number;
+    paymentMode?: string;
+    interestAmount?: number | null;
+    paidInterestAmount: number;
+    rebateAmount?: number | null;
+    applyRebate?: boolean;
+    customerId: string;
+    loanAccountNo: string;
+    paymentPaidDate?: string | null;
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/part-payment-emi-payment/payInterestAmount`, payload);
+  }
+
   /** Get latest payment transactions for customer + loan account */
   getLatestPayments(customerId: string, loanAccountNumber: string): Observable<any> {
     const params = new HttpParams()
@@ -643,6 +658,14 @@ export class PersonalDetailsService {
     return this.http.get(`${this.baseUrl}/part-payment-emi-payment/download/${encodeURIComponent(payemntReceiptNumber)}`, {
       responseType: 'blob'
     });
+  }
+
+  /** Download / resolve interest payment receipt for a repayment-schedule row id */
+  downloadInterestReceiptByRepaymentId(repaymentId: number): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/part-payment-emi-payment/download-by-repayment/${encodeURIComponent(String(repaymentId))}`,
+      { responseType: 'blob' }
+    );
   }
 
   /** Get pending payment customer list (for notification / interest due report) */

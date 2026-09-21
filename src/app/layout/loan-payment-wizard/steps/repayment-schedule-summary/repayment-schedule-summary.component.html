@@ -29,6 +29,40 @@
       <div class="schedule-card-body">
         <div class="table-scroll" *ngIf="scheduleData.length > 0">
           <table mat-table [dataSource]="dataSource" matSort class="schedule-table">
+            <ng-container matColumnDef="pay">
+              <th mat-header-cell *matHeaderCellDef>Pay</th>
+              <td mat-cell *matCellDef="let row" class="pay-cell">
+                <div class="pay-actions">
+                  <ng-container *ngIf="isInstallmentPaid(row); else payBtn">
+                    <span class="pay-paid-label">Paid</span>
+                  </ng-container>
+                  <ng-template #payBtn>
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      class="btn-pay-interest"
+                      type="button"
+                      [disabled]="!canPayInstallment(row) || payingRowId === row.id"
+                      [matTooltip]="canPayInstallment(row) ? 'Pay interest for this installment' : 'Pay previous installment(s) first'"
+                      (click)="openPayPopup(row); $event.stopPropagation()">
+                      Pay
+                    </button>
+                  </ng-template>
+                  <button
+                    *ngIf="canDownloadInterestReceipt(row)"
+                    mat-icon-button
+                    type="button"
+                    color="primary"
+                    class="btn-download-receipt"
+                    [disabled]="downloadingReceiptRowId === row.id"
+                    matTooltip="Download interest payment receipt"
+                    (click)="downloadInterestReceipt(row); $event.stopPropagation()">
+                    <mat-spinner *ngIf="downloadingReceiptRowId === row.id" diameter="18"></mat-spinner>
+                    <mat-icon *ngIf="downloadingReceiptRowId !== row.id">download</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
             <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
               <td mat-cell *matCellDef="let row">{{ row.id }}</td>
@@ -110,6 +144,58 @@
     <div class="confirmed-bar" *ngIf="isConfirmed">
       <mat-icon>check_circle</mat-icon>
       <span>Schedule reviewed. Click <strong>Next</strong> to enter payment details.</span>
+    </div>
+  </div>
+
+  <!-- Pay interest popup -->
+  <div class="pay-popup-overlay" *ngIf="showPayPopup && selectedPayRow" (click)="closePayPopup()">
+    <div class="pay-popup" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="pay-interest-title">
+      <div class="pay-popup-head">
+        <h2 id="pay-interest-title">Pay interest</h2>
+        <button mat-icon-button type="button" class="pay-popup-close" (click)="closePayPopup()" [disabled]="payingRowId != null" aria-label="Close">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="pay-popup-body">
+        <div class="pay-popup-row">
+          <span class="pay-popup-label">Installment #</span>
+          <span class="pay-popup-value">{{ selectedPayRow.id }}</span>
+        </div>
+        <div class="pay-popup-row">
+          <span class="pay-popup-label">Due date</span>
+          <span class="pay-popup-value">{{ formatDate(selectedPayRow.interestPayDueDate) }}</span>
+        </div>
+        <div class="pay-popup-row">
+          <span class="pay-popup-label">Interest amount</span>
+          <span class="pay-popup-value">{{ formatCurrency(getGrossInterestAmount(selectedPayRow)) }}</span>
+        </div>
+        <div class="pay-popup-row">
+          <span class="pay-popup-label">Monthly rebate</span>
+          <span class="pay-popup-value">{{ formatCurrency(selectedPayRow.monthlyRebateInterestAmount) }}</span>
+        </div>
+
+        <mat-checkbox [(ngModel)]="applyRebate" color="primary" class="pay-rebate-check">
+          Apply rebate on interest amount
+        </mat-checkbox>
+
+        <div class="pay-popup-payable">
+          <span class="pay-popup-label">Amount to pay</span>
+          <span class="pay-popup-payable-value">{{ formatCurrency(getPayableInterestAmount(selectedPayRow, applyRebate)) }}</span>
+        </div>
+      </div>
+      <div class="pay-popup-actions">
+        <button mat-stroked-button type="button" (click)="closePayPopup()" [disabled]="payingRowId != null">Cancel</button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="btn-pay-confirm"
+          [disabled]="payingRowId != null || getPayableInterestAmount(selectedPayRow, applyRebate) <= 0"
+          (click)="confirmPayInterest()">
+          <mat-spinner *ngIf="payingRowId != null" diameter="18"></mat-spinner>
+          <span *ngIf="payingRowId == null">Pay</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

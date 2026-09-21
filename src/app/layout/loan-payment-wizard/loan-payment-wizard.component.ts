@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalDetailsService } from 'src/app/services/PersonalDetailsService';
 import { ToastService } from 'src/app/services/toast.service';
-import { PaymentTypeSelectionComponent } from './steps/payment-type-selection/payment-type-selection.component';
 import { RepaymentScheduleSummaryComponent } from './steps/repayment-schedule-summary/repayment-schedule-summary.component';
 import { PaymentEntryComponent } from './steps/payment-entry/payment-entry.component';
 import { PaymentConfirmationComponent } from './steps/payment-confirmation/payment-confirmation.component';
@@ -13,7 +12,6 @@ import { PaymentConfirmationComponent } from './steps/payment-confirmation/payme
   styleUrls: ['./loan-payment-wizard.component.css']
 })
 export class LoanPaymentWizardComponent implements OnInit {
-  @ViewChild('paymentTypeRef') paymentTypeRef!: PaymentTypeSelectionComponent;
   @ViewChild('repaymentScheduleRef') repaymentScheduleRef!: RepaymentScheduleSummaryComponent;
   @ViewChild('paymentEntryRef') paymentEntryRef!: PaymentEntryComponent;
   @ViewChild('paymentConfirmationRef') paymentConfirmationRef!: PaymentConfirmationComponent;
@@ -24,15 +22,14 @@ export class LoanPaymentWizardComponent implements OnInit {
   customerName: string = 'N/A';
   stepCompletionStatus: boolean[] = [];
 
-  // Data shared between steps
-  paymentType: 'PART_PAYMENT' | 'INTEREST_PAYMENT' | '' = '';
+  // Wizard payment entry is always Part Payment (interest is paid from schedule Pay buttons)
+  paymentType: 'PART_PAYMENT' | 'INTEREST_PAYMENT' | '' = 'PART_PAYMENT';
   outstandingData: any = null;
   paymentData: any = null;
   paymentResult: any = null;
 
   steps = [
     { label: 'Repayment Schedule', key: 'schedule', icon: 'table_chart' },
-    { label: 'Payment Type', key: 'type', icon: 'category' },
     { label: 'Payment Details', key: 'payment', icon: 'payment' },
     { label: 'Confirmation', key: 'confirmation', icon: 'verified' }
   ];
@@ -52,7 +49,6 @@ export class LoanPaymentWizardComponent implements OnInit {
       if (id) {
         this.customerId = id;
         const loanAccountFromUrl = this.route.snapshot.queryParamMap.get('loanAccount');
-        const typeFromUrl = this.route.snapshot.queryParamMap.get('type');
 
         if (loanAccountFromUrl) {
           this.loanAccountNumber = loanAccountFromUrl;
@@ -60,10 +56,8 @@ export class LoanPaymentWizardComponent implements OnInit {
           this.loadStoredLoanAccountNumber();
         }
 
-        // Pre-select payment type if passed via query param
-        if (typeFromUrl === 'part' || typeFromUrl === 'interest') {
-          this.paymentType = typeFromUrl === 'part' ? 'PART_PAYMENT' : 'INTEREST_PAYMENT';
-        }
+        // Payment details step is always Part Payment
+        this.paymentType = 'PART_PAYMENT';
 
         this.fetchCustomerDetails();
       }
@@ -142,12 +136,6 @@ export class LoanPaymentWizardComponent implements OnInit {
     }
   }
 
-  /** Handle payment type selected (step 1 — after repayment schedule) */
-  onPaymentTypeSelected(type: 'PART_PAYMENT' | 'INTEREST_PAYMENT'): void {
-    this.paymentType = type;
-    this.markStepCompleted(1);
-  }
-
   /** Handle repayment schedule data loaded (outstanding data for downstream) */
   onOutstandingDataLoaded(data: any): void {
     this.outstandingData = data;
@@ -155,19 +143,24 @@ export class LoanPaymentWizardComponent implements OnInit {
 
   /** Handle repayment schedule confirmed (step 0) */
   onRepaymentScheduleConfirmed(): void {
+    this.paymentType = 'PART_PAYMENT';
     this.markStepCompleted(0);
   }
 
   /** Handle payment completed */
   onPaymentCompleted(data: any): void {
     this.paymentResult = data;
-    this.markStepCompleted(2);
+    this.markStepCompleted(1);
   }
 
   /** Navigate to next step */
   next(): void {
     if (!this.validateCurrentStep()) return;
     if (this.activeStep < this.steps.length - 1) {
+      // Leaving schedule → Part Payment details
+      if (this.activeStep === 0) {
+        this.paymentType = 'PART_PAYMENT';
+      }
       this.activeStep++;
     }
   }
@@ -180,12 +173,6 @@ export class LoanPaymentWizardComponent implements OnInit {
         }
         return true;
       case 1:
-        if (!this.paymentType) {
-          this.toastService.showWarning('Please select a payment type.');
-          return false;
-        }
-        return true;
-      case 2:
         if (this.paymentEntryRef) {
           return this.paymentEntryRef.validateStep();
         }
@@ -220,7 +207,7 @@ export class LoanPaymentWizardComponent implements OnInit {
   /** Start a new payment */
   startNewPayment(): void {
     this.activeStep = 0;
-    this.paymentType = '';
+    this.paymentType = 'PART_PAYMENT';
     this.outstandingData = null;
     this.paymentData = null;
     this.paymentResult = null;
