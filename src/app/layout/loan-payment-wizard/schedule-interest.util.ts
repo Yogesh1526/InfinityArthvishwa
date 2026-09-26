@@ -24,6 +24,40 @@ export function totalRemainingInterestFromSchedule(schedule: any[]): number {
   return schedule.reduce((sum, row) => sum + remainingInterestForScheduleRow(row), 0);
 }
 
+/**
+ * Interest due (till date) for Part Payment:
+ * sum remaining interest where paymentPaidStatus is not INTEREST_PAID
+ * and interestPayDueDate is strictly before asOf (calendar day).
+ */
+export function totalOverdueUnpaidInterestFromSchedule(
+  schedule: any[],
+  asOf: Date = new Date()
+): number {
+  if (!schedule?.length) return 0;
+
+  const today = new Date(asOf);
+  today.setHours(0, 0, 0, 0);
+
+  return schedule.reduce((sum, row) => {
+    const status = String(row?.paymentPaidStatus || '').toUpperCase();
+    if (status === 'INTEREST_PAID') {
+      return sum;
+    }
+
+    const dueRaw = row?.interestPayDueDate;
+    if (!dueRaw) return sum;
+    const due = new Date(dueRaw);
+    if (isNaN(due.getTime())) return sum;
+    due.setHours(0, 0, 0, 0);
+
+    if (due.getTime() >= today.getTime()) {
+      return sum;
+    }
+
+    return sum + remainingInterestForScheduleRow(row);
+  }, 0);
+}
+
 export type InterestInstallmentOption = {
   /** Raw interestPayDueDate string from API (form value) */
   value: string;

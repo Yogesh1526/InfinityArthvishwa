@@ -44,7 +44,7 @@
   <section class="wizard-main">
     <div class="wizard-step-content">
       <ng-container [ngSwitch]="activeStep">
-        <!-- Step 1: Repayment schedule first (then payment type, then payment entry) -->
+        <!-- Step 1: Repayment schedule -->
         <app-repayment-schedule-summary 
           #repaymentScheduleRef 
           *ngSwitchCase="0"
@@ -55,30 +55,22 @@
           (stepCompleted)="onRepaymentScheduleConfirmed()">
         </app-repayment-schedule-summary>
 
-        <!-- Step 2: Payment type after schedule -->
-        <app-payment-type-selection 
-          #paymentTypeRef 
-          *ngSwitchCase="1"
-          [selectedType]="paymentType"
-          (typeSelected)="onPaymentTypeSelected($event)">
-        </app-payment-type-selection>
-
-        <!-- Step 3: Payment Entry -->
+        <!-- Step 2: Payment Entry (Part Payment) — payment type selection removed -->
         <app-payment-entry 
           #paymentEntryRef 
-          *ngSwitchCase="2"
+          *ngSwitchCase="1"
           [customerId]="customerId"
           [loanAccountNumber]="loanAccountNumber"
           [paymentType]="paymentType"
           [outstandingData]="outstandingData"
           (paymentCompleted)="onPaymentCompleted($event)"
-          (stepCompleted)="markStepCompleted(2)">
+          (stepCompleted)="markStepCompleted(1)">
         </app-payment-entry>
 
-        <!-- Step 4: Confirmation -->
+        <!-- Step 3: Confirmation -->
         <app-payment-confirmation 
           #paymentConfirmationRef 
-          *ngSwitchCase="3"
+          *ngSwitchCase="2"
           [customerId]="customerId"
           [loanAccountNumber]="loanAccountNumber"
           [customerName]="customerName"
@@ -87,7 +79,7 @@
           [outstandingData]="outstandingData"
           (newPayment)="startNewPayment()"
           (goHome)="finishAndGoBack()"
-          (stepCompleted)="markStepCompleted(3)">
+          (stepCompleted)="markStepCompleted(2)">
         </app-payment-confirmation>
       </ng-container>
     </div>
