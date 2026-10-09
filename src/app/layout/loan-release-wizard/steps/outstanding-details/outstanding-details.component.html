@@ -99,11 +99,11 @@
               </div>
               <div class="breakdown-row">
                 <span class="breakdown-label">Outstanding Principal Amount</span>
-                <span class="breakdown-value">{{ formatCurrency(outstandingData.totalOutstandingAmount) }}</span>
+                <span class="breakdown-value">{{ formatCurrency(getOutstandingPrincipal()) }}</span>
               </div>
               <div class="breakdown-row">
                 <span class="breakdown-label">Till Date Interest Amount</span>
-                <span class="breakdown-value">{{ formatCurrency(outstandingData.tillDateInterestAmount) }}</span>
+                <span class="breakdown-value">{{ formatCurrency(outstandingData.tillDateInterestAmount ?? outstandingData.totalDueInterestAmount) }}</span>
               </div>
               <div class="breakdown-row">
                 <span class="breakdown-label">Annual Interest Rate</span>
@@ -114,8 +114,7 @@
               
               <div class="breakdown-row total-row">
                 <span class="breakdown-label">Total Outstanding Amount</span>
-                <span class="breakdown-value total-value"> {{ formatCurrency(
-                  (outstandingData.totalOutstandingAmount || 0) +(outstandingData.tillDateInterestAmount || 0)) }}</span>
+                <span class="breakdown-value total-value">{{ formatCurrency(outstandingData.totalOutstandingAmount) }}</span>
               </div>
             </div>
           </mat-card-content>

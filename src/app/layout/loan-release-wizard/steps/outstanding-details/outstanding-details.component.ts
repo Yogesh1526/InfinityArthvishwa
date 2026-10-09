@@ -251,6 +251,16 @@ export class OutstandingDetailsComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Sanctioned principal, reduced by principal already paid.
+   */
+  getOutstandingPrincipal(): number {
+    const sanctioned = Number(this.outstandingData?.totalScanctionedAmount) || 0;
+    const paid = Number(this.outstandingData?.totalPaidPrincipleAmount) || 0;
+    const outstanding = paid > 0 ? sanctioned - paid : sanctioned;
+    return outstanding > 0 ? outstanding : 0;
+  }
+
+  /**
    * Format currency for display
    */
   formatCurrency(amount: number): string {
