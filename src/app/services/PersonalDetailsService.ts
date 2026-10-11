@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpRequest } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../environment';
 
 @Injectable({
@@ -14,11 +14,26 @@ export class PersonalDetailsService {
   /** Short-lived cache for heavy list API — avoids refetch on every navigation (see clearAllCustomerDetailsCache). */
   private static readonly ALL_CUSTOMERS_TTL_MS = 120_000;
   private getAllCustomerDetailsCache: { body: any; fetchedAt: number } | null = null;
+  /** Joins overlapping get-by-id calls (wizard + open step) into one request. */
+  private readonly customerByIdCache = new Map<string, Observable<any>>();
   
   constructor(private http: HttpClient) {}
 
   getById(customerId: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/applicantDetails/getCustomerById/${customerId}`);
+    const existing = this.customerByIdCache.get(customerId);
+    if (existing) {
+      return existing;
+    }
+    const request$ = this.http.get(`${this.baseUrl}/applicantDetails/getCustomerById/${customerId}`).pipe(
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+    this.customerByIdCache.set(customerId, request$);
+    setTimeout(() => {
+      if (this.customerByIdCache.get(customerId) === request$) {
+        this.customerByIdCache.delete(customerId);
+      }
+    }, 2000);
+    return request$;
   }
 
   create(data: any): Observable<any> {
@@ -26,7 +41,9 @@ export class PersonalDetailsService {
   }
 
   update(data: any) {
-    // Call your specific update API
+    if (data?.customerId) {
+      this.customerByIdCache.delete(data.customerId);
+    }
     return this.http.put(`${this.baseUrl}/applicantDetails/updateCustomer`, data);
   }
 

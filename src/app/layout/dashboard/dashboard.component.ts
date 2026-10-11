@@ -9,6 +9,8 @@ interface LoanAccountDetail {
   customerId: string;
   netDisbursedAmount?: number;
   loanDate?: string;
+  disbusalDate?: string;
+  disbursalDate?: string;
   loanStatus?: string;
 }
 
@@ -43,7 +45,7 @@ export class DashboardComponent implements OnInit {
       change: { positive: true, percentage: 0, period: 'vs last week' }
     },
     { 
-      title: 'Total Collection', 
+      title: 'Total Disbursement', 
       value: '₹0', 
       icon: 'account_balance_wallet',
       colorClass: 'info',
@@ -101,29 +103,32 @@ export class DashboardComponent implements OnInit {
 
         let weekLeads = 0;
         let activeCustomers = 0;
-        let totalCollection = 0;
+        let totalDisbursed = 0;
 
         const apps: DashboardApplication[] = [];
 
         customers.forEach((c: any) => {
-          const loanDetails = c.loanAccountDetailsDto || [];
-          const isDisbursed = loanDetails.some((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
-          const activeLoan = loanDetails.find((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
-          const firstLoan = loanDetails[0];
+          const loanDetails: LoanAccountDetail[] = c.loanAccountDetailsDto || [];
+          const disbursedLoans = this.uniqueDisbursedLoans(loanDetails);
+          const activeLoan = loanDetails.find((l: LoanAccountDetail) => this.isActiveLoan(l));
+          const firstLoan = disbursedLoans[0] || loanDetails[0];
+          const isDisbursed = disbursedLoans.length > 0;
 
-          const createdDate = c.createdDate || c.applicationDate || c.submittedDate;
-          if (createdDate && new Date(createdDate) >= weekStart) {
+          const createdDate = this.parseDate(c.createdDate || c.applicationDate || c.submittedDate);
+          if (createdDate && createdDate >= weekStart) {
             weekLeads++;
           }
 
-          if (isDisbursed) {
+          if (loanDetails.some((l: LoanAccountDetail) => this.isActiveLoan(l))) {
             activeCustomers++;
-            const amt = activeLoan?.netDisbursedAmount ?? firstLoan?.netDisbursedAmount ?? 0;
-            totalCollection += Number(amt) || 0;
           }
 
+          disbursedLoans.forEach((loan) => {
+            totalDisbursed += this.loanAmount(loan);
+          });
+
           const loanAmount = activeLoan?.netDisbursedAmount ?? firstLoan?.netDisbursedAmount ?? c.loanAmount ?? c.loanDisbussementAmount ?? null;
-          const loanDateRaw = activeLoan?.loanDate ?? firstLoan?.loanDate ?? c.loanDate ?? c.createdDate ?? c.applicationDate;
+          const loanDateRaw = this.loanDisbursalDate(activeLoan || firstLoan, c);
           const name = [c.firstName, c.middleName, c.lastName].filter(Boolean).join(' ').trim() || 'N/A';
 
           apps.push({
@@ -141,7 +146,7 @@ export class DashboardComponent implements OnInit {
 
         this.summaryCards[0].value = String(weekLeads);
         this.summaryCards[1].value = String(customers.length);
-        this.summaryCards[2].value = totalCollection >= 100000 ? `₹${(totalCollection / 100000).toFixed(1)}L` : `₹${totalCollection.toLocaleString('en-IN')}`;
+        this.summaryCards[2].value = this.formatInr(totalDisbursed);
         this.summaryCards[3].value = String(activeCustomers);
 
         this.updateChartsWithRealData(customers);
@@ -172,10 +177,10 @@ export class DashboardComponent implements OnInit {
     const amountBands = { under50k: 0, '50k-1l': 0, '1l-2l': 0, '2l-5l': 0, above5l: 0 };
 
     customers.forEach((c: any) => {
-      const loanDetails = c.loanAccountDetailsDto || [];
-      const isDisbursed = loanDetails.some((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
-      const activeLoan = loanDetails.find((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
-      const firstLoan = loanDetails[0];
+      const loanDetails: LoanAccountDetail[] = c.loanAccountDetailsDto || [];
+      const disbursedLoans = this.uniqueDisbursedLoans(loanDetails);
+      const isDisbursed = disbursedLoans.length > 0;
+      const firstLoan = disbursedLoans[0] || loanDetails[0];
       const appStatus = (c.applicationStatus || '').toUpperCase().replace(/_/g, '-');
 
       if (isDisbursed) statusCounts.disbursed++;
@@ -187,19 +192,22 @@ export class DashboardComponent implements OnInit {
       if (loanDetails.length > 1) returningCustomers++;
       else newCustomers++;
 
-      const loanAmount = activeLoan?.netDisbursedAmount ?? firstLoan?.netDisbursedAmount ?? c.loanAmount ?? c.loanDisbussementAmount ?? 0;
-      const amt = Number(loanAmount) || 0;
-      if (amt > 0) {
+      const bandLoans = disbursedLoans.length > 0 ? disbursedLoans : (firstLoan ? [firstLoan] : []);
+      bandLoans.forEach((loan) => {
+        const amt = this.loanAmount(loan) || Number(c.loanAmount ?? c.loanDisbussementAmount) || 0;
+        if (amt <= 0) {
+          return;
+        }
         if (amt < 50000) amountBands.under50k++;
         else if (amt < 100000) amountBands['50k-1l']++;
         else if (amt < 200000) amountBands['1l-2l']++;
         else if (amt < 500000) amountBands['2l-5l']++;
         else amountBands.above5l++;
-      }
+      });
 
-      const createdDate = c.createdDate || c.applicationDate || c.loanDate;
+      const createdDate = this.parseDate(c.createdDate || c.applicationDate || c.loanDate);
       if (createdDate) {
-        const d = new Date(createdDate);
+        const d = createdDate;
         if (!isNaN(d.getTime())) {
           for (let i = 0; i < 6; i++) {
             const bucketStart = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
@@ -212,23 +220,25 @@ export class DashboardComponent implements OnInit {
         }
       }
 
-      if (isDisbursed && amt > 0) {
-        const loanDate = activeLoan?.loanDate ?? firstLoan?.loanDate ?? c.loanDate ?? c.createdDate;
-        if (loanDate) {
-          const d = new Date(loanDate);
-          if (!isNaN(d.getTime())) {
-            for (let i = 0; i < 6; i++) {
-              const bucketStart = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-              const bucketEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0);
-              if (d >= bucketStart && d <= bucketEnd) {
-                disbursementByMonth[i] += amt;
-                disbursedCountByMonth[i] += 1;
-                break;
-              }
-            }
+      disbursedLoans.forEach((loan) => {
+        const loanAmt = this.loanAmount(loan);
+        if (loanAmt <= 0) {
+          return;
+        }
+        const d = this.parseDate(this.loanDisbursalDate(loan, c));
+        if (!d) {
+          return;
+        }
+        for (let i = 0; i < 6; i++) {
+          const bucketStart = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+          const bucketEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0);
+          if (d >= bucketStart && d <= bucketEnd) {
+            disbursementByMonth[i] += loanAmt;
+            disbursedCountByMonth[i] += 1;
+            break;
           }
         }
-      }
+      });
     });
 
     const statusData = [
@@ -265,9 +275,7 @@ export class DashboardComponent implements OnInit {
         trigger: 'axis',
         formatter: (p: any) => {
           if (!p || !p[0]) return '';
-          const v = p[0].value ?? 0;
-          const fmt = v >= 100000 ? `₹${(v/100000).toFixed(1)}L` : `₹${Number(v).toLocaleString()}`;
-          return `${p[0].name}<br/>Disbursed: ${fmt}`;
+          return `${p[0].name}<br/>Disbursed: ${this.formatInr(Number(p[0].value) || 0)}`;
         }
       },
       grid: { top: 25, right: 20, bottom: 35, left: 55 },
@@ -324,14 +332,70 @@ export class DashboardComponent implements OnInit {
     };
   }
 
-  formatDate(dateVal: string | Date | null | undefined): string {
-    if (!dateVal) return 'N/A';
-    try {
-      const d = typeof dateVal === 'string' ? new Date(dateVal) : dateVal;
-      return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    } catch {
-      return 'N/A';
+  /** Money that has actually gone out: active, disbursed, or later closed. */
+  private isDisbursedStatus(status: string | undefined): boolean {
+    const s = (status || '').toUpperCase().trim().replace(/_/g, '-');
+    return s === 'ACTIVE' || s === 'DISBURSED' || s === 'CLOSED';
+  }
+
+  private isActiveLoan(loan: LoanAccountDetail | undefined): boolean {
+    return (loan?.loanStatus || '').toUpperCase().trim() === 'ACTIVE';
+  }
+
+  private uniqueDisbursedLoans(loanDetails: LoanAccountDetail[]): LoanAccountDetail[] {
+    const seen = new Set<string>();
+    const loans: LoanAccountDetail[] = [];
+    for (const loan of loanDetails || []) {
+      if (!this.isDisbursedStatus(loan.loanStatus)) {
+        continue;
+      }
+      const key = (loan.loanAccountNumber || '').trim() || `amt:${loan.netDisbursedAmount}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      loans.push(loan);
     }
+    return loans;
+  }
+
+  private loanAmount(loan: LoanAccountDetail | undefined): number {
+    return Number(loan?.netDisbursedAmount) || 0;
+  }
+
+  private loanDisbursalDate(loan: LoanAccountDetail | undefined, customer: any): string | undefined {
+    return loan?.disbusalDate || loan?.disbursalDate || loan?.loanDate
+      || customer?.loanDisbusDate || customer?.loanDate || customer?.createdDate;
+  }
+
+  private formatInr(amount: number): string {
+    const abs = Math.abs(amount);
+    if (abs >= 10000000) {
+      return `₹${(amount / 10000000).toFixed(2)}Cr`;
+    }
+    if (abs >= 100000) {
+      return `₹${(amount / 100000).toFixed(2)}L`;
+    }
+    return `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  }
+
+  private parseDate(dateVal: string | Date | null | undefined): Date | null {
+    if (!dateVal) return null;
+    if (dateVal instanceof Date) {
+      return isNaN(dateVal.getTime()) ? null : dateVal;
+    }
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateVal);
+    if (dateOnly) {
+      return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+    }
+    const parsed = new Date(dateVal);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  formatDate(dateVal: string | Date | null | undefined): string {
+    const d = this.parseDate(dateVal);
+    if (!d) return 'N/A';
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
   
   openChartDialog(chartType: string): void {

@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="detail-tabs">
+    <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)" class="detail-tabs">
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon>person</mat-icon>

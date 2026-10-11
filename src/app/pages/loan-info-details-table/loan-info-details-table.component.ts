@@ -6,10 +6,15 @@ import { GoldRateService } from 'src/app/services/gold-rate.service';
 import { LoaderService } from 'src/app/services/loader.service';
 
 interface LoanAccountDetail {
-  loanAccountNumber: string;
-  customerId: string;
+  loanAccountNumber?: string;
+  loanAccountNo?: string;
+  goldLoanAccountNumber?: string;
+  tempLoanAccountNumber?: string;
+  customerId?: string;
   netDisbursedAmount?: number;
   loanDate?: string;
+  disbusalDate?: string;
+  disbursalDate?: string;
   loanStatus?: string;
 }
 
@@ -17,8 +22,11 @@ interface LoanApplication {
   id: number;
   customerId: string;
   tempLoanAccountNumber: string;
+  /** Every account number for this customer, including additional loans. */
+  loanAccountNumbers: string[];
   name: string;
   mobileNumber: string;
+  alternateMobileNumber: string;
   loanDate: string;
   loanAmount: number | null;
   createdBy: string;
@@ -129,14 +137,19 @@ export class LoanInfoDetailsTableComponent implements OnInit {
     const isDisbursed = loanDetails.some((l: LoanAccountDetail) => (l.loanStatus || '').toUpperCase() === 'ACTIVE');
 
     const loanAmount = activeLoan?.netDisbursedAmount ?? firstLoan?.netDisbursedAmount ?? c.loanDisbussementAmount ?? c.loanAmount ?? c.loanAmountNeedToBeDisbursed ?? null;
-    const loanDateRaw = activeLoan?.loanDate ?? firstLoan?.loanDate ?? c.loanDisbusDate ?? c.loanDate ?? c.createdDate ?? c.applicationDate;
+    const loanDateRaw = activeLoan?.disbusalDate ?? activeLoan?.disbursalDate ?? activeLoan?.loanDate
+      ?? firstLoan?.disbusalDate ?? firstLoan?.disbursalDate ?? firstLoan?.loanDate
+      ?? c.loanDisbusDate ?? c.loanDate ?? c.createdDate ?? c.applicationDate;
+    const loanAccountNumbers = this.collectLoanAccountNumbers(c, loanDetails);
 
     return {
       id: c.id,
       customerId: c.customerId ?? 'N/A',
-      tempLoanAccountNumber: c.tempLoanAccountNumber ?? firstLoan?.loanAccountNumber ?? c.loanAccountNo ?? 'N/A',
+      tempLoanAccountNumber: loanAccountNumbers[0] ?? 'N/A',
+      loanAccountNumbers,
       name: this.buildFullName(c.firstName, c.middleName, c.lastName),
       mobileNumber: c.mobileNumber ?? 'N/A',
+      alternateMobileNumber: c.alternateMobileNumber ?? '',
       loanDate: this.formatLoanDate(loanDateRaw),
       loanAmount: loanAmount != null ? Number(loanAmount) : null,
       createdBy: c.createdBy ?? 'N/A',
@@ -144,6 +157,46 @@ export class LoanInfoDetailsTableComponent implements OnInit {
       isDisbursed,
       loanAccountDetailsDto: loanDetails
     };
+  }
+
+  private collectLoanAccountNumbers(customer: any, loanDetails: LoanAccountDetail[]): string[] {
+    const values: string[] = [];
+    const push = (value: unknown) => {
+      const text = (value ?? '').toString().trim();
+      if (text && text.toUpperCase() !== 'N/A') {
+        values.push(text);
+      }
+    };
+
+    push(customer?.tempLoanAccountNumber);
+    push(customer?.loanAccountNo);
+    push(customer?.loanAccountNumber);
+    push(customer?.goldLoanAccountNumber);
+
+    const lists = [loanDetails, customer?.loanAccountDetailsDtoList, customer?.loanAccounts];
+    for (const list of lists) {
+      if (!Array.isArray(list)) {
+        continue;
+      }
+      for (const item of list) {
+        push(item?.loanAccountNumber);
+        push(item?.loanAccountNo);
+        push(item?.goldLoanAccountNumber);
+        push(item?.tempLoanAccountNumber);
+      }
+    }
+
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const value of values) {
+      const key = value.toLowerCase();
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      unique.push(value);
+    }
+    return unique;
   }
 
   buildFullName(firstName: string, middleName: string, lastName: string): string {
@@ -187,21 +240,54 @@ export class LoanInfoDetailsTableComponent implements OnInit {
   }
 
 
+  onSearchChange(value: string): void {
+    this.filterText = value;
+    this.currentPage = 1;
+  }
+
+  clearSearch(): void {
+    this.filterText = '';
+    this.currentPage = 1;
+  }
+
   get filteredLoans(): LoanApplication[] {
-    const text = this.filterText.toLowerCase();
+    const text = this.filterText.trim().toLowerCase();
     return this.loanList.filter(loan => {
-      let matchStatus = true;
-      if (this.selectedStatus !== 'All') {
-        matchStatus = this.matchesStatusFilter(loan, this.selectedStatus);
-      }
-      const matchText = 
-        loan.name.toLowerCase().includes(text) || 
-        loan.customerId.toLowerCase().includes(text) ||
-        loan.mobileNumber.includes(text) ||
-        loan.tempLoanAccountNumber.toLowerCase().includes(text) ||
-        (loan.loanDate && loan.loanDate !== 'N/A' && loan.loanDate.toLowerCase().includes(text));
-      return matchStatus && matchText;
+      const matchStatus = this.selectedStatus === 'All' || this.matchesStatusFilter(loan, this.selectedStatus);
+      return matchStatus && this.matchesSearch(loan, text);
     });
+  }
+
+  private matchesSearch(loan: LoanApplication, text: string): boolean {
+    if (!text) {
+      return true;
+    }
+    const mobileDigits = text.replace(/\D/g, '');
+    const mobile = (loan.mobileNumber || '').toLowerCase();
+    const alternate = (loan.alternateMobileNumber || '').toLowerCase();
+    const mobileMatch = mobile.includes(text)
+      || alternate.includes(text)
+      || (mobileDigits.length >= 3 && (
+        mobile.replace(/\D/g, '').includes(mobileDigits)
+        || alternate.replace(/\D/g, '').includes(mobileDigits)
+      ));
+
+    return (loan.name || '').toLowerCase().includes(text)
+      || (loan.customerId || '').toLowerCase().includes(text)
+      || mobileMatch
+      || (loan.loanAccountNumbers || []).some(accountNo => accountNo.toLowerCase().includes(text));
+  }
+
+  /** When the query is a loan account, show that account instead of only the first one. */
+  displayAccountNumber(loan: LoanApplication): string {
+    const text = this.filterText.trim().toLowerCase();
+    if (text) {
+      const matched = (loan.loanAccountNumbers || []).find(accountNo => accountNo.toLowerCase().includes(text));
+      if (matched) {
+        return matched;
+      }
+    }
+    return loan.tempLoanAccountNumber;
   }
 
   matchesStatusFilter(loan: LoanApplication, filterStatus: string): boolean {

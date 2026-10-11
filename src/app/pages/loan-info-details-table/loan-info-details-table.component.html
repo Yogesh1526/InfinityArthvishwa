@@ -120,10 +120,11 @@
           <mat-icon class="search-icon">search</mat-icon>
           <input 
             type="text" 
-            [(ngModel)]="filterText" 
-            placeholder="Search by name, customer ID, or mobile number..." 
+            [ngModel]="filterText"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search by name, customer ID, mobile number, or loan account number..." 
           />
-          <button *ngIf="filterText" class="clear-btn" (click)="filterText = ''">
+          <button *ngIf="filterText" class="clear-btn" (click)="clearSearch()">
             <mat-icon>close</mat-icon>
           </button>
         </div>
@@ -154,7 +155,7 @@
                 <span class="customer-id">{{ loan.customerId }}</span>
               </td>
               <td>
-                <span class="loan-account">{{ loan.tempLoanAccountNumber }}</span>
+                <span class="loan-account">{{ displayAccountNumber(loan) }}</span>
               </td>
               <td>
                 <div class="name-cell">

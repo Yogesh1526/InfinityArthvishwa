@@ -74,6 +74,9 @@ export class CustomerProfileComponent implements OnInit {
   loadingKycKey: string | null = null;
   /** Loading state for additional doc view/download */
   loadingAdditionalId: number | null = null;
+  private outstandingLoaded = false;
+  private paymentHistoryLoaded = false;
+  private documentsLoaded = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -109,9 +112,9 @@ export class CustomerProfileComponent implements OnInit {
           this.customer = data;
           const loanList = data.loanAccountDetailsDtoList || data.loanAccountDetailsDto || [];
           this.loans = this.mapLoanAccountDetails(loanList);
-          this.loadOutstandingSnapshotsForLoans();
-          this.loadPaymentHistory();
-          this.loadCustomerDocuments();
+          this.outstandingLoaded = false;
+          this.paymentHistoryLoaded = false;
+          this.documentsLoaded = false;
         } else {
           this.toastService.showError('Customer not found');
           this.router.navigate(['/loan-info-details']);
@@ -157,11 +160,22 @@ export class CustomerProfileComponent implements OnInit {
     });
   }
 
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    if (index === 1) {
+      this.loadOutstandingSnapshotsForLoans();
+    } else if (index === 2) {
+      this.loadPaymentHistory();
+    } else if (index === 3) {
+      this.loadCustomerDocuments();
+    }
+  }
+
   /**
    * Enrich each loan card with till-date interest and total outstanding (same source as Loan Release outstanding step).
    */
   private loadOutstandingSnapshotsForLoans(): void {
-    if (!this.customerId || this.loans.length === 0) {
+    if (!this.customerId || this.loans.length === 0 || this.outstandingLoaded || this.loanOutstandingLoading) {
       return;
     }
 
@@ -195,6 +209,7 @@ export class CustomerProfileComponent implements OnInit {
         });
         this.loans = [...this.loans];
         this.loanOutstandingLoading = false;
+        this.outstandingLoaded = true;
       },
       error: () => {
         this.loanOutstandingLoading = false;
@@ -325,17 +340,19 @@ export class CustomerProfileComponent implements OnInit {
    * Load release + payment receipt lists (/paymentDocuments/list/{customerId}), grouped by loan account.
    */
   loadPaymentHistory(): void {
-    if (!this.customerId) return;
+    if (!this.customerId || this.paymentHistoryLoaded || this.isLoadingHistory) return;
 
     this.isLoadingHistory = true;
     this.apiService.getPaymentDocumentsList(this.customerId).subscribe({
       next: (res: any) => {
         this.isLoadingHistory = false;
+        this.paymentHistoryLoaded = true;
         const data = res?.data;
         this.paymentDocsByLoan = this.buildPaymentDocsByLoan(data);
       },
       error: () => {
         this.isLoadingHistory = false;
+        this.paymentHistoryLoaded = false;
         this.paymentDocsByLoan = [];
         this.toastService.showError('Failed to load payment documents.');
       }
@@ -459,7 +476,7 @@ export class CustomerProfileComponent implements OnInit {
    * Additional: `getAllClientDocument` — same as Additional Documents step.
    */
   loadCustomerDocuments(): void {
-    if (!this.customerId) return;
+    if (!this.customerId || this.documentsLoaded || this.isLoadingDocuments) return;
     this.isLoadingDocuments = true;
     forkJoin({
       kyc: this.apiService.getAllKycDocuments(this.customerId).pipe(catchError(() => of({ data: [] }))),
@@ -469,12 +486,14 @@ export class CustomerProfileComponent implements OnInit {
     }).subscribe({
       next: ({ kyc, additional }) => {
         this.isLoadingDocuments = false;
+        this.documentsLoaded = true;
         this.kycDocuments = Array.isArray(kyc?.data) ? kyc.data : [];
         const addRaw = additional?.data ?? additional;
         this.additionalDocuments = Array.isArray(addRaw) ? addRaw : [];
       },
       error: () => {
         this.isLoadingDocuments = false;
+        this.documentsLoaded = false;
         this.kycDocuments = [];
         this.additionalDocuments = [];
       }

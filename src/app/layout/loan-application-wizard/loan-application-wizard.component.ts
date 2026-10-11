@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -27,7 +27,7 @@ import { FinalValuationComponent } from './steps/final-valuation/final-valuation
   templateUrl: './loan-application-wizard.component.html',
   styleUrls: ['./loan-application-wizard.component.css']
 })
-export class LoanApplicationWizardComponent implements OnInit {
+export class LoanApplicationWizardComponent implements OnInit, OnDestroy {
   @ViewChild('personalDetailsRef') personalDetailsRef!: PersonalDetailsComponent;
   @ViewChild('familyDetailsRef') familyDetailsRef!: FamilyDetailsComponent;
   @ViewChild('addressActivityRef') addressActivityRef!: AddressActivityComponent;
@@ -51,6 +51,10 @@ export class LoanApplicationWizardComponent implements OnInit {
   customerName: string = 'N/A'; // Customer name to pass to child components
   stepCompletionStatus: boolean[] = [];
   private checkedSteps: Set<number> = new Set(); // Track which steps have been checked
+  /** Bumped to cancel a sidebar status queue when the loan account changes or the page closes. */
+  private statusCheckGeneration = 0;
+  private readonly statusCheckConcurrency = 2;
+  private readonly loanAccountStepIndexes = [8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21];
 
   steps = [
     { label: 'Personal Details', key: 'personal' },
@@ -122,41 +126,36 @@ export class LoanApplicationWizardComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.statusCheckGeneration++;
+  }
+
   /**
-   * Fetch loanAccountNo from getAllCustomerDetails API using customerId
-   * This is the only API called on initial load
-   * Preserves loanApplicationId from URL query param (loanAccount) when present
+   * Load this customer only. The open step fetches its own data.
+   * Sidebar ticks are filled afterwards, two requests at a time.
    */
   fetchLoanAccountNo(): void {
-    const hadValidLoanAccount = this.loanApplicationId && (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL'));
+    const hadValidLoanAccount = !!(this.loanApplicationId && (this.loanApplicationId.startsWith('AP') || this.loanApplicationId.startsWith('GL')));
+    const id = this.customerId || this.loanApplicationId;
+    if (!id) {
+      this.queueSidebarStatusChecks();
+      return;
+    }
 
-    this.personalService.getAllCustomerDetails().subscribe({
+    this.personalService.getById(id).subscribe({
       next: (response) => {
-        const customers = response?.data || [];
-        const customer = customers.find((c: any) => c.customerId === this.customerId);
+        const customer = response?.data;
         if (customer) {
-          // Only update loanApplicationId from API if we didn't already have one from URL/localStorage
-          if (!hadValidLoanAccount) {
-            if (customer.loanAccountNo) {
-              this.loanApplicationId = customer.loanAccountNo;
-            } else {
-              this.loanApplicationId = this.customerId;
-            }
-          }
-          // Store numeric ID for APIs that need it
-          this.customerNumericId = customer.id || 0;
-          // Build and store customer name
-          const nameParts = [customer.firstName, customer.middleName, customer.lastName].filter(Boolean);
-          this.customerName = nameParts.length > 0 ? nameParts.join(' ') : 'N/A';
-        } else {
-          if (!hadValidLoanAccount) {
-            this.loanApplicationId = this.customerId;
-          }
+          this.applyCustomerSummary(customer, hadValidLoanAccount);
+          this.stepCompletionStatus[0] = true;
+          this.checkedSteps.add(0);
+          this.stepCompletionStatus = [...this.stepCompletionStatus];
+        } else if (!hadValidLoanAccount) {
+          this.loanApplicationId = this.customerId;
           this.customerNumericId = 0;
           this.customerName = 'N/A';
         }
-        // Check ALL steps on initial load to show correct status in sidebar
-        this.checkAllStepsCompletion();
+        this.queueSidebarStatusChecks();
       },
       error: (err) => {
         console.error('Error fetching customer details:', err);
@@ -165,148 +164,72 @@ export class LoanApplicationWizardComponent implements OnInit {
         }
         this.customerNumericId = 0;
         this.customerName = 'N/A';
-        // Still try to check steps
-        this.checkAllStepsCompletion();
+        this.queueSidebarStatusChecks();
       }
     });
   }
 
- 
-  checkAllStepsCompletion(): void {
-    const accountNumber = this.getValidLoanAccountNumber();
-    const apiCalls: { [key: number]: any } = {};
-    
-    // Step 0: Personal Details
-    apiCalls[0] = this.personalService.getById(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of(null))
-    );
-    
-    // Step 1: Family Details
-    apiCalls[1] = this.personalService.getFamilyDetailsById(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of({ data: [] }))
-    );
-    
-    // Step 2: Address
-    apiCalls[2] = this.personalService.getAddressDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of({ data: [] }))
-    );
-    
-    // Step 3: Work Details
-    apiCalls[3] = this.personalService.getWorkDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of({ data: [] }))
-    );
-    
-    // Step 4: KYC
-    if (this.customerId) {
-      apiCalls[4] = this.personalService.getAllKycDocuments(this.customerId).pipe(
-        catchError(() => of({ data: [] }))
-      );
+  private applyCustomerSummary(customer: any, hadValidLoanAccount: boolean): void {
+    this.customerNumericId = customer.id || 0;
+    const name = [customer.firstName, customer.middleName, customer.lastName].filter(Boolean).join(' ').trim();
+    this.customerName = name || 'N/A';
+    if (hadValidLoanAccount) {
+      return;
     }
-    
-    // Step 5: Additional Documents
-    if (this.customerId) {
-      apiCalls[5] = this.clientDocumentService.getAllClientDocuments(this.customerId).pipe(
-        catchError(() => of({ data: [] }))
-      );
+    const account = this.pickLoanAccount(customer);
+    this.loanApplicationId = account || this.customerId;
+    if (account && this.customerId) {
+      localStorage.setItem(`loanAccountNumber_${this.customerId}`, account);
     }
-    
-    // Step 6: Nominee (was step 5)
-    apiCalls[6] = this.personalService.getNomineeByCustomerId(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of({ data: [] }))
-    );
-    
-    // Step 7: Reference (was step 6)
-    apiCalls[7] = this.personalService.getReferenceDetailsByCustomerId(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of({ data: [] }))
-    );
-    
-    // Step 13: Bank Details (was step 12)
-    apiCalls[13] = this.personalService.getBankDetails(this.customerId || this.loanApplicationId).pipe(
-      catchError(() => of({ data: [] }))
-    );
-    
-    // Steps that require accountNumber
-    if (accountNumber) {
-      // Step 8: Gold Ownership (was step 7)
-      apiCalls[8] = this.personalService.getGoldOwnershipDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: [] }))
-      );
-      
-      // Step 9: First Valuation (was step 8)
-      apiCalls[9] = this.personalService.getFirstValuationDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-      
-      // Step 10: Second Valuation (was step 9)
-      apiCalls[10] = this.personalService.getSecondValuationDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-      
-      // Step 11: Final Valuation (was step 10)
-      apiCalls[11] = this.personalService.getFinalValuationById(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-      
-      // Step 12: GL Scheme Selection (was step 11)
-      apiCalls[12] = this.personalService.getSchemeSelectionDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-      
-      // Step 14: Packet Allotment (was step 13)
-      apiCalls[14] = this.personalService.getPacketAllotmentDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: [] }))
-      );
-      
-      // Step 15: Tare Weight (was step 14)
-      apiCalls[15] = this.personalService.getTareWeightById(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: [] }))
-      );
-      
-      // Step 16: Cash Split
-      apiCalls[16] = this.personalService.getAllCashSplitDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: [] }))
-      );
-      
-      // Step 17: Expected Closure Date (was step 16)
-      apiCalls[17] = this.personalService.getExpectedClosureDetails(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-      
-      // Step 18: Loan Application Approval (was step 17)
-      apiCalls[18] = this.personalService.getApprovalFiles(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-    }
-    
-    // Step 19: Loan Agreement Document - check localStorage (use accountNumber or loanApplicationId for key)
-    const accNumForDoc = accountNumber || this.loanApplicationId || '';
-    const docGenerated = !!localStorage.getItem(`loanAgreementDoc_${this.customerId}_${accNumForDoc}`);
-    this.stepCompletionStatus[19] = !!docGenerated;
-    this.checkedSteps.add(19);
-    
-    // Step 20: Scanned Document - requires accountNumber
-    if (accountNumber) {
-      apiCalls[20] = this.personalService.getScanDocument(this.customerId, accountNumber).pipe(
-        catchError(() => of(null))
-      );
-    }
-    // Step 21: Disbursement - requires accountNumber (was step 20)
-    if (accountNumber) {
-      apiCalls[21] = this.personalService.getDisbursementInfo(this.customerId, accountNumber).pipe(
-        catchError(() => of({ data: null }))
-      );
-    }
-    
-    // Execute all API calls
-    Object.keys(apiCalls).forEach(stepIndexStr => {
-      const stepIndex = parseInt(stepIndexStr, 10);
-      apiCalls[stepIndex].subscribe((result: any) => {
-        this.stepCompletionStatus[stepIndex] = this.evaluateStepCompletion(stepIndex, result);
-        this.checkedSteps.add(stepIndex);
-        // Trigger change detection
-        this.stepCompletionStatus = [...this.stepCompletionStatus];
+  }
+
+  private pickLoanAccount(customer: any): string | null {
+    const lists = [customer?.loanAccountDetailsDtoList, customer?.loanAccountDetailsDto];
+    for (const list of lists) {
+      if (!Array.isArray(list)) {
+        continue;
+      }
+      const match = list.find((loan: any) => {
+        const number = loan?.loanAccountNumber || '';
+        return number.startsWith('GL') || number.startsWith('AP');
       });
-    });
+      if (match?.loanAccountNumber) {
+        return match.loanAccountNumber;
+      }
+    }
+    const temp = customer?.tempLoanAccountNumber || '';
+    return temp.startsWith('GL') || temp.startsWith('AP') ? temp : null;
+  }
+
+  /**
+   * Fill sidebar completion without calling every step API at the same time.
+   * The step on screen is skipped because that component loads itself.
+   */
+  private queueSidebarStatusChecks(): void {
+    const generation = ++this.statusCheckGeneration;
+    const queue = this.steps
+      .map((_, index) => index)
+      .filter(index => index !== this.activeStep && !this.checkedSteps.has(index));
+    let running = 0;
+
+    const pump = () => {
+      if (generation !== this.statusCheckGeneration) {
+        return;
+      }
+      while (running < this.statusCheckConcurrency && queue.length > 0) {
+        const stepIndex = queue.shift() as number;
+        if (this.checkedSteps.has(stepIndex) || stepIndex === this.activeStep) {
+          continue;
+        }
+        running++;
+        this.checkSingleStepCompletion(stepIndex, () => {
+          running--;
+          pump();
+        });
+      }
+    };
+
+    pump();
   }
 
   /**
@@ -333,9 +256,11 @@ export class LoanApplicationWizardComponent implements OnInit {
    * Check completion status for a single step - called when navigating to that step
    * Note: Additional Documents step has been removed, indices adjusted accordingly
    */
-  checkSingleStepCompletion(stepIndex: number): void {
+  checkSingleStepCompletion(stepIndex: number, onDone?: () => void): void {
+    const finish = () => onDone?.();
     // Skip if already checked
     if (this.checkedSteps.has(stepIndex)) {
+      finish();
       return;
     }
 
@@ -470,6 +395,7 @@ export class LoanApplicationWizardComponent implements OnInit {
         this.stepCompletionStatus[stepIndex] = !!docGenerated;
         this.checkedSteps.add(stepIndex);
         this.stepCompletionStatus = [...this.stepCompletionStatus];
+        finish();
         return;
       case 20: // Scanned Document
         if (this.customerId && accountNumber) {
@@ -488,11 +414,14 @@ export class LoanApplicationWizardComponent implements OnInit {
     }
 
     // Make the API call and update completion status
-    apiCall$.subscribe((result: any) => {
-      this.stepCompletionStatus[stepIndex] = this.evaluateStepCompletion(stepIndex, result);
-      this.checkedSteps.add(stepIndex);
-      // Trigger change detection
-      this.stepCompletionStatus = [...this.stepCompletionStatus];
+    apiCall$.subscribe({
+      next: (result: any) => {
+        this.stepCompletionStatus[stepIndex] = this.evaluateStepCompletion(stepIndex, result);
+        this.checkedSteps.add(stepIndex);
+        this.stepCompletionStatus = [...this.stepCompletionStatus];
+      },
+      error: () => finish(),
+      complete: () => finish()
     });
   }
 
@@ -629,7 +558,6 @@ export class LoanApplicationWizardComponent implements OnInit {
       }
       if (canNavigate) {
         this.activeStep = index;
-        this.checkSingleStepCompletion(index);
       } else {
         this.toastService.showWarning('Please complete all previous steps before navigating.');
       }
@@ -648,7 +576,6 @@ export class LoanApplicationWizardComponent implements OnInit {
       }
       if (canNavigate) {
         this.activeStep = index;
-        this.checkSingleStepCompletion(index);
       } else {
         this.toastService.showWarning('Please complete the current step before proceeding to the next step.');
       }
@@ -703,8 +630,6 @@ export class LoanApplicationWizardComponent implements OnInit {
     
     if (this.activeStep < this.steps.length - 1) {
       this.activeStep++;
-      // Check completion for the new step
-      this.checkSingleStepCompletion(this.activeStep);
     }
   }
 
@@ -799,8 +724,6 @@ export class LoanApplicationWizardComponent implements OnInit {
   prev(): void {
     if (this.activeStep > 0) {
       this.activeStep--;
-      // Check completion for the new step
-      this.checkSingleStepCompletion(this.activeStep);
     }
   }
 
@@ -814,10 +737,8 @@ export class LoanApplicationWizardComponent implements OnInit {
       if (this.customerId) {
         localStorage.setItem(`loanAccountNumber_${this.customerId}`, loanAccountNumber);
       }
-      // Clear checked steps cache so they will be re-checked with new loan account number
-      this.checkedSteps.clear();
-      // Re-check ALL steps with new loan account number
-      this.checkAllStepsCompletion();
+      this.loanAccountStepIndexes.forEach(index => this.checkedSteps.delete(index));
+      this.queueSidebarStatusChecks();
     }
   }
 
